@@ -2,16 +2,16 @@
 
 class Program
 {
+    static List<Project> projectsList = new List<Project>();
+
     static void Main()
     {
-        List<Project> projectsList = new List<Project>();
-
         while (true) {
-            StartMenu(projectsList);
+            StartMenu();
         }
     }
 
-    static void StartMenu(List<Project> projectsList)
+    static void StartMenu()
     {
         // Initial Menu
         Console.WriteLine("Task Manager");
@@ -26,12 +26,12 @@ class Program
 
         // Option logic
         if (inputKey.Key == ConsoleKey.D1)
-            ListProjectMenu(projectsList.AsReadOnly());
-        else if (inputKey.Key == ConsoleKey.D2)
-            CreateProjectMenu(projectsList);
+            ListProjectMenu();
+        else
+            CreateProjectMenu();
     }
 
-    static void ListProjectMenu(IReadOnlyList<Project> projectsList)
+    static void ListProjectMenu()
     {
         // Check if empty
         if (projectsList.Count == 0) {
@@ -70,7 +70,7 @@ class Program
         }
     }
 
-    static void CreateProjectMenu(List<Project> projectsList)
+    static void CreateProjectMenu()
     {
         // Selected create new project 
         Console.WriteLine("Input new project name");
@@ -87,7 +87,7 @@ class Program
         };
 
         projectsList.Add(newProject);
-        
+
         CurrentProjectMenu(newProject);
     }
 
@@ -102,6 +102,16 @@ class Program
         Console.WriteLine("0. Exit");
 
         ConsoleKeyInfo inputKey = Console.ReadKey();
+
+        if (inputKey.Key == ConsoleKey.D1) {
+            // List all tasks
+        }
+        else if (inputKey.Key == ConsoleKey.D2) {
+            // Add new task
+        }
+        else if (inputKey.Key == ConsoleKey.D9) {
+            ListProjectMenu();
+        }
     }
 }
 
