@@ -33,6 +33,7 @@ class Program
 
     static void ListProjectMenu(IReadOnlyList<Project> projectsList)
     {
+        // Check if empty
         if (projectsList.Count == 0) {
             Console.WriteLine("You have no projects to list. Please create a new project");
             Console.WriteLine("Press any key to continue...");
