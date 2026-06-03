@@ -4,71 +4,103 @@ class Program
 {
     static void Main()
     {
-        List<Project> projects = [];
+        List<Project> projectsList = new List<Project>();
 
-        ConsoleKeyInfo inputKey = new ConsoleKeyInfo();
+        while (true) {
+            StartMenu(projectsList);
+        }
+    }
 
-        while (inputKey.Key != ConsoleKey.D0) {
-            // Initial Menu
-            Console.WriteLine("Task Manager");
-            Console.WriteLine(new string('-', 20));
-            Console.WriteLine("1. List all projects");
-            Console.WriteLine("2. Create new project");
-            Console.WriteLine("0. Exit");
+    static void StartMenu(List<Project> projectsList)
+    {
+        // Initial Menu
+        Console.WriteLine("Task Manager");
+        Console.WriteLine(new string('-', 20));
+        Console.WriteLine("1. List all projects");
+        Console.WriteLine("2. Create new project");
+        Console.WriteLine("0. Exit");
 
-            // Get Input
-            inputKey = Console.ReadKey();
+        // Get Input
+        ConsoleKeyInfo inputKey = Console.ReadKey();
+        Console.WriteLine();
 
-            // Option logic
-            if (inputKey.Key == ConsoleKey.D1) {
-                // Selected list all projects
+        // Option logic
+        if (inputKey.Key == ConsoleKey.D1)
+            ListProjectMenu(projectsList.AsReadOnly());
+        else if (inputKey.Key == ConsoleKey.D2)
+            CreateProjectMenu(projectsList);
+    }
 
-                if (projects.Count == 0) {
-                    Console.WriteLine("You have no projects to list. Please create a new one");
+    static void ListProjectMenu(IReadOnlyList<Project> projectsList)
+    {
+        if (projectsList.Count == 0) {
+            Console.WriteLine("You have no projects to list. Please create a new project");
+            Console.WriteLine("Press any key to continue...");
+            Console.ReadKey();
+            Console.WriteLine();
+            return;
+        }
+
+        // List all projects
+        for (int i = 0; i < projectsList.Count; i++) {
+            Console.WriteLine((i + 1) + ". " + projectsList[i].Name);
+
+            // Limit page
+            if (i % 8 == 0 || i == projectsList.Count - 1) {
+                if (i / 8 > 1)
+                    Console.WriteLine("9. Back");
+                Console.WriteLine("0. Exit");
+
+                ConsoleKeyInfo inputKey = Console.ReadKey();
+
+                if (inputKey.Key == ConsoleKey.D9) i -= 8;
+
+                int inputIndex = inputKey.KeyChar - 1;
+
+                if (projectsList[inputIndex].Tasks.Count == 0) {
+                    Console.WriteLine("You have no tasks in the project to list. Please create a new task");
                     Console.WriteLine("Press any key to continue...");
                     Console.ReadKey();
                     continue;
                 }
 
-                // List all projects
-                for (int i = 0; i < projects.Count; i++) {
-                    Console.WriteLine(i + ". " + projects[i].Name);
-
-                    // Limit page
-                    if (i % 8 == 0 || i == projects.Count - 1) {
-                        if (i / 8 > 1)
-                            Console.WriteLine("9. Back");
-                        Console.WriteLine("0. Exit");
-                    }
-                }
-            }
-            else if (inputKey.Key == ConsoleKey.D2) {
-                // Selected create new project 
-                Console.WriteLine("Input new project name");
-                Console.WriteLine(new string('-', 20));
-                Console.WriteLine("Enter nothing, to go back");
-                string? newProjectName = Console.ReadLine();
-
-                if (newProjectName == "")  continue; 
-
-                // Create new project item
-                Project newProject = new Project
-                {
-                    Name = newProjectName
-                };
-
-                projects.Add(newProject);
-
-                // After creation menu
-                Console.WriteLine("Current Project: " + newProjectName);
-                Console.WriteLine(new string('-', 20));
-                Console.WriteLine("1. Add new task");
-                Console.WriteLine("2. Go Back");
-                Console.WriteLine("0. Exit");
-
-                inputKey = Console.ReadKey();
+                CurrentProjectMenu(projectsList[inputIndex]);
             }
         }
+    }
+
+    static void CreateProjectMenu(List<Project> projectsList)
+    {
+        // Selected create new project 
+        Console.WriteLine("Input new project name");
+        Console.WriteLine(new string('-', 20));
+        Console.WriteLine("Enter nothing, to go back");
+        string? newProjectName = Console.ReadLine();
+
+        if (newProjectName == "") return;
+
+        // Create new project item
+        Project newProject = new Project
+        {
+            Name = newProjectName
+        };
+
+        projectsList.Add(newProject);
+        
+        CurrentProjectMenu(newProject);
+    }
+
+    static void CurrentProjectMenu(Project projectSelected)
+    {
+        // After creation menu
+        Console.WriteLine("Current Project: " + projectSelected);
+        Console.WriteLine(new string('-', 20));
+        Console.WriteLine("1. Lists Tasks");
+        Console.WriteLine("2. Add new task");
+        Console.WriteLine("9. Go Back");
+        Console.WriteLine("0. Exit");
+
+        ConsoleKeyInfo inputKey = Console.ReadKey();
     }
 }
 
