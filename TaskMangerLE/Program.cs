@@ -54,9 +54,12 @@ class Program
 
                 ConsoleKeyInfo inputKey = Console.ReadKey();
 
-                if (inputKey.Key == ConsoleKey.D9) i -= 8;
+                if (inputKey.Key == ConsoleKey.D9) {
+                    i -= 8;
+                    continue;
+                }
 
-                int inputIndex = inputKey.KeyChar - 1;
+                int inputIndex = i - (8 -inputKey.KeyChar);
 
                 if (projectsList[inputIndex].Tasks.Count == 0) {
                     Console.WriteLine("You have no tasks in the project to list. Please create a new task");
@@ -78,7 +81,7 @@ class Program
         Console.WriteLine("Enter nothing, to go back");
         string? newProjectName = Console.ReadLine();
 
-        if (newProjectName == "") return;
+        if (string.IsNullOrEmpty(newProjectName)) return;
 
         // Create new project item
         Project newProject = new Project
@@ -105,6 +108,7 @@ class Program
 
         if (inputKey.Key == ConsoleKey.D1) {
             // List all tasks
+            
         }
         else if (inputKey.Key == ConsoleKey.D2) {
             // Add new task
@@ -112,6 +116,50 @@ class Program
         else if (inputKey.Key == ConsoleKey.D9) {
             ListProjectMenu();
         }
+    }
+
+    static void ListTasksMenu(Project projectSelected)
+    {
+        // Check if empty
+        if (projectSelected.Tasks.Count == 0) {
+            Console.WriteLine("You have no projects to list. Please create a new project");
+            Console.WriteLine("Press any key to continue...");
+            Console.ReadKey();
+            Console.WriteLine();
+            return;
+        }
+
+        // List tasks
+        
+        for (int i = 0; i < projectSelected.Tasks.Count; i++) {
+            Console.WriteLine((i + 1) + ". " + projectSelected.Tasks[i].Name);
+            
+            // Limit page
+            if (i % 8 == 0 || i == projectSelected.Tasks.Count - 1) {
+                if (i / 8 > 1)
+                    Console.WriteLine("9. Back");
+                Console.WriteLine("0. Exit");
+
+                ConsoleKeyInfo inputKey = Console.ReadKey();
+
+                if (inputKey.Key == ConsoleKey.D9) {
+                    i -= 8;
+                    continue;
+                }
+
+                int inputIndex = i - (8 -inputKey.KeyChar);
+                
+                TaskMenu(projectSelected.Tasks[inputIndex]);
+            }
+            
+        }
+    }
+
+    static void TaskMenu(Task task)
+    {
+        Console.WriteLine("Task: " + task.Name);
+        Console.WriteLine("Description: " + task.Description);
+        Console.WriteLine("Completed: " + task.IsCompleted);
     }
 }
 
