@@ -3,6 +3,7 @@
 class Program
 {
     static List<Project> projectsList = new List<Project>();
+    private const int ItemsPerPage = 7;
 
     static void Main()
     {
@@ -47,19 +48,22 @@ class Program
             Console.WriteLine((i + 1) + ". " + projectsList[i].Name);
 
             // Limit page
-            if (i % 8 == 0 || i == projectsList.Count - 1) {
-                if (i / 8 > 1)
-                    Console.WriteLine("9. Back");
+            if (i % ItemsPerPage == 0 || i == projectsList.Count - 1) {
+                if (i / ItemsPerPage > 1 && i > ItemsPerPage)
+                    Console.WriteLine("8. Previous Page");
+                Console.WriteLine("9. Back");
                 Console.WriteLine("0. Exit");
 
                 ConsoleKeyInfo inputKey = Console.ReadKey();
 
-                if (inputKey.Key == ConsoleKey.D9) {
-                    i -= 8;
+                if (inputKey.Key == ConsoleKey.D8) {
+                    i -= ItemsPerPage;
                     continue;
                 }
 
-                int inputIndex = i - (8 -inputKey.KeyChar);
+                if (inputKey.Key == ConsoleKey.D9) return;
+
+                int inputIndex = i - (ItemsPerPage -inputKey.KeyChar);
 
                 if (projectsList[inputIndex].Tasks.Count == 0) {
                     Console.WriteLine("You have no tasks in the project to list. Please create a new task");
@@ -101,7 +105,7 @@ class Program
         Console.WriteLine(new string('-', 20));
         Console.WriteLine("1. Lists Tasks");
         Console.WriteLine("2. Add new task");
-        Console.WriteLine("9. Go Back");
+        Console.WriteLine("9. Back");
         Console.WriteLine("0. Exit");
 
         ConsoleKeyInfo inputKey = Console.ReadKey();
@@ -112,9 +116,6 @@ class Program
         }
         else if (inputKey.Key == ConsoleKey.D2) {
             // Add new task
-        }
-        else if (inputKey.Key == ConsoleKey.D9) {
-            ListProjectMenu();
         }
     }
 
@@ -135,19 +136,19 @@ class Program
             Console.WriteLine((i + 1) + ". " + projectSelected.Tasks[i].Name);
             
             // Limit page
-            if (i % 8 == 0 || i == projectSelected.Tasks.Count - 1) {
-                if (i / 8 > 1)
+            if (i % ItemsPerPage == 0 || i == projectSelected.Tasks.Count - 1) {
+                if (i / ItemsPerPage > 1)
                     Console.WriteLine("9. Back");
                 Console.WriteLine("0. Exit");
 
                 ConsoleKeyInfo inputKey = Console.ReadKey();
 
                 if (inputKey.Key == ConsoleKey.D9) {
-                    i -= 8;
+                    i -= ItemsPerPage;
                     continue;
                 }
 
-                int inputIndex = i - (8 -inputKey.KeyChar);
+                int inputIndex = i - (ItemsPerPage -inputKey.KeyChar);
                 
                 TaskMenu(projectSelected.Tasks[inputIndex]);
             }
