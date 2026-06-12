@@ -101,7 +101,7 @@ class Program
     static void CurrentProjectMenu(Project projectSelected)
     {
         // After creation menu
-        Console.WriteLine("Current Project: " + projectSelected);
+        Console.WriteLine("Current Project: " + projectSelected.Name);
         Console.WriteLine(new string('-', 20));
         Console.WriteLine("1. Lists Tasks");
         Console.WriteLine("2. Add new task");
