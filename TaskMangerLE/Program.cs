@@ -28,7 +28,7 @@ class Program
         // Option logic
         if (inputKey.Key == ConsoleKey.D1)
             ListProjectMenu();
-        else
+        else if (inputKey.Key == ConsoleKey.D2)
             CreateProjectMenu();
     }
 
@@ -55,6 +55,8 @@ class Program
                 Console.WriteLine("0. Exit");
 
                 ConsoleKeyInfo inputKey = Console.ReadKey();
+
+                if (inputKey.Key == ConsoleKey.D0) return;
 
                 if (inputKey.Key == ConsoleKey.D8) {
                     i -= ItemsPerPage;
@@ -110,6 +112,8 @@ class Program
         Console.WriteLine("0. Exit");
 
         ConsoleKeyInfo inputKey = Console.ReadKey();
+        
+        if (inputKey.Key == ConsoleKey.D0) return;
 
         if (inputKey.Key == ConsoleKey.D1) {
             // List all tasks
@@ -144,6 +148,8 @@ class Program
 
                 ConsoleKeyInfo inputKey = Console.ReadKey();
 
+                if (inputKey.Key == ConsoleKey.D0) return;
+                
                 if (inputKey.Key == ConsoleKey.D9) {
                     i -= ItemsPerPage;
                     continue;
