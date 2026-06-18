@@ -2,17 +2,64 @@
 
 class Program
 {
+    enum MenuCode : byte
+    {
+        None,
+        Start,
+        ListProjects,
+        CreateProject,
+        CurrentProject,
+        ListTasks,
+        CurrentTask,
+    }
+
     static List<Project> projectsList = new List<Project>();
+    private static Project selectedProject;
+    private static Task selectedTask;
+
+
     private const int ItemsPerPage = 7;
 
     static void Main()
     {
+        // Load Data
+        RunProgram();
+        // Save Data
+    }
+
+    static void RunProgram()
+    {
+        MenuCode menuCode = MenuCode.Start;
+
         while (true) {
-            StartMenu();
+            switch (menuCode) {
+                case MenuCode.Start:
+                    menuCode = StartMenu();
+                    break;
+                case MenuCode.ListProjects:
+                    menuCode = ListProjectMenu();
+                    break;
+                case MenuCode.CreateProject:
+                    menuCode = CreateProjectMenu();
+                    break;
+                case MenuCode.CurrentProject:
+                    menuCode = CurrentProjectMenu();
+                    break;
+                case MenuCode.ListTasks:
+                    menuCode = ListTasksMenu();
+                    break;
+                case MenuCode.CurrentTask:
+                    menuCode = CurrentTaskMenu();
+                    break;
+                case MenuCode.None:
+                default:
+                    return;
+            }
         }
     }
 
-    static void StartMenu()
+// return code == ExitCode.Back ? ExitCode.None : code;
+    static MenuCode StartMenu()
     {
         // Initial Menu
         Console.WriteLine("Task Manager");
@@ -26,13 +73,12 @@ class Program
         Console.WriteLine();
 
         // Option logic
-        if (inputKey.Key == ConsoleKey.D1)
-            ListProjectMenu();
-        else if (inputKey.Key == ConsoleKey.D2)
-            CreateProjectMenu();
+        if (inputKey.Key == ConsoleKey.D1) return MenuCode.ListProjects;
+        if (inputKey.Key == ConsoleKey.D2) return MenuCode.CreateProject;
+        return MenuCode.None;
     }
 
-    static void ListProjectMenu()
+    static MenuCode ListProjectMenu()
     {
         // Check if empty
         if (projectsList.Count == 0) {
@@ -40,7 +86,7 @@ class Program
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
             Console.WriteLine();
-            return;
+            return MenuCode.Start;
         }
 
         // List all projects
@@ -56,16 +102,16 @@ class Program
 
                 ConsoleKeyInfo inputKey = Console.ReadKey();
 
-                if (inputKey.Key == ConsoleKey.D0) return;
+                if (inputKey.Key == ConsoleKey.D0) return MenuCode.None;
 
                 if (inputKey.Key == ConsoleKey.D8) {
                     i -= ItemsPerPage;
                     continue;
                 }
 
-                if (inputKey.Key == ConsoleKey.D9) return;
+                if (inputKey.Key == ConsoleKey.D9) return MenuCode.Start;
 
-                int inputIndex = i - (ItemsPerPage -inputKey.KeyChar);
+                int inputIndex = i - (ItemsPerPage - inputKey.KeyChar);
 
                 if (projectsList[inputIndex].Tasks.Count == 0) {
                     Console.WriteLine("You have no tasks in the project to list. Please create a new task");
@@ -74,13 +120,15 @@ class Program
                     continue;
                 }
 
-                CurrentProjectMenu(projectsList[inputIndex]);
-                return;
+                selectedProject = projectsList[inputIndex];
+                return MenuCode.CurrentProject;
             }
         }
+
+        return MenuCode.None;
     }
 
-    static void CreateProjectMenu()
+    static MenuCode CreateProjectMenu()
     {
         // Selected create new project 
         Console.WriteLine("Input new project name");
@@ -88,7 +136,7 @@ class Program
         Console.WriteLine("Enter nothing, to go back");
         string? newProjectName = Console.ReadLine();
 
-        if (string.IsNullOrEmpty(newProjectName)) return;
+        if (string.IsNullOrEmpty(newProjectName)) return MenuCode.Start;
 
         // Create new project item
         Project newProject = new Project
@@ -98,13 +146,14 @@ class Program
 
         projectsList.Add(newProject);
 
-        CurrentProjectMenu(newProject);
+        selectedProject = newProject;
+        return MenuCode.CurrentProject;
     }
 
-    static void CurrentProjectMenu(Project projectSelected)
+    static MenuCode CurrentProjectMenu()
     {
         // After creation menu
-        Console.WriteLine("Current Project: " + projectSelected.Name);
+        Console.WriteLine("Current Project: " + selectedProject.Name);
         Console.WriteLine(new string('-', 20));
         Console.WriteLine("1. Lists Tasks");
         Console.WriteLine("2. Add new task");
@@ -112,62 +161,68 @@ class Program
         Console.WriteLine("0. Exit");
 
         ConsoleKeyInfo inputKey = Console.ReadKey();
-        
-        if (inputKey.Key == ConsoleKey.D0) return;
+        Console.WriteLine();
+
+        if (inputKey.Key == ConsoleKey.D0) return MenuCode.None;
 
         if (inputKey.Key == ConsoleKey.D1) {
             // List all tasks
-            
+            return MenuCode.ListTasks;
         }
-        else if (inputKey.Key == ConsoleKey.D2) {
+
+        if (inputKey.Key == ConsoleKey.D2) {
             // Add new task
         }
+
+        return MenuCode.None;
     }
 
-    static void ListTasksMenu(Project projectSelected)
+    static MenuCode ListTasksMenu()
     {
         // Check if empty
-        if (projectSelected.Tasks.Count == 0) {
+        if (selectedProject.Tasks.Count == 0) {
             Console.WriteLine("You have no projects to list. Please create a new project");
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
             Console.WriteLine();
-            return;
+            return MenuCode.CurrentProject;
         }
 
         // List tasks
-        
-        for (int i = 0; i < projectSelected.Tasks.Count; i++) {
-            Console.WriteLine((i + 1) + ". " + projectSelected.Tasks[i].Name);
-            
+        for (int i = 0; i < selectedProject.Tasks.Count; i++) {
+            Console.WriteLine((i + 1) + ". " + selectedProject.Tasks[i].Name);
+
             // Limit page
-            if (i % ItemsPerPage == 0 || i == projectSelected.Tasks.Count - 1) {
+            if (i % ItemsPerPage == 0 || i == selectedProject.Tasks.Count - 1) {
                 if (i / ItemsPerPage > 1)
                     Console.WriteLine("9. Back");
                 Console.WriteLine("0. Exit");
 
                 ConsoleKeyInfo inputKey = Console.ReadKey();
 
-                if (inputKey.Key == ConsoleKey.D0) return;
-                
+                if (inputKey.Key == ConsoleKey.D0) return MenuCode.None;
+
                 if (inputKey.Key == ConsoleKey.D9) {
                     i -= ItemsPerPage;
                     continue;
                 }
 
-                int inputIndex = i - (ItemsPerPage -inputKey.KeyChar);
-                
-                TaskMenu(projectSelected.Tasks[inputIndex]);
+                int inputIndex = i - (ItemsPerPage - inputKey.KeyChar);
+
+                selectedTask = selectedProject.Tasks[inputIndex];
+                return MenuCode.CurrentTask;
             }
-            
         }
+
+        return MenuCode.None;
     }
 
-    static void TaskMenu(Task task)
+    static MenuCode CurrentTaskMenu()
     {
-        Console.WriteLine("Task: " + task.Name);
-        Console.WriteLine("Description: " + task.Description);
-        Console.WriteLine("Completed: " + task.IsCompleted);
+        Console.WriteLine("Task: " + selectedTask.Name);
+        Console.WriteLine("Description: " + selectedTask.Description);
+        Console.WriteLine("Completed: " + selectedTask.IsCompleted);
+        return MenuCode.None;
     }
 }
 
