@@ -1,4 +1,6 @@
-﻿namespace TaskMangerLE;
+﻿using System.ComponentModel;
+
+namespace TaskMangerLE;
 
 class Program
 {
@@ -10,6 +12,7 @@ class Program
         CreateProject,
         CurrentProject,
         ListTasks,
+        CreateTask,
         CurrentTask,
     }
 
@@ -47,6 +50,9 @@ class Program
                     break;
                 case MenuCode.ListTasks:
                     menuCode = ListTasksMenu();
+                    break;
+                case MenuCode.CreateTask:
+                    menuCode = CreateTaskMenu();
                     break;
                 case MenuCode.CurrentTask:
                     menuCode = CurrentTaskMenu();
@@ -163,18 +169,16 @@ class Program
         ConsoleKeyInfo inputKey = Console.ReadKey();
         Console.WriteLine();
 
-        if (inputKey.Key == ConsoleKey.D0) return MenuCode.None;
-
-        if (inputKey.Key == ConsoleKey.D1) {
-            // List all tasks
-            return MenuCode.ListTasks;
+        // Decide menu
+        switch (inputKey.Key) {
+            case ConsoleKey.D1:
+                return MenuCode.ListTasks;
+            case ConsoleKey.D2:
+                return MenuCode.CreateTask;
+            case ConsoleKey.D0:
+            default:
+                return MenuCode.None;
         }
-
-        if (inputKey.Key == ConsoleKey.D2) {
-            // Add new task
-        }
-
-        return MenuCode.None;
     }
 
     static MenuCode ListTasksMenu()
@@ -217,11 +221,92 @@ class Program
         return MenuCode.None;
     }
 
+    static MenuCode CreateTaskMenu()
+    {
+        // create new task
+        // get task name
+        Console.WriteLine("Input new task name");
+        Console.WriteLine(new string('-', 20));
+        Console.WriteLine("Enter nothing, to go back");
+        string? newTaskName = Console.ReadLine();
+
+        // get task description
+        Console.WriteLine("Input new task description");
+        Console.WriteLine(new string('-', 20));
+        string? newTaskDescription = Console.ReadLine();
+
+        if (string.IsNullOrEmpty(newTaskName)) return MenuCode.CurrentProject;
+        newTaskDescription ??= "";
+
+        // Create new project item
+        Task newTask = new Task()
+        {
+            Name = newTaskName,
+            Description = newTaskDescription
+        };
+
+        selectedProject.Tasks.Add(newTask);
+
+        selectedTask = newTask;
+        return MenuCode.CurrentTask;
+    }
+
     static MenuCode CurrentTaskMenu()
     {
+        // Task info
         Console.WriteLine("Task: " + selectedTask.Name);
         Console.WriteLine("Description: " + selectedTask.Description);
         Console.WriteLine("Completed: " + selectedTask.IsCompleted);
+        Console.WriteLine(new string('-', 20));
+
+        //  Options
+        Console.WriteLine("1. Rename Task");
+        Console.WriteLine("2. Change Description");
+        Console.WriteLine("3. Change Status");
+        Console.WriteLine("9. Back");
+        Console.WriteLine("0. Exit");
+
+        ConsoleKeyInfo inputKey = Console.ReadKey();
+        Console.WriteLine();
+
+        switch (inputKey.Key) {
+            case ConsoleKey.D1:
+                Console.WriteLine("Input new task name");
+                Console.WriteLine(new string('-', 20));
+                Console.WriteLine("Enter nothing, to go back");
+                string? newTaskName = Console.ReadLine();
+
+                if (string.IsNullOrEmpty(newTaskName)) return MenuCode.CurrentTask;
+
+                selectedTask.Name = newTaskName;
+                return MenuCode.CurrentTask;
+            case ConsoleKey.D2:
+                Console.WriteLine("Input new task description");
+                Console.WriteLine(new string('-', 20));
+                Console.WriteLine("Enter nothing, to go back");
+                string? newTaskDescription = Console.ReadLine();
+
+                if (string.IsNullOrEmpty(newTaskDescription)) return MenuCode.CurrentTask;
+
+                selectedTask.Description = newTaskDescription;
+                return MenuCode.CurrentTask;
+            case ConsoleKey.D3:
+                Console.WriteLine("1. Completed");
+                Console.WriteLine("2. Not Completed");
+                inputKey = Console.ReadKey();
+
+                if (inputKey.Key == ConsoleKey.D1)
+                    selectedTask.IsCompleted = true;
+                else if (inputKey.Key == ConsoleKey.D2)
+                    selectedTask.IsCompleted = false;
+
+                return MenuCode.CurrentTask;
+            case ConsoleKey.D0:
+            default:
+                return MenuCode.None;
+        }
+
+
         return MenuCode.None;
     }
 }
