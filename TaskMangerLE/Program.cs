@@ -33,6 +33,7 @@ class Program
         MenuCode menuCode = MenuCode.Start;
 
         while (true) {
+            Console.Clear();
             switch (menuCode) {
                 case MenuCode.Start:
                     menuCode = StartMenu();
