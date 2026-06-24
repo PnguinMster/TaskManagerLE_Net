@@ -4,7 +4,7 @@ namespace TaskMangerLE;
 
 class Program
 {
-    enum MenuCode : byte
+    private enum MenuCode : byte
     {
         None,
         Start,
