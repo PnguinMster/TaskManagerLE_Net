@@ -17,7 +17,8 @@ class Program
         CurrentTask,
         RenameTask,
         TaskDescription,
-        TaskStatus
+        TaskStatus,
+        ResetData,
     }
 
     private static List<Project> _projectsList = [];
@@ -73,6 +74,9 @@ class Program
                 case MenuCode.TaskStatus:
                     menuCode = UpdateTaskStatus();
                     break;
+                case MenuCode.ResetData:
+                    menuCode = ResetData();
+                    break;
                 case MenuCode.None:
                 default:
                     return;
@@ -105,6 +109,7 @@ class Program
         Console.WriteLine(new string('-', 20));
         Console.WriteLine("1. List all projects");
         Console.WriteLine("2. Create new project");
+        Console.WriteLine("3. Delete ALL Data");
         Console.WriteLine("0. Exit");
 
         // Get Input
@@ -114,7 +119,44 @@ class Program
         // Option logic
         if (inputKey.Key == ConsoleKey.D1) return MenuCode.ListProjects;
         if (inputKey.Key == ConsoleKey.D2) return MenuCode.CreateProject;
+        if (inputKey.Key == ConsoleKey.D3) return MenuCode.ResetData;
         return MenuCode.None;
+    }
+
+    private static MenuCode ResetData()
+    {
+        if (!File.Exists(FileName)) {
+            Console.WriteLine("There is no DATA to Delete");
+            Console.WriteLine("Press any key to continue...");
+            Console.ReadKey();
+            Console.WriteLine();
+            return MenuCode.Start;
+        }
+
+        Console.WriteLine("Are you sure you want to DELETE ALL DATA");
+        Console.WriteLine(new string('-', 20));
+        Console.WriteLine("1. NO");
+        Console.WriteLine("5. YES");
+
+        // Get Input
+        ConsoleKeyInfo inputKey = Console.ReadKey();
+
+        if (inputKey.Key == ConsoleKey.D1) {
+            Console.WriteLine("NO data has been deleted");
+            Console.WriteLine("Press any key to continue...");
+            Console.ReadKey();
+            Console.WriteLine();
+        }
+
+        if (inputKey.Key == ConsoleKey.D2) {
+            File.Delete(FileName);
+            Console.WriteLine("DATA has been DELETED");
+            Console.WriteLine("Press any key to continue...");
+            Console.ReadKey();
+            Console.WriteLine();
+        }
+
+        return MenuCode.Start;
     }
 
     private static MenuCode ListProjectMenu()
