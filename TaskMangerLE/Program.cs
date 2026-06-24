@@ -16,21 +16,21 @@ class Program
         CurrentTask,
     }
 
-    static List<Project> projectsList = new List<Project>();
-    private static Project selectedProject;
-    private static Task selectedTask;
+    private static List<Project> _projectsList = new List<Project>();
+    private static Project? _selectedProject;
+    private static Task? _selectedTask;
 
 
     private const int ItemsPerPage = 7;
 
-    static void Main()
+    private static void Main()
     {
         // Load Data
         RunProgram();
         // Save Data
     }
 
-    static void RunProgram()
+    private static void RunProgram()
     {
         MenuCode menuCode = MenuCode.Start;
 
@@ -64,8 +64,7 @@ class Program
         }
     }
 
-// return code == ExitCode.Back ? ExitCode.None : code;
-    static MenuCode StartMenu()
+    private static MenuCode StartMenu()
     {
         // Initial Menu
         Console.WriteLine("Task Manager");
@@ -84,10 +83,10 @@ class Program
         return MenuCode.None;
     }
 
-    static MenuCode ListProjectMenu()
+    private static MenuCode ListProjectMenu()
     {
         // Check if empty
-        if (projectsList.Count == 0) {
+        if (_projectsList.Count == 0) {
             Console.WriteLine("You have no projects to list. Please create a new project");
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
@@ -96,11 +95,11 @@ class Program
         }
 
         // List all projects
-        for (int i = 0; i < projectsList.Count; i++) {
-            Console.WriteLine((i + 1) + ". " + projectsList[i].Name);
+        for (int i = 0; i < _projectsList.Count; i++) {
+            Console.WriteLine((i + 1) + ". " + _projectsList[i].Name);
 
             // Limit page
-            if (i % ItemsPerPage == 0 || i == projectsList.Count - 1) {
+            if (i % ItemsPerPage == 0 || i == _projectsList.Count - 1) {
                 if (i / ItemsPerPage > 1 && i > ItemsPerPage)
                     Console.WriteLine("8. Previous Page");
                 Console.WriteLine("9. Back");
@@ -119,14 +118,14 @@ class Program
 
                 int inputIndex = i - (ItemsPerPage - inputKey.KeyChar);
 
-                if (projectsList[inputIndex].Tasks.Count == 0) {
+                if (_projectsList[inputIndex].Tasks.Count == 0) {
                     Console.WriteLine("You have no tasks in the project to list. Please create a new task");
                     Console.WriteLine("Press any key to continue...");
                     Console.ReadKey();
                     continue;
                 }
 
-                selectedProject = projectsList[inputIndex];
+                _selectedProject = _projectsList[inputIndex];
                 return MenuCode.CurrentProject;
             }
         }
@@ -134,7 +133,7 @@ class Program
         return MenuCode.None;
     }
 
-    static MenuCode CreateProjectMenu()
+    private static MenuCode CreateProjectMenu()
     {
         // Selected create new project 
         Console.WriteLine("Input new project name");
@@ -150,16 +149,21 @@ class Program
             Name = newProjectName
         };
 
-        projectsList.Add(newProject);
+        _projectsList.Add(newProject);
 
-        selectedProject = newProject;
+        _selectedProject = newProject;
         return MenuCode.CurrentProject;
     }
 
-    static MenuCode CurrentProjectMenu()
+    private static MenuCode CurrentProjectMenu()
     {
+        if (_selectedProject == null) {
+            Console.WriteLine("ERROR: There is no selected project");
+            return MenuCode.Start;
+        }
+
         // After creation menu
-        Console.WriteLine("Current Project: " + selectedProject.Name);
+        Console.WriteLine("Current Project: " + _selectedProject.Name);
         Console.WriteLine(new string('-', 20));
         Console.WriteLine("1. Lists Tasks");
         Console.WriteLine("2. Add new task");
@@ -175,16 +179,23 @@ class Program
                 return MenuCode.ListTasks;
             case ConsoleKey.D2:
                 return MenuCode.CreateTask;
+            case ConsoleKey.D9:
+                return MenuCode.Start;
             case ConsoleKey.D0:
             default:
                 return MenuCode.None;
         }
     }
 
-    static MenuCode ListTasksMenu()
+    private static MenuCode ListTasksMenu()
     {
+        if (_selectedProject == null) {
+            Console.WriteLine("ERROR: There is no selected project");
+            return MenuCode.Start;
+        }
+
         // Check if empty
-        if (selectedProject.Tasks.Count == 0) {
+        if (_selectedProject.Tasks.Count == 0) {
             Console.WriteLine("You have no projects to list. Please create a new project");
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
@@ -193,11 +204,11 @@ class Program
         }
 
         // List tasks
-        for (int i = 0; i < selectedProject.Tasks.Count; i++) {
-            Console.WriteLine((i + 1) + ". " + selectedProject.Tasks[i].Name);
+        for (int i = 0; i < _selectedProject.Tasks.Count; i++) {
+            Console.WriteLine((i + 1) + ". " + _selectedProject.Tasks[i].Name);
 
             // Limit page
-            if (i % ItemsPerPage == 0 || i == selectedProject.Tasks.Count - 1) {
+            if (i % ItemsPerPage == 0 || i == _selectedProject.Tasks.Count - 1) {
                 if (i / ItemsPerPage > 1)
                     Console.WriteLine("9. Back");
                 Console.WriteLine("0. Exit");
@@ -213,7 +224,7 @@ class Program
 
                 int inputIndex = i - (ItemsPerPage - inputKey.KeyChar);
 
-                selectedTask = selectedProject.Tasks[inputIndex];
+                _selectedTask = _selectedProject.Tasks[inputIndex];
                 return MenuCode.CurrentTask;
             }
         }
@@ -221,8 +232,13 @@ class Program
         return MenuCode.None;
     }
 
-    static MenuCode CreateTaskMenu()
+    private static MenuCode CreateTaskMenu()
     {
+        if (_selectedProject == null) {
+            Console.WriteLine("ERROR: There is no selected project");
+            return MenuCode.Start;
+        }
+
         // create new task
         // get task name
         Console.WriteLine("Input new task name");
@@ -245,18 +261,23 @@ class Program
             Description = newTaskDescription
         };
 
-        selectedProject.Tasks.Add(newTask);
+        _selectedProject.Tasks.Add(newTask);
 
-        selectedTask = newTask;
+        _selectedTask = newTask;
         return MenuCode.CurrentTask;
     }
 
-    static MenuCode CurrentTaskMenu()
+    private static MenuCode CurrentTaskMenu()
     {
+        if (_selectedTask == null) {
+            Console.WriteLine("ERROR: There is no selected project");
+            return MenuCode.CurrentProject;
+        }
+
         // Task info
-        Console.WriteLine("Task: " + selectedTask.Name);
-        Console.WriteLine("Description: " + selectedTask.Description);
-        Console.WriteLine("Completed: " + selectedTask.IsCompleted);
+        Console.WriteLine("Task: " + _selectedTask.Name);
+        Console.WriteLine("Description: " + _selectedTask.Description);
+        Console.WriteLine("Completed: " + _selectedTask.IsCompleted);
         Console.WriteLine(new string('-', 20));
 
         //  Options
@@ -278,7 +299,7 @@ class Program
 
                 if (string.IsNullOrEmpty(newTaskName)) return MenuCode.CurrentTask;
 
-                selectedTask.Name = newTaskName;
+                _selectedTask.Name = newTaskName;
                 return MenuCode.CurrentTask;
             case ConsoleKey.D2:
                 Console.WriteLine("Input new task description");
@@ -288,26 +309,27 @@ class Program
 
                 if (string.IsNullOrEmpty(newTaskDescription)) return MenuCode.CurrentTask;
 
-                selectedTask.Description = newTaskDescription;
+                _selectedTask.Description = newTaskDescription;
                 return MenuCode.CurrentTask;
             case ConsoleKey.D3:
+                Console.WriteLine("Select task new status");
+                Console.WriteLine(new string('-', 20));
                 Console.WriteLine("1. Completed");
                 Console.WriteLine("2. Not Completed");
                 inputKey = Console.ReadKey();
 
                 if (inputKey.Key == ConsoleKey.D1)
-                    selectedTask.IsCompleted = true;
+                    _selectedTask.IsCompleted = true;
                 else if (inputKey.Key == ConsoleKey.D2)
-                    selectedTask.IsCompleted = false;
+                    _selectedTask.IsCompleted = false;
 
                 return MenuCode.CurrentTask;
+            case ConsoleKey.D9:
+                return MenuCode.CurrentProject;
             case ConsoleKey.D0:
             default:
                 return MenuCode.None;
         }
-
-
-        return MenuCode.None;
     }
 }
 
