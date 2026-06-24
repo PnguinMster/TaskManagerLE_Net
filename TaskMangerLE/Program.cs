@@ -11,6 +11,7 @@ class Program
         ListProjects,
         CreateProject,
         CurrentProject,
+        RenameProject,
         ListTasks,
         CreateTask,
         CurrentTask,
@@ -51,6 +52,9 @@ class Program
                 case MenuCode.CurrentProject:
                     menuCode = CurrentProjectMenu();
                     break;
+                case MenuCode.RenameProject:
+                    menuCode = RenameProject();
+                    break;
                 case MenuCode.ListTasks:
                     menuCode = ListTasksMenu();
                     break;
@@ -88,6 +92,8 @@ class Program
 
     private static void LoadData()
     {
+        if (!File.Exists(FileName)) return;
+
         string jsonString = File.ReadAllText(FileName);
         _projectsList = JsonSerializer.Deserialize<List<Project>>(jsonString) ?? [];
     }
@@ -195,6 +201,7 @@ class Program
         Console.WriteLine(new string('-', 20));
         Console.WriteLine("1. Lists Tasks");
         Console.WriteLine("2. Add new task");
+        Console.WriteLine("3. Rename Project");
         Console.WriteLine("9. Back");
         Console.WriteLine("0. Exit");
 
@@ -207,12 +214,28 @@ class Program
                 return MenuCode.ListTasks;
             case ConsoleKey.D2:
                 return MenuCode.CreateTask;
+            case ConsoleKey.D3:
+                return MenuCode.RenameProject;
             case ConsoleKey.D9:
                 return MenuCode.Start;
             case ConsoleKey.D0:
             default:
                 return MenuCode.None;
         }
+    }
+
+    private static MenuCode RenameProject()
+    {
+        // Print
+        Console.WriteLine("Input new project name");
+        Console.WriteLine(new string('-', 20));
+        Console.WriteLine("Enter nothing, to go back");
+        string? newProjectName = Console.ReadLine();
+
+        if (string.IsNullOrEmpty(newProjectName)) return MenuCode.CurrentProject;
+
+        _projectsList[_selectedProjectIndex].Name = newProjectName;
+        return MenuCode.CurrentTask;
     }
 
     private static MenuCode ListTasksMenu()
@@ -380,13 +403,13 @@ class Program
     }
 }
 
-class Project
+public class Project
 {
-    public string Name = "New Project";
-    public List<Task> Tasks = [];
+    public string Name { get; set; } = "New Project";
+    public List<Task> Tasks { get; set; } = [];
 }
 
-class Task
+public class Task
 {
     public string Name = "New Task";
     public string Description = "Task Description";
