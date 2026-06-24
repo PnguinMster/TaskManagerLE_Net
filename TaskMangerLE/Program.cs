@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-
-namespace TaskMangerLE;
+﻿namespace TaskMangerLE;
 
 class Program
 {
@@ -94,6 +92,9 @@ class Program
             return MenuCode.Start;
         }
 
+        Console.WriteLine("Projects List");
+        Console.WriteLine(new string('-', 20));
+
         // List all projects
         for (int i = 0; i < _projectsList.Count; i++) {
             Console.WriteLine((i + 1) + ". " + _projectsList[i].Name);
@@ -116,7 +117,9 @@ class Program
 
                 if (inputKey.Key == ConsoleKey.D9) return MenuCode.Start;
 
-                int inputIndex = i - (ItemsPerPage - inputKey.KeyChar);
+                // (i / ItemsPerPage * ItemsPerPage) round down to nearest page step
+                // (inputKey.KeyChar - 1) convert to index range
+                int inputIndex = (i / ItemsPerPage * ItemsPerPage) + (inputKey.KeyChar - 1);
 
                 if (_projectsList[inputIndex].Tasks.Count == 0) {
                     Console.WriteLine("You have no tasks in the project to list. Please create a new task");
@@ -203,6 +206,9 @@ class Program
             return MenuCode.CurrentProject;
         }
 
+        Console.WriteLine("Tasks List");
+        Console.WriteLine(new string('-', 20));
+
         // List tasks
         for (int i = 0; i < _selectedProject.Tasks.Count; i++) {
             Console.WriteLine((i + 1) + ". " + _selectedProject.Tasks[i].Name);
@@ -222,7 +228,9 @@ class Program
                     continue;
                 }
 
-                int inputIndex = i - (ItemsPerPage - inputKey.KeyChar);
+                // (i / ItemsPerPage * ItemsPerPage) round down to nearest page step
+                // (inputKey.KeyChar - 1) convert to index range
+                int inputIndex = (i / ItemsPerPage * ItemsPerPage) + (inputKey.KeyChar - 1);
 
                 _selectedTask = _selectedProject.Tasks[inputIndex];
                 return MenuCode.CurrentTask;
