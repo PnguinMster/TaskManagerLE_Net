@@ -1,4 +1,6 @@
-﻿namespace TaskMangerLE;
+﻿using System.Text.Json;
+
+namespace TaskMangerLE;
 
 class Program
 {
@@ -17,17 +19,18 @@ class Program
         TaskStatus
     }
 
-    private static List<Project> _projectsList = new List<Project>();
+    private static List<Project> _projectsList = [];
     private static int _selectedProjectIndex;
     private static int _selectedTaskIndex;
 
     private const int ItemsPerPage = 7;
+    private const string FileName = "projects.json";
 
     private static void Main()
     {
-        // Load Data
+        LoadData();
         RunProgram();
-        // Save Data
+        SaveDate();
     }
 
     private static void RunProgram()
@@ -73,6 +76,22 @@ class Program
 
             Console.Clear();
         }
+    }
+
+    private static void SaveDate()
+    {
+        if (_projectsList.Count == 0) return;
+
+        string jsonString = JsonSerializer.Serialize(_projectsList);
+        File.WriteAllText(FileName, jsonString);
+    }
+
+    private static void LoadData()
+    {
+        if (_projectsList.Count == 0) return;
+
+        string jsonString = File.ReadAllText(FileName);
+        _projectsList = JsonSerializer.Deserialize<List<Project>>(jsonString) ?? [];
     }
 
     private static MenuCode StartMenu()
