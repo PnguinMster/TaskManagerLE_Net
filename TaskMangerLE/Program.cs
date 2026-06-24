@@ -88,8 +88,6 @@ class Program
 
     private static void LoadData()
     {
-        if (_projectsList.Count == 0) return;
-
         string jsonString = File.ReadAllText(FileName);
         _projectsList = JsonSerializer.Deserialize<List<Project>>(jsonString) ?? [];
     }
