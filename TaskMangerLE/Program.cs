@@ -177,40 +177,42 @@ class Program
         for (int i = 0; i < _projectsList.Count; i++) {
             Console.WriteLine((i + 1) + ". " + _projectsList[i].Name);
 
+            // list item per pages
+            if (i == 0 && _projectsList.Count > 1) continue;
+            if (i % ItemsPerPage != 0 && i != _projectsList.Count - 1) continue;
+
             // Limit page
-            if (i % ItemsPerPage == 0 || i == _projectsList.Count - 1) {
-                if (i > ItemsPerPage)
-                    Console.WriteLine("8. Previous Page");
-                Console.WriteLine("9. Back");
-                Console.WriteLine("0. Exit");
+            if (i > ItemsPerPage)
+                Console.WriteLine("8. Previous Page");
+            Console.WriteLine("9. Back");
+            Console.WriteLine("0. Exit");
 
-                ConsoleKeyInfo inputKey = Console.ReadKey();
+            ConsoleKeyInfo inputKey = Console.ReadKey();
 
-                if (!char.IsDigit(inputKey.KeyChar)) {
-                    Console.Clear();
-                    Console.WriteLine("The input was not a Digit");
-                    Console.WriteLine("You have no tasks in the project to list. Please create a new task");
-                    Console.WriteLine("Press any key to continue...");
-                    Console.ReadKey();
-                    continue;
-                }
-
-                if (inputKey.Key == ConsoleKey.D0) return MenuCode.None;
-
-                if (inputKey.Key == ConsoleKey.D8) {
-                    i -= ItemsPerPage;
-                    continue;
-                }
-
-                if (inputKey.Key == ConsoleKey.D9) return MenuCode.Start;
-
-                // (i / ItemsPerPage * ItemsPerPage) round down to nearest page step
-                // (inputKey.KeyChar - '0') - 1 convert to index range
-                int inputIndex = (i / ItemsPerPage * ItemsPerPage) + ((inputKey.KeyChar - '0') - 1);
-
-                _selectedProjectIndex = inputIndex;
-                return MenuCode.CurrentProject;
+            if (!char.IsDigit(inputKey.KeyChar)) {
+                Console.Clear();
+                Console.WriteLine("The input was not a Digit");
+                Console.WriteLine("You have no tasks in the project to list. Please create a new task");
+                Console.WriteLine("Press any key to continue...");
+                Console.ReadKey();
+                continue;
             }
+
+            if (inputKey.Key == ConsoleKey.D0) return MenuCode.None;
+
+            if (inputKey.Key == ConsoleKey.D8) {
+                i -= ItemsPerPage;
+                continue;
+            }
+
+            if (inputKey.Key == ConsoleKey.D9) return MenuCode.Start;
+
+            // (i / ItemsPerPage * ItemsPerPage) round down to nearest page step
+            // (inputKey.KeyChar - '0') - 1 convert to index range
+            int inputIndex = (i / ItemsPerPage * ItemsPerPage) + ((inputKey.KeyChar - '0') - 1);
+
+            _selectedProjectIndex = inputIndex;
+            return MenuCode.CurrentProject;
         }
 
         return MenuCode.None;
@@ -302,37 +304,39 @@ class Program
         for (int i = 0; i < selectedProject.Tasks.Count; i++) {
             Console.WriteLine((i + 1) + ". " + selectedProject.Tasks[i].Name);
 
+            // list item per pages
+            if (i == 0 && _projectsList.Count > 1) continue;
+            if (i % ItemsPerPage != 0 && i != _projectsList.Count - 1) continue;
+
             // Limit page
-            if (i % ItemsPerPage == 0 || i == selectedProject.Tasks.Count - 1) {
-                if (i / ItemsPerPage > 1)
-                    Console.WriteLine("9. Back");
-                Console.WriteLine("0. Exit");
+            if (i / ItemsPerPage > 1)
+                Console.WriteLine("9. Back");
+            Console.WriteLine("0. Exit");
 
-                ConsoleKeyInfo inputKey = Console.ReadKey();
+            ConsoleKeyInfo inputKey = Console.ReadKey();
 
-                if (!char.IsDigit(inputKey.KeyChar)) {
-                    Console.Clear();
-                    Console.WriteLine("The input was not a Digit");
-                    Console.WriteLine("You have no tasks in the project to list. Please create a new task");
-                    Console.WriteLine("Press any key to continue...");
-                    Console.ReadKey();
-                    continue;
-                }
-
-                if (inputKey.Key == ConsoleKey.D0) return MenuCode.None;
-
-                if (inputKey.Key == ConsoleKey.D9) {
-                    i -= ItemsPerPage;
-                    continue;
-                }
-
-                // (i / ItemsPerPage * ItemsPerPage) round down to nearest page step
-                // (inputKey.KeyChar - '0') - 1 convert to index range
-                int inputIndex = (i / ItemsPerPage * ItemsPerPage) + ((inputKey.KeyChar - '0') - 1);
-
-                _selectedTaskIndex = inputIndex;
-                return MenuCode.CurrentTask;
+            if (!char.IsDigit(inputKey.KeyChar)) {
+                Console.Clear();
+                Console.WriteLine("The input was not a Digit");
+                Console.WriteLine("You have no tasks in the project to list. Please create a new task");
+                Console.WriteLine("Press any key to continue...");
+                Console.ReadKey();
+                continue;
             }
+
+            if (inputKey.Key == ConsoleKey.D0) return MenuCode.None;
+
+            if (inputKey.Key == ConsoleKey.D9) {
+                i -= ItemsPerPage;
+                continue;
+            }
+
+            // (i / ItemsPerPage * ItemsPerPage) round down to nearest page step
+            // (inputKey.KeyChar - '0') - 1 convert to index range
+            int inputIndex = (i / ItemsPerPage * ItemsPerPage) + ((inputKey.KeyChar - '0') - 1);
+
+            _selectedTaskIndex = inputIndex;
+            return MenuCode.CurrentTask;
         }
 
         return MenuCode.None;
