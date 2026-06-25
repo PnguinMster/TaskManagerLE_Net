@@ -208,13 +208,6 @@ class Program
                 // (inputKey.KeyChar - '0') - 1 convert to index range
                 int inputIndex = (i / ItemsPerPage * ItemsPerPage) + ((inputKey.KeyChar - '0') - 1);
 
-                if (_projectsList[inputIndex].Tasks.Count == 0) {
-                    Console.WriteLine("You have no tasks in the project to list. Please create a new task");
-                    Console.WriteLine("Press any key to continue...");
-                    Console.ReadKey();
-                    continue;
-                }
-
                 _selectedProjectIndex = inputIndex;
                 return MenuCode.CurrentProject;
             }
