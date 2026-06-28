@@ -54,7 +54,7 @@ class Program
                     menuCode = CurrentProjectMenu();
                     break;
                 case MenuCode.RenameProject:
-                    menuCode = RenameProject();
+                    menuCode = RenameWork(false);
                     break;
                 case MenuCode.ListTasks:
                     menuCode = ListMenu(true);
@@ -66,7 +66,7 @@ class Program
                     menuCode = CurrentTaskMenu();
                     break;
                 case MenuCode.RenameTask:
-                    menuCode = RenameTask();
+                    menuCode = RenameWork(true);
                     break;
                 case MenuCode.TaskDescription:
                     menuCode = ChangeTaskDescription();
@@ -277,6 +277,7 @@ class Program
         }
     }
 
+    /*
     private static MenuCode RenameProject()
     {
         // Print
@@ -289,6 +290,25 @@ class Program
 
         _projectsList[_selectedProjectIndex].Name = newProjectName;
         return MenuCode.CurrentTask;
+    }
+    */
+
+    private static MenuCode RenameWork(bool isTask)
+    {
+        Work selectedWork = isTask ? _projectsList[_selectedProjectIndex] : _projectsList[_selectedProjectIndex].Tasks[_selectedTaskIndex];
+        string workType = isTask ? "task" : "project";
+
+        // Print
+        Console.WriteLine("Input new " + workType + " name");
+        Console.WriteLine(new string('-', 20));
+        Console.WriteLine("Enter nothing, to go back");
+        string? newWorkName = Console.ReadLine();
+
+        if (string.IsNullOrEmpty(newWorkName)) return isTask ? MenuCode.CurrentTask : MenuCode.CreateProject;
+
+        selectedWork.Name = newWorkName;
+
+        return isTask ? MenuCode.CurrentTask : MenuCode.CreateProject;
     }
 
     /*
@@ -420,6 +440,7 @@ class Program
         }
     }
 
+    /*
     private static MenuCode RenameTask()
     {
         Task selectedTask = _projectsList[_selectedProjectIndex].Tasks[_selectedTaskIndex];
@@ -435,6 +456,7 @@ class Program
         selectedTask.Name = newTaskName;
         return MenuCode.CurrentTask;
     }
+    */
 
     private static MenuCode ChangeTaskDescription()
     {
