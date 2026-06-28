@@ -193,6 +193,7 @@ class Program
             Console.WriteLine("9. Back");
             Console.WriteLine("0. Exit");
 
+            // Input
             ConsoleKeyInfo inputKey = Console.ReadKey();
 
             if (!char.IsDigit(inputKey.KeyChar)) {
@@ -214,9 +215,10 @@ class Program
 
             if (inputKey.Key == ConsoleKey.D9) return isTask ? MenuCode.CurrentProject : MenuCode.Start;
 
-            // (i / ItemsPerPage * ItemsPerPage) round down to nearest page step
-            // (inputKey.KeyChar - '0') - 1 convert to index range
-            int inputIndex = (i / ItemsPerPage * ItemsPerPage) + ((inputKey.KeyChar - '0') - 1);
+            // Input to index calculation
+            int page = Math.Max(i / ItemsPerPage - 1, 0);
+            int selectedWork = inputKey.KeyChar - '1';
+            int inputIndex = page * ItemsPerPage + selectedWork;
 
             _selectedProjectIndex = inputIndex;
             return isTask ? MenuCode.CurrentTask : MenuCode.CurrentProject;
