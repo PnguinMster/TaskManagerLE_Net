@@ -413,7 +413,7 @@ class Program
             case ConsoleKey.D3:
                 return MenuCode.TaskStatus;
             case ConsoleKey.D9:
-                return MenuCode.CurrentTask;
+                return MenuCode.CurrentProject;
             case ConsoleKey.D0:
             default:
                 return MenuCode.None;
