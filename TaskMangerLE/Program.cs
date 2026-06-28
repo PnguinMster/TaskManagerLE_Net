@@ -25,7 +25,7 @@ class Program
     private static int _selectedProjectIndex;
     private static int _selectedTaskIndex;
 
-    private const int ItemsPerPage = 7;
+    private const int ItemsPerPage = 6;
     private const string FileName = "projects.json";
 
     private static void Main()
@@ -45,7 +45,7 @@ class Program
                     menuCode = StartMenu();
                     break;
                 case MenuCode.ListProjects:
-                    menuCode = ListProjectMenu();
+                    menuCode = ListMenu(false);
                     break;
                 case MenuCode.CreateProject:
                     menuCode = CreateProjectMenu();
@@ -57,7 +57,7 @@ class Program
                     menuCode = RenameProject();
                     break;
                 case MenuCode.ListTasks:
-                    menuCode = ListTasksMenu();
+                    menuCode = ListMenu(true);
                     break;
                 case MenuCode.CreateTask:
                     menuCode = CreateTaskMenu();
@@ -159,31 +159,37 @@ class Program
         return MenuCode.Start;
     }
 
-    private static MenuCode ListProjectMenu()
+    private static MenuCode ListMenu(bool isTask)
     {
+        IReadOnlyList<Work> selectedList = isTask ? _projectsList[_selectedProjectIndex].Tasks : _projectsList;
+        string workType = isTask ? "task" : "project";
+
         // Check if empty
-        if (_projectsList.Count == 0) {
-            Console.WriteLine("You have no projects to list. Please create a new project");
+        if (!selectedList.Any()) {
+            Console.WriteLine("You have no " + workType + "s to list. Please create a new " + workType);
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
             Console.WriteLine();
-            return MenuCode.Start;
+            return isTask ? MenuCode.CurrentProject : MenuCode.Start;
         }
 
-        Console.WriteLine("Projects List");
+        Console.WriteLine(workType + " List");
         Console.WriteLine(new string('-', 20));
 
         // List all projects
-        for (int i = 0; i < _projectsList.Count; i++) {
-            Console.WriteLine((i + 1) + ". " + _projectsList[i].Name);
+        for (int i = 0; i < selectedList.Count; i++) {
+            Console.WriteLine((i + 1) + ". " + selectedList[i].Name);
 
             // list item per pages
-            if (i == 0 && _projectsList.Count > 1) continue;
-            if (i % ItemsPerPage != 0 && i != _projectsList.Count - 1) continue;
+            if (i == 0 && selectedList.Count > 1) continue;
+            if (i % ItemsPerPage != 0 && i != selectedList.Count - 1) continue;
 
             // Limit page
             if (i > ItemsPerPage)
+                Console.WriteLine("7. Previous Page");
+            if (i <= selectedList.Count)
                 Console.WriteLine("8. Previous Page");
+
             Console.WriteLine("9. Back");
             Console.WriteLine("0. Exit");
 
@@ -192,7 +198,6 @@ class Program
             if (!char.IsDigit(inputKey.KeyChar)) {
                 Console.Clear();
                 Console.WriteLine("The input was not a Digit");
-                Console.WriteLine("You have no tasks in the project to list. Please create a new task");
                 Console.WriteLine("Press any key to continue...");
                 Console.ReadKey();
                 continue;
@@ -200,10 +205,12 @@ class Program
 
             if (inputKey.Key == ConsoleKey.D0) return MenuCode.None;
 
-            if (inputKey.Key == ConsoleKey.D8) {
+            if (inputKey.Key == ConsoleKey.D7) {
                 i -= ItemsPerPage;
                 continue;
             }
+
+            if (inputKey.Key == ConsoleKey.D8) continue;
 
             if (inputKey.Key == ConsoleKey.D9) return MenuCode.Start;
 
@@ -284,6 +291,7 @@ class Program
         return MenuCode.CurrentTask;
     }
 
+    /*
     private static MenuCode ListTasksMenu()
     {
         Project selectedProject = _projectsList[_selectedProjectIndex];
@@ -309,8 +317,11 @@ class Program
             if (i % ItemsPerPage != 0 && i != _projectsList.Count - 1) continue;
 
             // Limit page
-            if (i / ItemsPerPage > 1)
-                Console.WriteLine("9. Back");
+            if (i > ItemsPerPage)
+                Console.WriteLine("7. Previous Page");
+            if (i <= _projectsList.Count)
+                Console.WriteLine("8. Previous Page");
+            Console.WriteLine("9. Back");
             Console.WriteLine("0. Exit");
 
             ConsoleKeyInfo inputKey = Console.ReadKey();
@@ -341,6 +352,7 @@ class Program
 
         return MenuCode.None;
     }
+    */
 
     private static MenuCode CreateTaskMenu()
     {
@@ -460,15 +472,28 @@ class Program
     }
 }
 
-public class Project
+public abstract class Work
 {
-    public string Name { get; set; } = "New Project";
-    public List<Task> Tasks { get; set; } = [];
+    public string Name { get; set; } = "New Work";
 }
 
-public class Task
+public class Project : Work
 {
-    public string Name = "New Task";
+    public List<Task> Tasks { get; set; } = [];
+
+    public Project()
+    {
+        Name = "New Project";
+    }
+}
+
+public class Task : Work
+{
     public string Description = "Task Description";
     public bool IsCompleted;
+
+    public Task()
+    {
+        Name = "New Task";
+    }
 }
