@@ -212,14 +212,14 @@ class Program
 
             if (inputKey.Key == ConsoleKey.D8) continue;
 
-            if (inputKey.Key == ConsoleKey.D9) return MenuCode.Start;
+            if (inputKey.Key == ConsoleKey.D9) return isTask ? MenuCode.CurrentProject : MenuCode.Start;
 
             // (i / ItemsPerPage * ItemsPerPage) round down to nearest page step
             // (inputKey.KeyChar - '0') - 1 convert to index range
             int inputIndex = (i / ItemsPerPage * ItemsPerPage) + ((inputKey.KeyChar - '0') - 1);
 
             _selectedProjectIndex = inputIndex;
-            return MenuCode.CurrentProject;
+            return isTask ? MenuCode.CurrentTask : MenuCode.CurrentProject;
         }
 
         return MenuCode.None;
