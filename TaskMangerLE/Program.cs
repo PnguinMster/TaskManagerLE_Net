@@ -178,17 +178,17 @@ class Program
 
         // List all projects
         for (int i = 0; i < selectedList.Count; i++) {
-            Console.WriteLine((i + 1) + ". " + selectedList[i].Name);
+            Console.WriteLine((i % ItemsPerPage + 1) + ". " + selectedList[i].Name);
 
             // list item per pages
             if (i == 0 && selectedList.Count > 1) continue;
-            if (i % ItemsPerPage != 0 && i != selectedList.Count - 1) continue;
+            if (i % (ItemsPerPage - 1) != 0 && i != selectedList.Count - 1) continue;
 
             // Limit page
-            if (i > ItemsPerPage)
+            if (i >= ItemsPerPage)
                 Console.WriteLine("7. Previous Page");
             if (i <= selectedList.Count)
-                Console.WriteLine("8. Previous Page");
+                Console.WriteLine("8. Next Page");
 
             Console.WriteLine("9. Back");
             Console.WriteLine("0. Exit");
