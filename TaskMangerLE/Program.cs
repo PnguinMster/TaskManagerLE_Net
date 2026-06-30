@@ -187,7 +187,7 @@ class Program
             if (i == 0 && selectedList.Count > 1) continue;
             if (i % (ItemsPerPage - 1) != 0 && i != selectedList.Count - 1) continue;
 
-            Console.WriteLine();
+            Console.WriteLine(new string('-', 10));
             // Limit page
             if (i >= ItemsPerPage) {
                 Console.WriteLine("7. Previous Page");
@@ -242,7 +242,11 @@ class Program
             return isTask ? MenuCode.CurrentTask : MenuCode.CurrentProject;
         }
 
-        return MenuCode.None;
+        Console.WriteLine("Did not input a valid option");
+        Console.WriteLine("Press any key to continue...");
+        Console.ReadKey();
+        Console.WriteLine();
+        return isTask ? MenuCode.ListTasks : MenuCode.ListProjects;
     }
 
     private static MenuCode CreateProjectMenu()
