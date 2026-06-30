@@ -178,10 +178,12 @@ class Program
 
         bool hasPrevPage = false;
         bool hasNextPage = false;
+        int itemsAdded = 0;
 
         // List all projects
         for (int i = 0; i < selectedList.Count; i++) {
             Console.WriteLine((i % ItemsPerPage + 1) + ". " + selectedList[i].Name);
+            itemsAdded++;
 
             // list item per pages
             if (i == 0 && selectedList.Count > 1) continue;
@@ -205,11 +207,13 @@ class Program
             // Input
             ConsoleKeyInfo inputKey = Console.ReadKey();
 
+
             if (!char.IsDigit(inputKey.KeyChar)) {
                 Console.Clear();
                 Console.WriteLine("The input was not a Digit");
                 Console.WriteLine("Press any key to continue...");
                 Console.ReadKey();
+                itemsAdded = 0;
                 continue;
             }
 
@@ -217,17 +221,16 @@ class Program
 
             // prev page
             if (inputKey.Key == ConsoleKey.D7 && hasPrevPage) {
-                int displayedItemsCount = i % (ItemsPerPage - 1);
-                if (displayedItemsCount == 0) displayedItemsCount = ItemsPerPage - 1;
-
-                i -= displayedItemsCount + ItemsPerPage - 1;
+                i -= itemsAdded + ItemsPerPage;
                 Console.Clear();
+                itemsAdded = 0;
                 continue;
             }
 
             // next page
             if (inputKey.Key == ConsoleKey.D8 && hasNextPage) {
                 Console.Clear();
+                itemsAdded = 0;
                 continue;
             }
 
