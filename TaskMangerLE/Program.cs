@@ -114,13 +114,19 @@ class Program
 
         // Get Input
         ConsoleKeyInfo inputKey = Console.ReadKey();
+
         Console.WriteLine();
 
         // Option logic
         if (inputKey.Key == ConsoleKey.D1) return MenuCode.ListProjects;
         if (inputKey.Key == ConsoleKey.D2) return MenuCode.CreateProject;
         if (inputKey.Key == ConsoleKey.D3) return MenuCode.ResetData;
-        return MenuCode.None;
+
+        // Invalid input
+        Console.WriteLine("Invalid Input");
+        Console.WriteLine("Press any key to continue...");
+        Console.ReadKey();
+        return MenuCode.Start;
     }
 
     private static MenuCode ResetData()
@@ -156,7 +162,11 @@ class Program
             Console.WriteLine();
         }
 
-        return MenuCode.Start;
+        // Invalid input
+        Console.WriteLine("Invalid Input");
+        Console.WriteLine("Press any key to continue...");
+        Console.ReadKey();
+        return MenuCode.ResetData;
     }
 
     private static MenuCode ListMenu(bool isTask)
@@ -221,6 +231,10 @@ class Program
             int selectedInput = inputKey.KeyChar - '0';
             if (selectedInput < 0 || (selectedInput > itemsAdded && selectedInput < 7) || (selectedInput == 7 && !hasPrevPage) ||
                 (selectedInput == 8 && !hasNextPage)) {
+                Console.Clear();
+                Console.WriteLine("Invalid Input");
+                Console.WriteLine("Press any key to continue...");
+                Console.ReadKey();
                 itemsAdded = 0;
                 continue;
             }
@@ -308,7 +322,11 @@ class Program
                 return MenuCode.Start;
             case ConsoleKey.D0:
             default:
-                return MenuCode.None;
+                // Invalid input
+                Console.WriteLine("Invalid Input");
+                Console.WriteLine("Press any key to continue...");
+                Console.ReadKey();
+                return MenuCode.CurrentProject;
         }
     }
 
@@ -471,7 +489,11 @@ class Program
                 return MenuCode.CurrentProject;
             case ConsoleKey.D0:
             default:
-                return MenuCode.None;
+                // Invalid input
+                Console.WriteLine("Invalid Input");
+                Console.WriteLine("Press any key to continue...");
+                Console.ReadKey();
+                return MenuCode.CurrentProject;
         }
     }
 
@@ -525,7 +547,11 @@ class Program
         else if (inputKey.Key == ConsoleKey.D2)
             selectedTask.IsCompleted = false;
 
-        return MenuCode.CurrentTask;
+        // Invalid input
+        Console.WriteLine("Invalid Input");
+        Console.WriteLine("Press any key to continue...");
+        Console.ReadKey();
+        return MenuCode.TaskStatus;
     }
 }
 
