@@ -162,7 +162,7 @@ class Program
     private static MenuCode ListMenu(bool isTask)
     {
         IReadOnlyList<Work> selectedList = isTask ? _projectsList[_selectedProjectIndex].Tasks : _projectsList;
-        string workType = isTask ? "task" : "project";
+        string workType = isTask ? "Task" : "Project";
 
         // Check if empty
         if (!selectedList.Any()) {
@@ -176,6 +176,9 @@ class Program
         Console.WriteLine(workType + " List");
         Console.WriteLine(new string('-', 20));
 
+        bool hasPrevPage = false;
+        bool hasNextPage = false;
+
         // List all projects
         for (int i = 0; i < selectedList.Count; i++) {
             Console.WriteLine((i % ItemsPerPage + 1) + ". " + selectedList[i].Name);
@@ -184,11 +187,17 @@ class Program
             if (i == 0 && selectedList.Count > 1) continue;
             if (i % (ItemsPerPage - 1) != 0 && i != selectedList.Count - 1) continue;
 
+            Console.WriteLine();
             // Limit page
-            if (i >= ItemsPerPage)
+            if (i >= ItemsPerPage) {
                 Console.WriteLine("7. Previous Page");
-            if (i <= selectedList.Count)
+                hasPrevPage = true;
+            }
+
+            if (i < selectedList.Count - 1) {
                 Console.WriteLine("8. Next Page");
+                hasNextPage = true;
+            }
 
             Console.WriteLine("9. Back");
             Console.WriteLine("0. Exit");
@@ -206,12 +215,21 @@ class Program
 
             if (inputKey.Key == ConsoleKey.D0) return MenuCode.None;
 
-            if (inputKey.Key == ConsoleKey.D7) {
-                i -= ItemsPerPage;
+            // prev page
+            if (inputKey.Key == ConsoleKey.D7 && hasPrevPage) {
+                int displayedItemsCount = i % (ItemsPerPage - 1);
+                if (displayedItemsCount == 0) displayedItemsCount = ItemsPerPage - 1;
+
+                i -= displayedItemsCount + ItemsPerPage - 1;
+                Console.Clear();
                 continue;
             }
 
-            if (inputKey.Key == ConsoleKey.D8) continue;
+            // next page
+            if (inputKey.Key == ConsoleKey.D8 && hasNextPage) {
+                Console.Clear();
+                continue;
+            }
 
             if (inputKey.Key == ConsoleKey.D9) return isTask ? MenuCode.CurrentProject : MenuCode.Start;
 
