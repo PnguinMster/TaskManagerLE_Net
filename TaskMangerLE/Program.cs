@@ -121,6 +121,7 @@ class Program
         if (inputKey.Key == ConsoleKey.D1) return MenuCode.ListProjects;
         if (inputKey.Key == ConsoleKey.D2) return MenuCode.CreateProject;
         if (inputKey.Key == ConsoleKey.D3) return MenuCode.ResetData;
+        if (inputKey.Key == ConsoleKey.D0) return MenuCode.None;
 
         // Invalid input
         Console.WriteLine("Invalid Input");
@@ -234,6 +235,7 @@ class Program
                 Console.Clear();
                 Console.WriteLine("Invalid Input");
                 Console.WriteLine("Press any key to continue...");
+                Console.WriteLine(selectedInput);
                 Console.ReadKey();
                 itemsAdded = 0;
                 continue;
@@ -321,6 +323,7 @@ class Program
             case ConsoleKey.D9:
                 return MenuCode.Start;
             case ConsoleKey.D0:
+                return MenuCode.None;
             default:
                 // Invalid input
                 Console.WriteLine("Invalid Input");
@@ -360,6 +363,7 @@ class Program
         if (string.IsNullOrEmpty(newWorkName)) return isTask ? MenuCode.CurrentTask : MenuCode.CreateProject;
 
         selectedWork.Name = newWorkName;
+        Console.WriteLine(newWorkName);
 
         return isTask ? MenuCode.CurrentTask : MenuCode.CreateProject;
     }
@@ -488,6 +492,7 @@ class Program
             case ConsoleKey.D9:
                 return MenuCode.CurrentProject;
             case ConsoleKey.D0:
+                return MenuCode.None;
             default:
                 // Invalid input
                 Console.WriteLine("Invalid Input");
@@ -546,6 +551,7 @@ class Program
             selectedTask.IsCompleted = true;
         else if (inputKey.Key == ConsoleKey.D2)
             selectedTask.IsCompleted = false;
+        else if (inputKey.Key == ConsoleKey.D0) return MenuCode.None;
 
         // Invalid input
         Console.WriteLine("Invalid Input");
