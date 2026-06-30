@@ -208,6 +208,15 @@ class Program
             ConsoleKeyInfo inputKey = Console.ReadKey();
 
 
+            int selectedInput = inputKey.KeyChar - '0';
+
+            if (selectedInput < 0 || (selectedInput > itemsAdded && selectedInput < 7) || (selectedInput == 7 && !hasPrevPage) ||
+                (selectedInput == 8 && !hasNextPage)) {
+                itemsAdded = 0;
+                continue;
+            }
+
+
             if (!char.IsDigit(inputKey.KeyChar)) {
                 Console.Clear();
                 Console.WriteLine("The input was not a Digit");
