@@ -335,7 +335,7 @@ class Program
 
     private static MenuCode RenameWork(bool isTask)
     {
-        Work selectedWork = isTask ? _projectsList[_selectedProjectIndex] : _projectsList[_selectedProjectIndex].Tasks[_selectedTaskIndex];
+        Work selectedWork = isTask ? _projectsList[_selectedProjectIndex].Tasks[_selectedTaskIndex] : _projectsList[_selectedProjectIndex];
         string workType = isTask ? "task" : "project";
 
         // Print
