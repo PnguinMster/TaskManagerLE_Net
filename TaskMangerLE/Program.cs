@@ -333,22 +333,6 @@ class Program
         }
     }
 
-    /*
-    private static MenuCode RenameProject()
-    {
-        // Print
-        Console.WriteLine("Input new project name");
-        Console.WriteLine(new string('-', 20));
-        Console.WriteLine("Enter nothing, to go back");
-        string? newProjectName = Console.ReadLine();
-
-        if (string.IsNullOrEmpty(newProjectName)) return MenuCode.CurrentProject;
-
-        _projectsList[_selectedProjectIndex].Name = newProjectName;
-        return MenuCode.CurrentTask;
-    }
-    */
-
     private static MenuCode RenameWork(bool isTask)
     {
         Work selectedWork = isTask ? _projectsList[_selectedProjectIndex] : _projectsList[_selectedProjectIndex].Tasks[_selectedTaskIndex];
@@ -367,69 +351,6 @@ class Program
 
         return isTask ? MenuCode.CurrentTask : MenuCode.CreateProject;
     }
-
-    /*
-    private static MenuCode ListTasksMenu()
-    {
-        Project selectedProject = _projectsList[_selectedProjectIndex];
-
-        // Check if empty
-        if (selectedProject.Tasks.Count == 0) {
-            Console.WriteLine("You have no projects to list. Please create a new project");
-            Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
-            Console.WriteLine();
-            return MenuCode.CurrentProject;
-        }
-
-        Console.WriteLine("Tasks List");
-        Console.WriteLine(new string('-', 20));
-
-        // List tasks
-        for (int i = 0; i < selectedProject.Tasks.Count; i++) {
-            Console.WriteLine((i + 1) + ". " + selectedProject.Tasks[i].Name);
-
-            // list item per pages
-            if (i == 0 && _projectsList.Count > 1) continue;
-            if (i % ItemsPerPage != 0 && i != _projectsList.Count - 1) continue;
-
-            // Limit page
-            if (i > ItemsPerPage)
-                Console.WriteLine("7. Previous Page");
-            if (i <= _projectsList.Count)
-                Console.WriteLine("8. Previous Page");
-            Console.WriteLine("9. Back");
-            Console.WriteLine("0. Exit");
-
-            ConsoleKeyInfo inputKey = Console.ReadKey();
-
-            if (!char.IsDigit(inputKey.KeyChar)) {
-                Console.Clear();
-                Console.WriteLine("The input was not a Digit");
-                Console.WriteLine("You have no tasks in the project to list. Please create a new task");
-                Console.WriteLine("Press any key to continue...");
-                Console.ReadKey();
-                continue;
-            }
-
-            if (inputKey.Key == ConsoleKey.D0) return MenuCode.None;
-
-            if (inputKey.Key == ConsoleKey.D9) {
-                i -= ItemsPerPage;
-                continue;
-            }
-
-            // (i / ItemsPerPage * ItemsPerPage) round down to nearest page step
-            // (inputKey.KeyChar - '0') - 1 convert to index range
-            int inputIndex = (i / ItemsPerPage * ItemsPerPage) + ((inputKey.KeyChar - '0') - 1);
-
-            _selectedTaskIndex = inputIndex;
-            return MenuCode.CurrentTask;
-        }
-
-        return MenuCode.None;
-    }
-    */
 
     private static MenuCode CreateTaskMenu()
     {
@@ -501,24 +422,6 @@ class Program
                 return MenuCode.CurrentProject;
         }
     }
-
-    /*
-    private static MenuCode RenameTask()
-    {
-        Task selectedTask = _projectsList[_selectedProjectIndex].Tasks[_selectedTaskIndex];
-
-        // Print
-        Console.WriteLine("Input new task name");
-        Console.WriteLine(new string('-', 20));
-        Console.WriteLine("Enter nothing, to go back");
-        string? newTaskName = Console.ReadLine();
-
-        if (string.IsNullOrEmpty(newTaskName)) return MenuCode.CurrentTask;
-
-        selectedTask.Name = newTaskName;
-        return MenuCode.CurrentTask;
-    }
-    */
 
     private static MenuCode ChangeTaskDescription()
     {
