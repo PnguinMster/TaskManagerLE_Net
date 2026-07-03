@@ -450,11 +450,15 @@ class Program
         Console.WriteLine("2. Not Completed");
         ConsoleKeyInfo inputKey = Console.ReadKey();
 
-        if (inputKey.Key == ConsoleKey.D1)
+        if (inputKey.Key == ConsoleKey.D1) {
             selectedTask.IsCompleted = true;
-        else if (inputKey.Key == ConsoleKey.D2)
+            return MenuCode.CurrentTask;
+        }
+
+        if (inputKey.Key == ConsoleKey.D2) {
             selectedTask.IsCompleted = false;
-        else if (inputKey.Key == ConsoleKey.D0) return MenuCode.None;
+            return MenuCode.CurrentTask;
+        }
 
         // Invalid input
         Console.WriteLine("Invalid Input");
