@@ -198,7 +198,7 @@ class Program
 
             // list item per pages
             if (i == 0 && selectedList.Count > 1) continue;
-            if (i % (ItemsPerPage - 1) != 0 && i != selectedList.Count - 1) continue;
+            if ((i + 1) % ItemsPerPage != 0 && i != selectedList.Count - 1) continue;
 
             Console.WriteLine(new string('-', 10));
             // Limit page
@@ -237,6 +237,7 @@ class Program
                 Console.WriteLine("Press any key to continue...");
                 Console.WriteLine(selectedInput);
                 Console.ReadKey();
+                i -= itemsAdded;
                 itemsAdded = 0;
                 continue;
             }
@@ -261,7 +262,9 @@ class Program
             if (inputKey.Key == ConsoleKey.D9) return isTask ? MenuCode.CurrentProject : MenuCode.Start;
 
             // Input to index calculation
-            int page = Math.Max(i / ItemsPerPage - 1, 0);
+            int page = (i + 1) / ItemsPerPage;
+            page = i == selectedList.Count - 1 ? page : page - 1;
+            page = Math.Max(page, 0);
             int selectedWork = inputKey.KeyChar - '1';
             int inputIndex = page * ItemsPerPage + selectedWork;
 
