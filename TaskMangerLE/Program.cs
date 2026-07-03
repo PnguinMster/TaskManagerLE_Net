@@ -344,12 +344,12 @@ class Program
         Console.WriteLine("Enter nothing, to go back");
         string? newWorkName = Console.ReadLine();
 
-        if (string.IsNullOrEmpty(newWorkName)) return isTask ? MenuCode.CurrentTask : MenuCode.CreateProject;
+        if (string.IsNullOrEmpty(newWorkName)) return isTask ? MenuCode.CurrentTask : MenuCode.CurrentProject;
 
         selectedWork.Name = newWorkName;
         Console.WriteLine(newWorkName);
 
-        return isTask ? MenuCode.CurrentTask : MenuCode.CreateProject;
+        return isTask ? MenuCode.CurrentTask : MenuCode.CurrentProject;
     }
 
     private static MenuCode CreateTaskMenu()
