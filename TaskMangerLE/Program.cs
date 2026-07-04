@@ -437,6 +437,7 @@ class Program
         Console.WriteLine("1. Rename Task");
         Console.WriteLine("2. Change Description");
         Console.WriteLine("3. Change Status");
+        Console.WriteLine("4. Delete Task");
         Console.WriteLine("9. Back");
         Console.WriteLine("0. Exit");
 
@@ -450,6 +451,8 @@ class Program
                 return MenuCode.TaskDescription;
             case ConsoleKey.D3:
                 return MenuCode.TaskStatus;
+            case ConsoleKey.D4:
+                return MenuCode.DeleteTask;
             case ConsoleKey.D9:
                 return MenuCode.CurrentProject;
             case ConsoleKey.D0:
