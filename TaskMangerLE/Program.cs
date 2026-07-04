@@ -18,6 +18,8 @@ class Program
         RenameTask,
         TaskDescription,
         TaskStatus,
+        DeleteProject,
+        DeleteTask,
         ResetData,
     }
 
@@ -73,6 +75,12 @@ class Program
                     break;
                 case MenuCode.TaskStatus:
                     menuCode = UpdateTaskStatus();
+                    break;
+                case MenuCode.DeleteProject:
+                    menuCode = DeleteWork(false);
+                    break;
+                case MenuCode.DeleteTask:
+                    menuCode = DeleteWork(true);
                     break;
                 case MenuCode.ResetData:
                     menuCode = ResetData();
@@ -309,6 +317,7 @@ class Program
         Console.WriteLine("1. Lists Tasks");
         Console.WriteLine("2. Add new task");
         Console.WriteLine("3. Rename Project");
+        Console.WriteLine("4. Delete Project");
         Console.WriteLine("9. Back");
         Console.WriteLine("0. Exit");
 
@@ -353,6 +362,34 @@ class Program
         Console.WriteLine(newWorkName);
 
         return isTask ? MenuCode.CurrentTask : MenuCode.CurrentProject;
+    }
+
+    private static MenuCode DeleteWork(bool isTask)
+    {
+        Work selectedWork = isTask ? _projectsList[_selectedProjectIndex].Tasks[_selectedTaskIndex] : _projectsList[_selectedProjectIndex];
+
+        Console.WriteLine("Are you sure you want to DELETE: " + selectedWork.Name);
+        Console.WriteLine("1. KEEP");
+        Console.WriteLine("2. DELETE");
+
+        ConsoleKeyInfo inputKey = Console.ReadKey();
+
+        if (inputKey.Key != ConsoleKey.D1 || inputKey.Key != ConsoleKey.D2) {
+            // Invalid input
+            Console.WriteLine("Invalid Input");
+            Console.WriteLine("Press any key to continue...");
+            Console.ReadKey();
+            return isTask ? MenuCode.DeleteTask : MenuCode.DeleteProject;
+        }
+
+        if (inputKey.Key == ConsoleKey.D2) {
+            if (isTask)
+                _projectsList[_selectedProjectIndex].Tasks.RemoveAt(_selectedTaskIndex);
+            else
+                _projectsList.RemoveAt(_selectedProjectIndex);
+        }
+
+        return isTask ? MenuCode.ListTasks : MenuCode.ListProjects;
     }
 
     private static MenuCode CreateTaskMenu()
