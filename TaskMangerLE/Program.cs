@@ -4,6 +4,7 @@ namespace TaskMangerLE;
 
 class Program
 {
+    /*
     private enum MenuCode : byte
     {
         None,
@@ -286,10 +287,12 @@ class Program
         Console.WriteLine();
         return isTask ? MenuCode.ListTasks : MenuCode.ListProjects;
     }
+    */
 
+    /*
     private static MenuCode CreateProjectMenu()
     {
-        // Selected create new project 
+        // Selected create new project
         Console.WriteLine("Input new project name");
         Console.WriteLine(new string('-', 20));
         Console.WriteLine("Enter nothing, to go back");
@@ -344,7 +347,9 @@ class Program
                 return MenuCode.CurrentProject;
         }
     }
+    */
 
+    /*
     private static MenuCode RenameWork(bool isTask)
     {
         Work selectedWork = isTask ? _projectsList[_selectedProjectIndex].Tasks[_selectedTaskIndex] : _projectsList[_selectedProjectIndex];
@@ -363,7 +368,9 @@ class Program
 
         return isTask ? MenuCode.CurrentTask : MenuCode.CurrentProject;
     }
+    */
 
+    /*
     private static MenuCode DeleteWork(bool isTask)
     {
         Work selectedWork = isTask ? _projectsList[_selectedProjectIndex].Tasks[_selectedTaskIndex] : _projectsList[_selectedProjectIndex];
@@ -391,7 +398,9 @@ class Program
 
         return isTask ? MenuCode.ListTasks : MenuCode.ListProjects;
     }
+    */
 
+    /*
     private static MenuCode CreateTaskMenu()
     {
         // create new task
@@ -422,7 +431,9 @@ class Program
 
         return MenuCode.CurrentTask;
     }
+    */
 
+    /*
     private static MenuCode CurrentTaskMenu()
     {
         Task selectedTask = _projectsList[_selectedProjectIndex].Tasks[_selectedTaskIndex];
@@ -465,7 +476,9 @@ class Program
                 return MenuCode.CurrentProject;
         }
     }
+    */
 
+    /*
     private static MenuCode ChangeTaskDescription()
     {
         Task selectedTask = _projectsList[_selectedProjectIndex].Tasks[_selectedTaskIndex];
@@ -509,9 +522,10 @@ class Program
         Console.ReadKey();
         return MenuCode.TaskStatus;
     }
+*/
 }
 
-public abstract class Work
+/*public abstract class Work
 {
     public string Name { get; set; } = "New Work";
 }
@@ -535,4 +549,4 @@ public class Task : Work
     {
         Name = "New Task";
     }
-}
+}*/
