@@ -4,6 +4,11 @@ namespace TaskMangerLE;
 
 class Program
 {
+
+    private static void Main()
+    {
+        // Just to remove error. Empty for a reason
+    }
     /*
     private enum MenuCode : byte
     {
