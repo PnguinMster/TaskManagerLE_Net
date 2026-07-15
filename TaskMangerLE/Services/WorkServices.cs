@@ -4,16 +4,21 @@ namespace TaskMangerLE.Services;
 
 public class WorkServices
 {
-    private static List<ProjectItem> _projectsList = [];
+    private readonly List<ProjectItem> _projectsList = [];
 
-    public void AddProject(string name)
+    public IReadOnlyList<ProjectItem> GetAll() => _projectsList;
+
+    public void AddProject(ProjectItem projectItem)
     {
-        _projectsList.Add(new ProjectItem(name));
+        if (string.IsNullOrWhiteSpace(projectItem.Name))
+            projectItem.Name = "Untitled Project";
+
+        _projectsList.Add(projectItem);
     }
 
-    public void AddTask(ProjectItem proj, string name, string description)
+    public void AddTask(ProjectItem proj, TaskItem taskItem)
     {
-        proj.Tasks.Add(new TaskItem(name, description));
+        proj.Tasks.Add(taskItem);
     }
 
     public void RenameWork(WorkItem workItem, string newName)

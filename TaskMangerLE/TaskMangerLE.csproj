@@ -25,4 +25,8 @@
       <Folder Include="wwwroot\js\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Views\Home\Projects\Index.cshtml" />
+    </ItemGroup>
+
 </Project>

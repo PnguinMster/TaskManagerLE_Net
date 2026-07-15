@@ -1,0 +1,27 @@
+﻿@model IEnumerable<TaskMangerLE.Models.ProjectItem>
+
+@{
+    ViewData["Title"] = "Project Manager";
+}
+<h1>@ViewData["Title"]</h1>
+
+<p>
+    <a asp-action="Create" class="">Create New</a>
+</p>
+
+<table class="project-table">
+    <thead>
+    <tr>
+        <th>Project Name</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (ProjectItem project in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(_ => project.Name)
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
