@@ -26,4 +26,27 @@ public class ProjectController(WorkServices services) : Controller
         services.AddProject(project);
         return RedirectToAction(nameof(Index));
     }
+
+    public IActionResult Rename(int id)
+    {
+        ProjectItem? projectItem = services.GetProjectById(id);
+        if (projectItem == null)
+            return NotFound();
+
+        return View(projectItem);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Rename(int? id, ProjectItem projectItem)
+    {
+        if (id != projectItem.Id)
+            return NotFound();
+
+        if (ModelState.IsValid) {
+            services.RenameProject(projectItem);
+            return RedirectToAction(nameof(Index));
+        }
+
+        return View(projectItem);
+    }
 }

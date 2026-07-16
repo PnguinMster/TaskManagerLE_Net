@@ -1,15 +1,18 @@
-﻿using TaskMangerLE.Models;
+﻿using System.Collections;
+using TaskMangerLE.Models;
 
 namespace TaskMangerLE.Services;
 
 public class WorkServices
 {
     private readonly List<ProjectItem> _projectsList = [];
+    private int _nextId = 0;
 
     public IReadOnlyList<ProjectItem> GetAll() => _projectsList;
 
     public void AddProject(ProjectItem projectItem)
     {
+        projectItem.Id = _nextId++;
         if (string.IsNullOrWhiteSpace(projectItem.Name))
             projectItem.Name = "Untitled Project";
 
@@ -21,9 +24,11 @@ public class WorkServices
         proj.Tasks.Add(taskItem);
     }
 
-    public void RenameWork(WorkItem workItem, string newName)
+    public void RenameProject(ProjectItem projectItem)
     {
-        workItem.Name = newName;
+        ProjectItem? item = GetProjectById(projectItem.Id);
+
+        item?.Name = projectItem.Name;
     }
 
     public void ChangeDescription(TaskItem task, string newDescription)
@@ -44,5 +49,11 @@ public class WorkServices
     public void DeleteTask(ProjectItem proj, TaskItem task)
     {
         proj.Tasks.Remove(task);
+    }
+
+    // Temporary solution until database is implemented
+    public ProjectItem? GetProjectById(int id)
+    {
+        return _projectsList.Find(x => x.Id == id);
     }
 }
