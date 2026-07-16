@@ -13,6 +13,7 @@
     <thead>
     <tr>
         <th>Project Name</th>
+        <th>Task Amount</th>
     </tr>
     </thead>
     <tbody>
@@ -20,6 +21,9 @@
         <tr>
             <td>
                 @Html.DisplayFor(_ => project.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(_ => project.Tasks.Count)
             </td>
         </tr>
     }
