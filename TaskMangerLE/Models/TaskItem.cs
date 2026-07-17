@@ -1,16 +1,12 @@
 ﻿namespace TaskMangerLE.Models;
 
-public class TaskItem : WorkItem
+public class TaskItem
 {
+    public int Id { get; set; }
+    public string Name { get; set; }
     public string Description { get; set; }
     public bool IsCompleted { get; set; }
 
-    /*
-    public TaskItem(string name = "New Task", string description = "Task Description", bool isCompleted = false)
-    {
-        Name = name;
-        Description = description;
-        IsCompleted = isCompleted;
-    }
-*/
+    public int ProjectId { get; set; }
+    public ProjectItem ProjectItem { get; set; } = null!;
 }

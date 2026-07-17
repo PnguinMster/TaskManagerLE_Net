@@ -1,15 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TaskMangerLE.Models;
 using TaskMangerLE.Services;
+using TaskMangerLE.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TaskMangerLE.Controllers;
 
 public class ProjectController(WorkServices services) : Controller
 {
     // GET
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
-        return View(services.GetAll());
+        return View(await services.GetAllAsync());
     }
 
     public IActionResult Create()
@@ -23,13 +26,17 @@ public class ProjectController(WorkServices services) : Controller
         if (!ModelState.IsValid)
             return View(project);
 
-        services.AddProject(project);
+        await services.AddProjectAsync(project);
         return RedirectToAction(nameof(Index));
     }
 
-    public IActionResult Rename(int id)
+    public async Task<IActionResult> Rename(int? id)
     {
-        ProjectItem? projectItem = services.GetProjectById(id);
+        if (id == null)
+            return NotFound();
+
+        ProjectItem? projectItem = await services.FindProjectAsync(id);
+
         if (projectItem == null)
             return NotFound();
 
@@ -37,16 +44,12 @@ public class ProjectController(WorkServices services) : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Rename(int? id, ProjectItem projectItem)
+    public async Task<IActionResult> Rename(ProjectItem projectItem)
     {
-        if (id != projectItem.Id)
-            return NotFound();
+        if (!ModelState.IsValid)
+            return View(projectItem);
 
-        if (ModelState.IsValid) {
-            services.RenameProject(projectItem);
-            return RedirectToAction(nameof(Index));
-        }
-
-        return View(projectItem);
+        await services.RenameProjectAsync(projectItem);
+        return RedirectToAction(nameof(Index));
     }
 }

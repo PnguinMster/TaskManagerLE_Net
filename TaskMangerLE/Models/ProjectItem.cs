@@ -1,6 +1,8 @@
 ﻿namespace TaskMangerLE.Models;
 
-public class ProjectItem : WorkItem
+public class ProjectItem
 {
-    public List<TaskItem> Tasks { get; set; } = [];
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();
 }

@@ -1,36 +1,46 @@
-﻿using System.Collections;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using TaskMangerLE.Data;
 using TaskMangerLE.Models;
 
 namespace TaskMangerLE.Services;
 
-public class WorkServices
+public class WorkServices(ApplicationDbContext context)
 {
-    private readonly List<ProjectItem> _projectsList = [];
-    private int _nextId = 0;
+    // private readonly List<ProjectItem> _projectsList = [];
+    private readonly ApplicationDbContext _context = context;
+    // private int _nextId = 0;
 
-    public IReadOnlyList<ProjectItem> GetAll() => _projectsList;
+    // public IReadOnlyList<ProjectItem> GetAll() => _projectsList;
 
-    public void AddProject(ProjectItem projectItem)
+    public async Task AddProjectAsync(ProjectItem projectItem)
     {
-        projectItem.Id = _nextId++;
         if (string.IsNullOrWhiteSpace(projectItem.Name))
             projectItem.Name = "Untitled Project";
 
-        _projectsList.Add(projectItem);
+        await _context.ProjectItems.AddAsync(projectItem);
+        await _context.SaveChangesAsync();
     }
 
+    /*
     public void AddTask(ProjectItem proj, TaskItem taskItem)
     {
         proj.Tasks.Add(taskItem);
     }
+    */
 
-    public void RenameProject(ProjectItem projectItem)
+    public async Task<ProjectItem?> FindProjectAsync(int? id)
     {
-        ProjectItem? item = GetProjectById(projectItem.Id);
-
-        item?.Name = projectItem.Name;
+        return await _context.ProjectItems.FindAsync(id);
     }
 
+    public async Task RenameProjectAsync(ProjectItem projectItem)
+    {
+        _context.ProjectItems.Update(projectItem);
+        await _context.SaveChangesAsync();
+    }
+
+    /*
     public void ChangeDescription(TaskItem task, string newDescription)
     {
         task.Description = newDescription;
@@ -43,17 +53,17 @@ public class WorkServices
 
     public void DeleteProject(ProjectItem proj)
     {
-        _projectsList.Remove(proj);
+        _context.Remove(proj);
     }
 
     public void DeleteTask(ProjectItem proj, TaskItem task)
     {
         proj.Tasks.Remove(task);
     }
+    */
 
-    // Temporary solution until database is implemented
-    public ProjectItem? GetProjectById(int id)
+    public async Task<List<ProjectItem>> GetAllAsync()
     {
-        return _projectsList.Find(x => x.Id == id);
+        return await _context.ProjectItems.ToListAsync();
     }
 }
