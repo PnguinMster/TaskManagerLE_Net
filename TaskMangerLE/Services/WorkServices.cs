@@ -34,7 +34,7 @@ public class WorkServices(ApplicationDbContext context)
         return await _context.ProjectItems.FindAsync(id);
     }
 
-    public async Task RenameProjectAsync(ProjectItem projectItem)
+    public async Task UpdateProjectAsync(ProjectItem projectItem)
     {
         _context.ProjectItems.Update(projectItem);
         await _context.SaveChangesAsync();

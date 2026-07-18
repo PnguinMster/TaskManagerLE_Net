@@ -30,7 +30,7 @@ public class ProjectController(WorkServices services) : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    public async Task<IActionResult> Rename(int? id)
+    public async Task<IActionResult> Update(int? id)
     {
         if (id == null)
             return NotFound();
@@ -44,12 +44,12 @@ public class ProjectController(WorkServices services) : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Rename(ProjectItem projectItem)
+    public async Task<IActionResult> Update(ProjectItem projectItem)
     {
         if (!ModelState.IsValid)
             return View(projectItem);
 
-        await services.RenameProjectAsync(projectItem);
+        await services.UpdateProjectAsync(projectItem);
         return RedirectToAction(nameof(Index));
     }
 }

@@ -1,16 +1,16 @@
 ﻿@model TaskMangerLE.Models.ProjectItem
 
 @{
-    ViewData["Title"] = "Rename";
+    ViewData["Title"] = "Edit";
 }
 
-<h1>Rename</h1>
+<h1>Edit</h1>
 
 <h4>Project</h4>
 <hr/>
 <div>
     <div>
-        <form asp-action="Rename" method="post">
+        <form asp-action="Update" method="post">
             <input asp-for="Id" type="hidden"/>
 
             <div class="form-group">
