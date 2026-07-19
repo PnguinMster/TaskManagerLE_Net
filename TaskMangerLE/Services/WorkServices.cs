@@ -17,6 +17,11 @@ public class WorkServices(ApplicationDbContext context)
     {
         if (string.IsNullOrWhiteSpace(projectItem.Name))
             projectItem.Name = "Untitled Project";
+        if (string.IsNullOrWhiteSpace(projectItem.Description))
+            projectItem.Description = "No Description";
+
+        projectItem.CreatedDate = DateTime.UtcNow;
+        projectItem.LastUpdated = DateTime.UtcNow;
 
         await _context.ProjectItems.AddAsync(projectItem);
         await _context.SaveChangesAsync();

@@ -9,6 +9,7 @@ public class TaskItem
     [MaxLength(700)] public string Description { get; set; } = "No Description";
     public TaskPriority Priority { get; set; }
     public TaskStatus Status { get; set; }
+    public DateTime LastUpdated { get; set; }
     public DateTimeOffset DueDate { get; set; }
 
     public int ProjectId { get; set; }

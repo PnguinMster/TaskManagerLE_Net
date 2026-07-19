@@ -19,6 +19,17 @@
                 <span asp-validation-for="Name"></span>
             </div>
 
+            <div class="form-group">
+                <label asp-for="Description"></label>
+                <input asp-for="Description" class="form-control"/>
+                <span asp-validation-for="Description"></span>
+            </div>
+
+            <div>
+                <label asp-for="Status" class="form-label"></label>
+                <select asp-for="Status" asp-items="Html.GetEnumSelectList<ProjectStatus>()" class="form-select"></select>
+            </div>
+
             <div>
                 <input type="submit" value="Create" class="btn btn-primary"/>
             </div>
