@@ -16,7 +16,7 @@ public class ProjectController(WorkServices services) : Controller
 
     public IActionResult Create()
     {
-        return View();
+        return View(new ProjectItem());
     }
 
     [HttpPost]
