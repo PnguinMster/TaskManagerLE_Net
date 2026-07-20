@@ -1,15 +1,19 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TaskMangerLE.Data;
 using Microsoft.AspNetCore.Identity;
+using TaskMangerLE.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddControllersWithViews();
+// Inject Services
+builder.Services.AddScoped<WorkServices>();
+
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options => { options.SignIn.RequireConfirmedAccount = false; })
     .AddEntityFrameworkStores<ApplicationDbContext>();
-builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
