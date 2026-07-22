@@ -16,9 +16,10 @@ public class TaskService(ApplicationDbContext context)
 
         taskItem.CreatedDate = DateTime.UtcNow;
         taskItem.LastUpdated = DateTime.UtcNow;
-
+        
         await context.TaskItems.AddAsync(taskItem);
         await context.SaveChangesAsync();
+        
     }
 
     public async Task<List<TaskItem>> GetAllAsync()

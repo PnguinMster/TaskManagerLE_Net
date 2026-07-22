@@ -9,4 +9,40 @@
     <a asp-action="Create" class="">Create New</a>
 </p>
 
+<table class="project-table">
+    <thead>
+    <tr>
+        <th>@Html.DisplayNameFor(model => model.Name)</th>
+        <th>@Html.DisplayNameFor(model => model.Description)</th>
+        <th>@Html.DisplayNameFor(model => model.Status)</th>
+        <th>@Html.DisplayNameFor(model => model.Priority)</th>
+        <th>@Html.DisplayNameFor(model => model.DueDate)</th>
+        <th>Info</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (TaskItem taskItem in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(_ => taskItem.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(_ => taskItem.Description)
+            </td>
+            <td>
+                @Html.DisplayFor(_ => taskItem.Status)
+            </td>
+            <td>
+                @Html.DisplayFor(_ => taskItem.Priority)
+            </td>
+            <td>
+                @Html.DisplayFor(_ => taskItem.DueDate)
+            </td>
+            <td>
+                <a asp-action="Update" asp-route-id="@taskItem.Id">Edit</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
 
