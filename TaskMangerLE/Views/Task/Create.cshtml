@@ -1,0 +1,48 @@
+﻿@using TaskStatus = TaskMangerLE.Models.TaskStatus
+@model TaskMangerLE.Models.TaskItem
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>Task</h4>
+<hr/>
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group">
+                <label asp-for="Name"></label>
+                <input asp-for="Name" class="form-control" placeholder="Enter Name"/>
+                <span asp-validation-for="Name"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Description"></label>
+                <input asp-for="Description" class="form-control" placeholder="Enter Description"/>
+                <span asp-validation-for="Description"></span>
+            </div>
+
+            <div>
+                <label asp-for="Status" class="form-label"></label>
+                <select asp-for="Status" asp-items="Html.GetEnumSelectList<TaskStatus>()" class="form-select"></select>
+            </div>
+
+            <div>
+                <label asp-for="Priority" class="form-label"></label>
+                <select asp-for="Priority" asp-items="Html.GetEnumSelectList<TaskPriority>()" class="form-select"></select>
+            </div>
+
+            <div>
+                <input type="submit" value="Create" class="btn btn-primary"/>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
