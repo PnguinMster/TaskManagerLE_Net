@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace TaskMangerLE.Controllers;
 
-public class ProjectController(WorkServices services) : Controller
+public class ProjectController(ProjectService services) : Controller
 {
     // GET
     public async Task<IActionResult> Index()
@@ -20,12 +20,12 @@ public class ProjectController(WorkServices services) : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(ProjectItem project)
+    public async Task<IActionResult> Create(ProjectItem projectItem)
     {
         if (!ModelState.IsValid)
-            return View(project);
+            return View(projectItem);
 
-        await services.AddProjectAsync(project);
+        await services.AddProjectAsync(projectItem);
         return RedirectToAction(nameof(Index));
     }
 

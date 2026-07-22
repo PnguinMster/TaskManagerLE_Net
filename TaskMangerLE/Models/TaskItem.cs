@@ -10,6 +10,7 @@ public class TaskItem
     public TaskPriority Priority { get; set; }
     public TaskStatus Status { get; set; }
     public DateTime LastUpdated { get; set; }
+    public DateTime CreatedDate { get; set; }
     public DateTimeOffset DueDate { get; set; }
 
     public int ProjectId { get; set; }
