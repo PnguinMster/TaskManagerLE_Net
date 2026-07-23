@@ -1,5 +1,4 @@
-﻿@using TaskStatus = TaskMangerLE.Models.TaskStatus
-@model TaskMangerLE.Models.TaskItem
+﻿@model TaskMangerLE.Models.TaskItem
 
 @{
     ViewData["Title"] = "Create";
@@ -28,7 +27,7 @@
 
             <div>
                 <label asp-for="Status" class="form-label"></label>
-                <select asp-for="Status" asp-items="Html.GetEnumSelectList<TaskStatus>()" class="form-select"></select>
+                <select asp-for="Status" asp-items="Html.GetEnumSelectList<TaskMangerLE.Models.TaskStatus>()" class="form-select"></select>
             </div>
 
             <div>

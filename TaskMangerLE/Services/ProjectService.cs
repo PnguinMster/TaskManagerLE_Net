@@ -21,15 +21,25 @@ public class ProjectService(ApplicationDbContext context)
         await context.SaveChangesAsync();
     }
 
+    public async Task UpdateProjectAsync(ProjectItem projectItem)
+    {
+        context.ProjectItems.Update(projectItem);
+        await context.SaveChangesAsync();
+    }
+
     public async Task<ProjectItem?> FindProjectAsync(int? id)
     {
         return await context.ProjectItems.FindAsync(id);
     }
 
-    public async Task UpdateProjectAsync(ProjectItem projectItem)
+    public async Task<ProjectItem?> GetByIdWithTasksAsync(int? projectId)
     {
-        context.ProjectItems.Update(projectItem);
-        await context.SaveChangesAsync();
+        return await context.ProjectItems.Include(p => p.Tasks).FirstOrDefaultAsync(p => p.Id == projectId);
+    }
+
+    public async Task<List<TaskItem>> GetByProjectIdAsync(int? projectId)
+    {
+        return await context.TaskItems.Where(t => t.ProjectId == projectId).ToListAsync();
     }
 
     public async Task<List<ProjectItem>> GetAllAsync()

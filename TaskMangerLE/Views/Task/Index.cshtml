@@ -1,4 +1,4 @@
-﻿@model IEnumerable<TaskMangerLE.Models.TaskItem>
+﻿@model TaskMangerLE.Models.ProjectItem
 
 @{
     ViewData["Title"] = "Task Manager";
@@ -15,13 +15,13 @@
         <th>@Html.DisplayNameFor(model => model.Name)</th>
         <th>@Html.DisplayNameFor(model => model.Description)</th>
         <th>@Html.DisplayNameFor(model => model.Status)</th>
-        <th>@Html.DisplayNameFor(model => model.Priority)</th>
-        <th>@Html.DisplayNameFor(model => model.DueDate)</th>
+        <th>@Html.DisplayNameFor(model => model.Tasks.FirstOrDefault()!.Priority)</th>
+        <th>@Html.DisplayNameFor(model => model.Tasks.FirstOrDefault()!.Status)</th>
         <th>Info</th>
     </tr>
     </thead>
     <tbody>
-    @foreach (TaskItem taskItem in Model) {
+    @foreach (TaskItem taskItem in Model.Tasks) {
         <tr>
             <td>
                 @Html.DisplayFor(_ => taskItem.Name)
@@ -39,10 +39,9 @@
                 @Html.DisplayFor(_ => taskItem.DueDate)
             </td>
             <td>
-                <a asp-action="Update" asp-route-id="@taskItem.Id">Edit</a>
+                <a asp-action="" asp-route-id="@taskItem.Id">Edit</a>
             </td>
         </tr>
     }
     </tbody>
 </table>
-

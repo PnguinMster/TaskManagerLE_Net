@@ -7,9 +7,13 @@ namespace TaskMangerLE.Controllers;
 public class TaskController(TaskService taskService, ProjectService projectService) : Controller
 {
     // GET
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int? projectId)
     {
-        return View(await taskService.GetAllAsync());
+        if (projectId == null)
+            return NotFound();
+
+        ProjectItem? projectItem = await projectService.GetByIdWithTasksAsync(projectId);
+        return View(projectItem);
     }
 
     // GET: Task/Create
