@@ -20,6 +20,7 @@ public class ProjectController(ProjectService services) : Controller
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(ProjectItem projectItem)
     {
         if (!ModelState.IsValid)
