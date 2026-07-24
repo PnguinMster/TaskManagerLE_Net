@@ -30,12 +30,12 @@ public class ProjectController(ProjectService services) : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    public async Task<IActionResult> Update(int? id)
+    public async Task<IActionResult> Update(int? projectId)
     {
-        if (id == null)
+        if (projectId == null)
             return NotFound();
 
-        ProjectItem? projectItem = await services.FindProjectAsync(id);
+        ProjectItem? projectItem = await services.FindProjectAsync(projectId);
 
         if (projectItem == null)
             return NotFound();

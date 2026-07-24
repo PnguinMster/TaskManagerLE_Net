@@ -35,8 +35,8 @@
                 @Html.DisplayFor(_ => project.Tasks.Count)
             </td>
             <td>
-                <a asp-controller="Task" asp-action="Index" asp-route-id="@project.Id">Details</a> |
-                <a asp-action="Update" asp-route-id="@project.Id">Edit</a> |
+                <a asp-controller="Task" asp-action="Index" asp-route-projectId="@project.Id">Details</a> |
+                <a asp-action="Update" asp-route-projectId="@project.Id">Edit</a>
             </td>
         </tr>
     }
