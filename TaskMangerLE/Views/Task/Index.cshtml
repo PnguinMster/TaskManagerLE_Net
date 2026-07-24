@@ -6,7 +6,7 @@
 <h1>@ViewData["Title"]</h1>
 
 <p>
-    <a asp-action="Create" class="">Create New</a>
+    <a asp-action="Create" asp-route-projectId="@Model.Id" class="">Create New</a>
 </p>
 
 <table class="project-table">

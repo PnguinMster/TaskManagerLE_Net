@@ -6,11 +6,11 @@
 
 <h1>Create</h1>
 
-<h4>Task</h4>
+<h4>Add Task to @ViewData["ProjectName"]</h4>
 <hr/>
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Create">
+        <form asp-action="Create" asp-route-projectId="@Model.ProjectId" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <div class="form-group">
