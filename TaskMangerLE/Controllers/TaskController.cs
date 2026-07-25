@@ -42,7 +42,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
 
         taskItem.ProjectId = projectId;
 
-        await taskService.AddProjectAsync(taskItem);
+        await taskService.AddTaskAsync(taskItem);
         return RedirectToAction(nameof(Index), projectId);
     }
 }

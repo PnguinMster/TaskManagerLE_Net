@@ -7,7 +7,7 @@ namespace TaskMangerLE.Services;
 
 public class TaskService(ApplicationDbContext context)
 {
-    public async Task AddProjectAsync(TaskItem taskItem)
+    public async Task AddTaskAsync(TaskItem taskItem)
     {
         if (string.IsNullOrWhiteSpace(taskItem.Name))
             taskItem.Name = "Untitled Task";
