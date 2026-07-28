@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace TaskMangerLE.Models;
 
@@ -14,7 +16,7 @@ public class TaskItem
     public DateTimeOffset DueDate { get; set; }
 
     public int ProjectId { get; set; }
-    public ProjectItem ProjectItem { get; set; } = null!;
+    public ProjectItem? ProjectItem { get; set; } = null!;
 }
 
 public enum TaskPriority

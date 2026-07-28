@@ -10,8 +10,9 @@
 <hr/>
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Create" asp-route-projectId="@Model.ProjectId" method="post">
+        <form asp-action="Create" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input asp-for="ProjectId" type="hidden">
 
             <div class="form-group">
                 <label asp-for="Name"></label>
@@ -43,5 +44,5 @@
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index" asp-controller="Task" asp-route-projectId="@Model.ProjectId">Back to List</a>
 </div>

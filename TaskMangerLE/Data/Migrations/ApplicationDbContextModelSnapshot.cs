@@ -289,15 +289,12 @@ namespace TaskMangerLE.Migrations
                     b.Property<int>("ProjectId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ProjectItemId")
-                        .HasColumnType("int");
-
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProjectItemId");
+                    b.HasIndex("ProjectId");
 
                     b.ToTable("TaskItems");
                 });
@@ -357,7 +354,7 @@ namespace TaskMangerLE.Migrations
                 {
                     b.HasOne("TaskMangerLE.Models.ProjectItem", "ProjectItem")
                         .WithMany("Tasks")
-                        .HasForeignKey("ProjectItemId")
+                        .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

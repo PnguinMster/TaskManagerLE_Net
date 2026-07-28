@@ -27,22 +27,23 @@ public class TaskController(TaskService taskService, ProjectService projectServi
         if (projectItem == null)
             return NotFound();
 
-        TaskItem taskItem = new TaskItem() { ProjectId = projectItem.Id };
+        TaskItem taskItem = new TaskItem { ProjectId = projectItem.Id };
         ViewData["ProjectName"] = projectItem.Name;
         return View(taskItem);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(int projectId, TaskItem taskItem)
+    public async Task<IActionResult> Create(TaskItem taskItem)
     {
         ProjectItem? projectItem = await projectService.FindProjectAsync(taskItem.ProjectId);
-        if (!ModelState.IsValid || projectItem == null)
+        if (projectItem == null)
+            return NotFound();
+
+        if (!ModelState.IsValid)
             return View(taskItem);
 
-        taskItem.ProjectId = projectId;
-
         await taskService.AddTaskAsync(taskItem);
-        return RedirectToAction(nameof(Index), projectId);
+        return RedirectToAction(nameof(Index), nameof(Task), new { projectId = taskItem.ProjectId });
     }
 }
