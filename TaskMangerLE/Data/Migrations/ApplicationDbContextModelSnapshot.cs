@@ -272,8 +272,8 @@ namespace TaskMangerLE.Migrations
                         .HasMaxLength(700)
                         .HasColumnType("nvarchar(700)");
 
-                    b.Property<DateTimeOffset>("DueDate")
-                        .HasColumnType("datetimeoffset");
+                    b.Property<DateOnly>("DueDate")
+                        .HasColumnType("date");
 
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("datetime2");
