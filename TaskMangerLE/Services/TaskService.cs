@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using TaskMangerLE.Data;
 using TaskMangerLE.Models;
 
@@ -19,6 +18,17 @@ public class TaskService(ApplicationDbContext context)
 
         await context.TaskItems.AddAsync(taskItem);
         await context.SaveChangesAsync();
+    }
+
+    public async Task UpdateTaskAsync(TaskItem taskItem)
+    {
+        context.TaskItems.Update(taskItem);
+        await context.SaveChangesAsync();
+    }
+
+    public async Task<TaskItem?> FindTaskAsync(int? taskId)
+    {
+        return await context.TaskItems.FindAsync(taskId);
     }
 
     public async Task<List<TaskItem>> GetAllAsync()

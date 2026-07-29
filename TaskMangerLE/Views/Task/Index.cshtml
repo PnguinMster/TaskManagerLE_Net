@@ -39,7 +39,7 @@
                 @Html.DisplayFor(_ => taskItem.DueDate)
             </td>
             <td>
-                <a asp-action="" asp-route-id="@taskItem.Id">Edit</a>
+                <a asp-action="Update" asp-controller="Task" asp-route-taskId="@taskItem.Id">Edit</a>
             </td>
         </tr>
     }

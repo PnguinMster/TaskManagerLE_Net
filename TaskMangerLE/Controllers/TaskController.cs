@@ -46,4 +46,27 @@ public class TaskController(TaskService taskService, ProjectService projectServi
         await taskService.AddTaskAsync(taskItem);
         return RedirectToAction(nameof(Index), nameof(Task), new { projectId = taskItem.ProjectId });
     }
+
+    public async Task<IActionResult> Update(int? taskId)
+    {
+        if (taskId == null)
+            return NotFound();
+
+        TaskItem? taskItem = await taskService.FindTaskAsync(taskId);
+
+        if (taskItem == null)
+            return NotFound();
+
+        return View(taskItem);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Update(TaskItem taskItem)
+    {
+        if (!ModelState.IsValid)
+            return View(taskItem);
+
+        await taskService.UpdateTaskAsync(taskItem);
+        return RedirectToAction(nameof(Index), nameof(Task), new { projectId = taskItem.ProjectId });
+    }
 }
