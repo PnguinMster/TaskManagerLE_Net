@@ -40,6 +40,7 @@ public class ProjectController(ProjectService services) : Controller
         if (projectItem == null)
             return NotFound();
 
+        ViewData["ProjectName"] = projectItem.Name;
         return View(projectItem);
     }
 

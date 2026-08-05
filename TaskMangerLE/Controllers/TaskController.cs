@@ -13,6 +13,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
             return NotFound();
 
         ProjectItem? projectItem = await projectService.GetByIdWithTasksAsync(projectId);
+        ViewData["ProjectName"] = projectItem?.Name;
         return View(projectItem);
     }
 
@@ -44,6 +45,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
             return View(taskItem);
 
         await taskService.AddTaskAsync(taskItem);
+        ViewData["ProjectName"] = projectItem.Name;
         return RedirectToAction(nameof(Index), nameof(Task), new { projectId = taskItem.ProjectId });
     }
 
@@ -57,6 +59,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
         if (taskItem == null)
             return NotFound();
 
+        ViewData["TaskName"] = taskItem.Name;
         return View(taskItem);
     }
 
