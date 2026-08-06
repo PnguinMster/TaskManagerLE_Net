@@ -3,11 +3,12 @@ using TaskMangerLE.Models;
 using TaskMangerLE.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace TaskMangerLE.Controllers;
 
 [Authorize]
-public class ProjectController(ProjectService services) : Controller
+public class ProjectController(ProjectService services, UserManager<ApplicationUser> userManager) : Controller
 {
     // GET
     public async Task<IActionResult> Index()
@@ -27,6 +28,9 @@ public class ProjectController(ProjectService services) : Controller
         if (!ModelState.IsValid)
             return View(projectItem);
 
+        // User data
+        projectItem.OwnerId = userManager.GetUserId(User)!;
+        
         await services.AddProjectAsync(projectItem);
         return RedirectToAction(nameof(Index));
     }
