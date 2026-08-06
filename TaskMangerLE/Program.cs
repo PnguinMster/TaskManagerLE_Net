@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using TaskMangerLE.Data;
 using Microsoft.AspNetCore.Identity;
 using TaskMangerLE.Models;
@@ -9,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Inject Services
 builder.Services.AddScoped<ProjectService>();
 builder.Services.AddScoped<TaskService>();
+builder.Services.AddScoped<IAuthorizationHandler, ProjectOwnerHandler>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 

@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
 using TaskMangerLE.Data;
 using TaskMangerLE.Models;
 
@@ -42,6 +44,14 @@ public class ProjectService(ApplicationDbContext context)
         return await context.TaskItems.Where(t => t.ProjectId == projectId).ToListAsync();
     }
 
+    public async Task<List<ProjectItem>> GetUserAllAsync(string? userId)
+    {
+        return await context.ProjectItems.Where(p => p.OwnerId == userId).ToListAsync();
+        // return await context.ProjectItems.Where(p => p.OwnerId == userId).Include(p => p.Tasks).ToListAsync();
+    }
+
+
+    [Authorize(Roles = "Admin")]
     public async Task<List<ProjectItem>> GetAllAsync()
     {
         return await context.ProjectItems.ToListAsync();

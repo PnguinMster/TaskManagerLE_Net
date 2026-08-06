@@ -8,12 +8,18 @@ using Microsoft.AspNetCore.Identity;
 namespace TaskMangerLE.Controllers;
 
 [Authorize]
-public class ProjectController(ProjectService services, UserManager<ApplicationUser> userManager) : Controller
+public class ProjectController(ProjectService services, UserManager<ApplicationUser> userManager, IAuthorizationService authorizationService) : Controller
 {
     // GET
     public async Task<IActionResult> Index()
     {
-        return View(await services.GetAllAsync());
+        string? userId = userManager.GetUserId(User);
+        bool isAdmin = User.IsInRole("Admin");
+
+        if (isAdmin)
+            return View(await services.GetAllAsync());
+
+        return View(await services.GetUserAllAsync(userId));
     }
 
     public IActionResult Create()
@@ -30,7 +36,7 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
 
         // User data
         projectItem.OwnerId = userManager.GetUserId(User)!;
-        
+
         await services.AddProjectAsync(projectItem);
         return RedirectToAction(nameof(Index));
     }
@@ -44,6 +50,9 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
 
         if (projectItem == null)
             return NotFound();
+
+        var result = await authorizationService.AuthorizeAsync(User, projectItem, new ProjectOwnerRequirement());
+        if (!result.Succeeded) return Forbid();
 
         ViewData["ProjectName"] = projectItem.Name;
         return View(projectItem);
