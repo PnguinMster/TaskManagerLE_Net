@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace TaskMangerLE.Controllers;
 
+[Authorize]
 public class ProjectController(ProjectService services) : Controller
 {
     // GET
