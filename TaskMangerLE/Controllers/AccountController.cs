@@ -7,14 +7,14 @@ namespace TaskMangerLE.Controllers;
 public class AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager) : Controller
 {
     [HttpGet]
-    public IActionResult Login(string? returnUrl = null)
+    public IActionResult Index(string? returnUrl = null)
     {
         return View(new LoginViewModel { ReturnUrl = returnUrl });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Login(LoginViewModel model)
+    public async Task<IActionResult> Index(LoginViewModel model)
     {
         if (!ModelState.IsValid)
             return View(model);

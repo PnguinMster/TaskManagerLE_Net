@@ -23,6 +23,12 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     })
     .AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders().AddDefaultUI();
 
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Index";
+    options.AccessDeniedPath = "/Account/AccesDenied";
+});
+
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
