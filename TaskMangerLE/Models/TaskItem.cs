@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using TaskMangerLE.Models.Enums;
+using TaskStatus = TaskMangerLE.Models.Enums.TaskStatus;
 
 namespace TaskMangerLE.Models;
 
@@ -15,21 +17,4 @@ public class TaskItem
 
     public int ProjectId { get; set; }
     public ProjectItem? ProjectItem { get; set; } = null!;
-}
-
-public enum TaskPriority
-{
-    Low,
-    Medium,
-    High,
-    Critical
-}
-
-public enum TaskStatus
-{
-    ToDo,
-    InProgress,
-    Review,
-    Done,
-    Cancelled
 }
