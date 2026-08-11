@@ -28,27 +28,28 @@ public class TaskController(TaskService taskService, ProjectService projectServi
         if (projectItem == null)
             return NotFound();
 
-        TaskItem taskItem = new TaskItem { ProjectId = projectItem.Id };
+        TaskItemCreateViewModel taskItemModel = new TaskItemCreateViewModel() { ProjectId = projectItem.Id };
         ViewData["ProjectName"] = projectItem.Name;
-        return View(taskItem);
+        return View(taskItemModel);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(TaskItem taskItem)
+    public async Task<IActionResult> Create(TaskItemCreateViewModel taskItemModel)
     {
-        ProjectItem? projectItem = await projectService.FindProjectAsync(taskItem.ProjectId);
+        ProjectItem? projectItem = await projectService.FindProjectAsync(taskItemModel.ProjectId);
         if (projectItem == null)
             return NotFound();
 
         if (!ModelState.IsValid)
-            return View(taskItem);
+            return View(taskItemModel);
 
-        await taskService.AddTaskAsync(taskItem);
+        await taskService.AddTaskAsync(taskItemModel);
         ViewData["ProjectName"] = projectItem.Name;
-        return RedirectToAction(nameof(Index), nameof(Task), new { projectId = taskItem.ProjectId });
+        return RedirectToAction(nameof(Index), nameof(Task), new { projectId = taskItemModel.ProjectId });
     }
 
+    [HttpGet]
     public async Task<IActionResult> Update(int? taskId)
     {
         if (taskId == null)
@@ -59,17 +60,31 @@ public class TaskController(TaskService taskService, ProjectService projectServi
         if (taskItem == null)
             return NotFound();
 
+        TaskItemUpdateViewModel taskItemModel = new TaskItemUpdateViewModel
+        {
+            Id = taskItem.Id,
+            ProjectId = taskItem.ProjectId,
+            Name = taskItem.Name,
+            Description = taskItem.Description,
+            Priority = taskItem.Priority,
+            Status = taskItem.Status,
+            DueDate = taskItem.DueDate,
+        };
+
         ViewData["TaskName"] = taskItem.Name;
-        return View(taskItem);
+        return View(taskItemModel);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Update(TaskItem taskItem)
+    public async Task<IActionResult> Update(TaskItemUpdateViewModel taskItemModel)
     {
         if (!ModelState.IsValid)
-            return View(taskItem);
+            return View(taskItemModel);
 
-        await taskService.UpdateTaskAsync(taskItem);
-        return RedirectToAction(nameof(Index), nameof(Task), new { projectId = taskItem.ProjectId });
+        bool isUpdated = await taskService.UpdateTaskAsync(taskItemModel);
+        if (!isUpdated)
+            return View(taskItemModel);
+
+        return RedirectToAction(nameof(Index), nameof(Task), new { projectId = taskItemModel.ProjectId });
     }
 }

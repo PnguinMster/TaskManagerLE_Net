@@ -24,20 +24,20 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
 
     public IActionResult Create()
     {
-        return View(new ProjectItem());
+        return View(new ProjectItemCreateViewModel());
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(ProjectItem projectItem)
+    public async Task<IActionResult> Create(ProjectItemCreateViewModel projectItemModel)
     {
         if (!ModelState.IsValid)
-            return View(projectItem);
+            return View(projectItemModel);
 
         // User data
-        projectItem.OwnerId = userManager.GetUserId(User)!;
+        string? userId = userManager.GetUserId(User);
 
-        await services.AddProjectAsync(projectItem);
+        await services.AddProjectAsync(projectItemModel, userId);
         return RedirectToAction(nameof(Index));
     }
 
@@ -51,20 +51,31 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         if (projectItem == null)
             return NotFound();
 
-        var result = await authorizationService.AuthorizeAsync(User, projectItem, new ProjectOwnerRequirement());
+        ProjectItemUpdateViewModel projectItemModel = new ProjectItemUpdateViewModel
+        {
+            Id = projectItem.Id,
+            Name = projectItem.Name,
+            Description = projectItem.Description,
+            Status = projectItem.Status
+        };
+
+        var result = await authorizationService.AuthorizeAsync(User, projectItemModel, new ProjectOwnerRequirement());
         if (!result.Succeeded) return Forbid();
 
         ViewData["ProjectName"] = projectItem.Name;
-        return View(projectItem);
+        return View(projectItemModel);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Update(ProjectItem projectItem)
+    public async Task<IActionResult> Update(ProjectItemUpdateViewModel projectItemModel)
     {
         if (!ModelState.IsValid)
-            return View(projectItem);
+            return View(projectItemModel);
 
-        await services.UpdateProjectAsync(projectItem);
+        bool isUpdated = await services.UpdateProjectAsync(projectItemModel);
+        if (!isUpdated)
+            return View(projectItemModel);
+
         return RedirectToAction(nameof(Index));
     }
 }

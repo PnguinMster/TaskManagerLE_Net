@@ -9,24 +9,41 @@ namespace TaskMangerLE.Services;
 
 public class ProjectService(ApplicationDbContext context)
 {
-    public async Task AddProjectAsync(ProjectItem projectItem)
+    public async Task AddProjectAsync(ProjectItemCreateViewModel projectItemModel, string? userId)
     {
-        if (string.IsNullOrWhiteSpace(projectItem.Name))
-            projectItem.Name = "Untitled Project";
-        if (string.IsNullOrWhiteSpace(projectItem.Description))
-            projectItem.Description = "No Description";
+        // Check for empty strings
+        if (string.IsNullOrWhiteSpace(projectItemModel.Name))
+            projectItemModel.Name = "Untitled Project";
+        if (string.IsNullOrWhiteSpace(projectItemModel.Description))
+            projectItemModel.Description = "No Description";
 
-        projectItem.CreatedDate = DateTime.UtcNow;
-        projectItem.LastUpdated = DateTime.UtcNow;
+        ProjectItem projectItem = new ProjectItem
+        {
+            Name = projectItemModel.Name,
+            Description = projectItemModel.Description,
+            Status = projectItemModel.Status,
+            OwnerId = userId!,
+            CreatedDate = DateTime.UtcNow,
+            LastUpdated = DateTime.UtcNow,
+        };
 
         await context.ProjectItems.AddAsync(projectItem);
         await context.SaveChangesAsync();
     }
 
-    public async Task UpdateProjectAsync(ProjectItem projectItem)
+    public async Task<bool> UpdateProjectAsync(ProjectItemUpdateViewModel projectItemModel)
     {
-        context.ProjectItems.Update(projectItem);
+        ProjectItem? projectItem = await context.ProjectItems.FindAsync(projectItemModel.Id);
+
+        if (projectItem == null) return false;
+
+        projectItem.Name = projectItemModel.Name;
+        projectItem.Description = projectItemModel.Description;
+        projectItem.Status = projectItemModel.Status;
+        projectItem.LastUpdated = DateTime.UtcNow;
+
         await context.SaveChangesAsync();
+        return true;
     }
 
     public async Task<ProjectItem?> FindProjectAsync(int? id)

@@ -6,24 +6,43 @@ namespace TaskMangerLE.Services;
 
 public class TaskService(ApplicationDbContext context)
 {
-    public async Task AddTaskAsync(TaskItem taskItem)
+    public async Task AddTaskAsync(TaskItemCreateViewModel taskItemModel)
     {
-        if (string.IsNullOrWhiteSpace(taskItem.Name))
-            taskItem.Name = "Untitled Task";
-        if (string.IsNullOrWhiteSpace(taskItem.Description))
-            taskItem.Description = "No Description";
+        if (string.IsNullOrWhiteSpace(taskItemModel.Name))
+            taskItemModel.Name = "Untitled Task";
+        if (string.IsNullOrWhiteSpace(taskItemModel.Description))
+            taskItemModel.Description = "No Description";
 
-        taskItem.CreatedDate = DateTime.UtcNow;
-        taskItem.LastUpdated = DateTime.UtcNow;
+        TaskItem taskItem = new TaskItem
+        {
+            Name = taskItemModel.Name,
+            Description = taskItemModel.Description,
+            Priority = taskItemModel.Priority,
+            Status = taskItemModel.Status,
+            DueDate = taskItemModel.DueDate,
+            CreatedDate = DateTime.UtcNow,
+            LastUpdated = DateTime.UtcNow
+        };
 
         await context.TaskItems.AddAsync(taskItem);
         await context.SaveChangesAsync();
     }
 
-    public async Task UpdateTaskAsync(TaskItem taskItem)
+    public async Task<bool> UpdateTaskAsync(TaskItemUpdateViewModel taskItemModel)
     {
-        context.TaskItems.Update(taskItem);
+        TaskItem? taskItem = await context.TaskItems.FindAsync(taskItemModel.Id);
+        
+        if(taskItem == null) return false;
+
+        taskItem.Name = taskItemModel.Name;
+        taskItem.Description = taskItemModel.Description;
+        taskItem.Priority = taskItemModel.Priority;
+        taskItem.Status = taskItemModel.Status;
+        taskItem.DueDate = taskItemModel.DueDate;
+        taskItem.LastUpdated = DateTime.UtcNow;
+        
         await context.SaveChangesAsync();
+        return true;
     }
 
     public async Task<TaskItem?> FindTaskAsync(int? taskId)

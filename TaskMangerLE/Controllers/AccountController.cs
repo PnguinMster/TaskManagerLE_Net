@@ -4,7 +4,7 @@ using TaskMangerLE.Models;
 
 namespace TaskMangerLE.Controllers;
 
-public class AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager) : Controller
+public class AccountController(SignInManager<ApplicationUser> signInManager) : Controller
 {
     [HttpGet]
     public IActionResult Index(string? returnUrl = null)
