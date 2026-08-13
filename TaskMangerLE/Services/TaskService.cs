@@ -21,7 +21,8 @@ public class TaskService(ApplicationDbContext context)
             Status = taskItemModel.Status,
             DueDate = taskItemModel.DueDate,
             CreatedDate = DateTime.UtcNow,
-            LastUpdated = DateTime.UtcNow
+            LastUpdated = DateTime.UtcNow,
+            ProjectId = taskItemModel.ProjectId
         };
 
         await context.TaskItems.AddAsync(taskItem);

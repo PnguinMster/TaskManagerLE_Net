@@ -28,7 +28,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
         if (projectItem == null)
             return NotFound();
 
-        TaskItemCreateViewModel taskItemModel = new TaskItemCreateViewModel() { ProjectId = projectItem.Id };
+        TaskItemCreateViewModel taskItemModel = new TaskItemCreateViewModel { ProjectId = projectItem.Id };
         ViewData["ProjectName"] = projectItem.Name;
         return View(taskItemModel);
     }
