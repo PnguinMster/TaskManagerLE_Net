@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using TaskMangerLE.Models;
 using TaskMangerLE.Services;
 
 namespace TaskMangerLE.Controllers;
 
-public class TaskController(TaskService taskService, ProjectService projectService) : Controller
+public class TaskController(TaskService taskService, ProjectService projectService, IAuthorizationService authorizationService) : Controller
 {
     // GET
     public async Task<IActionResult> Index(int? projectId)
@@ -86,5 +88,22 @@ public class TaskController(TaskService taskService, ProjectService projectServi
             return View(taskItemModel);
 
         return RedirectToAction(nameof(Index), nameof(Task), new { projectId = taskItemModel.ProjectId });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int taskId)
+    {
+        TaskItem? taskItem = await taskService.FindTaskAsync(taskId);
+
+        if (taskItem == null) return NotFound();
+
+        var authResult = await authorizationService.AuthorizeAsync(User, taskItem.ProjectItem, "ProjectOwner");
+        if (!authResult.Succeeded) return Forbid();
+
+        string? deletedByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        await taskService.DeleteTask(taskItem, deletedByUserId);
+
+        return RedirectToAction("Index", "Project", new { id = taskItem.ProjectId });
     }
 }

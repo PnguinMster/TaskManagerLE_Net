@@ -17,4 +17,8 @@ public class TaskItem
 
     public int ProjectId { get; set; }
     public ProjectItem? ProjectItem { get; set; } = null!;
+
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAtUtc { get; set; }
+    public string? DeletedByUserId { get; set; }
 }

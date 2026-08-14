@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
 using TaskMangerLE.Models;
 using TaskMangerLE.Services;
 using Microsoft.EntityFrameworkCore;
@@ -77,5 +78,21 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
             return View(projectItemModel);
 
         return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int projectId)
+    {
+        ProjectItem? projectItem = await services.GetByIdWithTasksAsync(projectId);
+        if (projectItem == null) return NotFound();
+
+        var authResult = await authorizationService.AuthorizeAsync(User, projectItem, "ProjectOwner");
+        if (!authResult.Succeeded) return Forbid();
+
+        string? deletedByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        await services.DeleteProject(projectItem, deletedByUserId);
+
+        return RedirectToAction("Index", "Project");
     }
 }

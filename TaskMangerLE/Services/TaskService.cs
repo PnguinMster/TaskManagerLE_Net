@@ -32,8 +32,8 @@ public class TaskService(ApplicationDbContext context)
     public async Task<bool> UpdateTaskAsync(TaskItemUpdateViewModel taskItemModel)
     {
         TaskItem? taskItem = await context.TaskItems.FindAsync(taskItemModel.Id);
-        
-        if(taskItem == null) return false;
+
+        if (taskItem == null) return false;
 
         taskItem.Name = taskItemModel.Name;
         taskItem.Description = taskItemModel.Description;
@@ -41,7 +41,7 @@ public class TaskService(ApplicationDbContext context)
         taskItem.Status = taskItemModel.Status;
         taskItem.DueDate = taskItemModel.DueDate;
         taskItem.LastUpdated = DateTime.UtcNow;
-        
+
         await context.SaveChangesAsync();
         return true;
     }
@@ -54,5 +54,13 @@ public class TaskService(ApplicationDbContext context)
     public async Task<List<TaskItem>> GetAllAsync()
     {
         return await context.TaskItems.ToListAsync();
+    }
+
+    public async Task DeleteTask(TaskItem taskItem, string? deletedByUserId)
+    {
+        taskItem.IsDeleted = true;
+        taskItem.DeletedAtUtc = DateTime.UtcNow;
+        taskItem.DeletedByUserId = deletedByUserId;
+        await context.SaveChangesAsync();
     }
 }

@@ -16,4 +16,8 @@ public class ProjectItem
     public ApplicationUser? Owner { get; set; } = null;
 
     public ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();
+    
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAtUtc { get; set; }
+    public string? DeletedByUserId { get; set; }
 }

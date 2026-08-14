@@ -73,4 +73,19 @@ public class ProjectService(ApplicationDbContext context)
     {
         return await context.ProjectItems.ToListAsync();
     }
+
+    public async Task DeleteProject(ProjectItem projectItem, string? deletedByUserId)
+    {
+        projectItem.IsDeleted = true;
+        projectItem.DeletedAtUtc = DateTime.UtcNow;
+        projectItem.DeletedByUserId = deletedByUserId;
+
+        foreach (TaskItem taskItem in projectItem.Tasks) {
+            taskItem.IsDeleted = true;
+            taskItem.DeletedAtUtc = DateTime.UtcNow;
+            taskItem.DeletedByUserId = deletedByUserId;
+        }
+
+        await context.SaveChangesAsync();
+    }
 }
