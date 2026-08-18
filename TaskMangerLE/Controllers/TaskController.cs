@@ -98,7 +98,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
 
         if (taskItem == null) return NotFound();
 
-        var authResult = await authorizationService.AuthorizeAsync(User, taskItem.ProjectItem, "ProjectOwner");
+        var authResult = await authorizationService.AuthorizeAsync(User, taskItem.ProjectItem, "ProjectItem");
         if (!authResult.Succeeded) return Forbid();
 
         string? deletedByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);

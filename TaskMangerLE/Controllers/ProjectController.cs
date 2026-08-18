@@ -57,7 +57,8 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
             Id = projectItem.Id,
             Name = projectItem.Name,
             Description = projectItem.Description,
-            Status = projectItem.Status
+            Status = projectItem.Status,
+            OwnerId = projectItem.OwnerId
         };
 
         var result = await authorizationService.AuthorizeAsync(User, projectItemModel, new ProjectOwnerRequirement());

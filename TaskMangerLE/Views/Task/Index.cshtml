@@ -42,7 +42,7 @@
             </td>
             <td>
                 <a asp-action="Update" asp-controller="Task" asp-route-taskId="@taskItem.Id">Edit</a>
-                <form asp-action="Delete" asp-route-taskId="@taskItem.Id" method="post"
+                <form asp-action="Delete" asp-controller="Task" asp-route-taskId="@taskItem.Id" method="post"
                       onsubmit="return confirm('Delete this @Model.Name? This cannot be undone.');">
                     @Html.AntiForgeryToken()
                     <button type="submit" class="btn btn-primary">Delete</button>
