@@ -1,12 +1,17 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using TaskMangerLE.Models;
 using TaskMangerLE.Services;
 
 namespace TaskMangerLE.Controllers;
 
-public class TaskController(TaskService taskService, ProjectService projectService, IAuthorizationService authorizationService) : Controller
+public class TaskController(
+    TaskService taskService,
+    ProjectService projectService,
+    UserManager<ApplicationUser> userManager,
+    IAuthorizationService authorizationService) : Controller
 {
     // GET
     public async Task<IActionResult> Index(int? projectId)
@@ -94,16 +99,21 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int taskId)
     {
-        TaskItem? taskItem = await taskService.FindTaskAsync(taskId);
+        TaskItem? taskItem = await taskService.FindTaskWithOwnerAsync(taskId);
 
         if (taskItem == null) return NotFound();
 
-        var authResult = await authorizationService.AuthorizeAsync(User, taskItem.ProjectItem, "ProjectItem");
+        var authResult = await authorizationService.AuthorizeAsync(User, taskItem.ProjectItem, "ProjectOwner");
         if (!authResult.Succeeded) return Forbid();
 
         string? deletedByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         await taskService.DeleteTask(taskItem, deletedByUserId);
 
-        return RedirectToAction("Index", "Project", new { id = taskItem.ProjectId });
+        return RedirectToAction(nameof(Index), nameof(Task), new { projectId = taskItem.ProjectId });
+    }
+
+    public IActionResult AccessDenied()
+    {
+        return RedirectToAction(nameof(Index), "Home");
     }
 }

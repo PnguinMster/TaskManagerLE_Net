@@ -8,9 +8,9 @@ public class ProjectOwnerRequirement : IAuthorizationRequirement
 {
 }
 
-public class ProjectOwnerHandler : AuthorizationHandler<ProjectOwnerRequirement, ProjectItemUpdateViewModel>
+public class ProjectOwnerHandler : AuthorizationHandler<ProjectOwnerRequirement, ProjectItem>
 {
-    protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, ProjectOwnerRequirement requirement, ProjectItemUpdateViewModel resource)
+    protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, ProjectOwnerRequirement requirement, ProjectItem resource)
     {
         var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
 

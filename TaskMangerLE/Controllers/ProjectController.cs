@@ -58,10 +58,9 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
             Name = projectItem.Name,
             Description = projectItem.Description,
             Status = projectItem.Status,
-            OwnerId = projectItem.OwnerId
         };
 
-        var result = await authorizationService.AuthorizeAsync(User, projectItemModel, new ProjectOwnerRequirement());
+        var result = await authorizationService.AuthorizeAsync(User, projectItem, "ProjectOwner");
         if (!result.Succeeded) return Forbid();
 
         ViewData["ProjectName"] = projectItem.Name;
@@ -94,6 +93,6 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         string? deletedByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         await services.DeleteProject(projectItem, deletedByUserId);
 
-        return RedirectToAction("Index", "Project");
+        return RedirectToAction(nameof(Index), "Project");
     }
 }

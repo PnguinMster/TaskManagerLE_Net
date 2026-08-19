@@ -10,6 +10,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Inject Services
 builder.Services.AddScoped<ProjectService>();
 builder.Services.AddScoped<TaskService>();
+
+// Authorization
+builder.Services.AddAuthorization(options => { options.AddPolicy("ProjectOwner", policy => policy.Requirements.Add(new ProjectOwnerRequirement())); });
 builder.Services.AddScoped<IAuthorizationHandler, ProjectOwnerHandler>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

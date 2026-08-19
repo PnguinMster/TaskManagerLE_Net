@@ -51,6 +51,11 @@ public class TaskService(ApplicationDbContext context)
         return await context.TaskItems.FindAsync(taskId);
     }
 
+    public async Task<TaskItem?> FindTaskWithOwnerAsync(int? taskId)
+    {
+        return await context.TaskItems.Include(t => t.ProjectItem).FirstOrDefaultAsync(t => t.Id == taskId);
+    }
+
     public async Task<List<TaskItem>> GetAllAsync()
     {
         return await context.TaskItems.ToListAsync();
