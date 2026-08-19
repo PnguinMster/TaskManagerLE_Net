@@ -82,7 +82,7 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(int projectId)
+    public async Task<IActionResult> Delete(int? projectId)
     {
         ProjectItem? projectItem = await services.GetByIdWithTasksAsync(projectId);
         if (projectItem == null) return NotFound();
@@ -93,6 +93,6 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         string? deletedByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         await services.DeleteProject(projectItem, deletedByUserId);
 
-        return RedirectToAction(nameof(Index), "Project");
+        return RedirectToAction(nameof(Index));
     }
 }

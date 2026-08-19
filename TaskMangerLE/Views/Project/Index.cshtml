@@ -33,7 +33,7 @@
             <td>
                 <a asp-controller="Task" asp-action="Index" asp-route-projectId="@project.Id">Details</a> |
                 <a asp-action="Update" asp-controller="Project" asp-route-projectId="@project.Id">Edit</a>
-                <form asp-action="Delete" asp-controller="Project" asp-route-taskId="@project.Id" method="post"
+                <form asp-action="Delete" asp-controller="Project" asp-route-projectId="@project.Id" method="post"
                       onsubmit="return confirm('Delete this @project.Name? This cannot be undone.');">
                     @Html.AntiForgeryToken()
                     <button type="submit" class="btn btn-primary">Delete</button>
