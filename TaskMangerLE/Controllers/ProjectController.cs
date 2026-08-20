@@ -96,6 +96,11 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         return RedirectToAction(nameof(Index));
     }
 
+    public IActionResult AccessDenied()
+    {
+        return RedirectToAction(nameof(Index), "Home");
+    }
+    
     public async Task<IActionResult> Restore()
     {
         string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
