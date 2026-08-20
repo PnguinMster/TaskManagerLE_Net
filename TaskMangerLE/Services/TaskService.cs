@@ -75,4 +75,17 @@ public class TaskService(ApplicationDbContext context)
             .Include(t => t.ProjectItem)
             .OrderByDescending(t => t.DeletedAtUtc).ToListAsync();
     }
+
+    public async Task<TaskItem?> GetDeletedTask(int? taskId)
+    {
+        return await context.TaskItems.IgnoreQueryFilters().Include(t => t.ProjectItem).FirstOrDefaultAsync(t => t.Id == taskId);
+    }
+
+    public async Task RestoreTask(TaskItem taskItem)
+    {
+        taskItem.IsDeleted = false;
+        taskItem.DeletedAtUtc = null;
+        taskItem.DeletedByUserId = null;
+        await context.SaveChangesAsync();
+    }
 }

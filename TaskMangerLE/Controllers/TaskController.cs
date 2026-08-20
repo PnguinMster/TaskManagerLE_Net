@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.Reflection.Metadata.Ecma335;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -115,5 +116,29 @@ public class TaskController(
     public IActionResult AccessDenied()
     {
         return RedirectToAction(nameof(Index), "Home");
+    }
+
+    public async Task<IActionResult> Restore()
+    {
+        string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var deletedTask = await taskService.GetDeleted(userId);
+
+        return View(nameof(Restore), deletedTask);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Restore(int? taskId)
+    {
+        TaskItem? taskItem = await taskService.GetDeletedTask(taskId);
+
+        if (taskItem == null) return NotFound();
+
+        var authResult = await authorizationService.AuthorizeAsync(User, taskItem.ProjectItem, "ProjectOwner");
+        if (!authResult.Succeeded) return Forbid();
+
+        await taskService.RestoreTask(taskItem);
+        
+        return RedirectToAction(nameof(Restore));
     }
 }

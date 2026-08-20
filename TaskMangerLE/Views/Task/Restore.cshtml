@@ -1,0 +1,41 @@
+﻿@model IEnumerable<TaskMangerLE.Models.TaskItem>
+
+@{
+    ViewData["Title"] = "Restore";
+}
+<h1>@ViewData["Title"]</h1>
+
+<h1>Restore</h1>
+
+<table class="project-table">
+    <thead>
+    <tr>
+        <th>@Html.DisplayNameFor(model => model.Name)</th>
+        <th>@Html.DisplayNameFor(model => model.DeletedAtUtc)</th>
+        <th>@Html.DisplayNameFor(model => model.DeletedByUserId)</th>
+        <th>Info</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (TaskItem task in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(_ => task.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(_ => task.DeletedAtUtc)
+            </td>
+            <td>
+                @Html.DisplayFor(_ => task.DeletedByUserId)
+            </td>
+            <td>
+                <form asp-action="Restore" asp-controller="Project" asp-route-taskId="@task.Id" method="post"
+                      onsubmit="return confirm('Restore this @task.Name?');">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-primary">Restore</button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
