@@ -68,4 +68,11 @@ public class TaskService(ApplicationDbContext context)
         taskItem.DeletedByUserId = deletedByUserId;
         await context.SaveChangesAsync();
     }
+
+    public async Task<List<TaskItem>> GetDeleted(string? userId)
+    {
+        return await context.TaskItems.IgnoreQueryFilters().Where(t => t.IsDeleted && !t.ProjectItem!.IsDeleted && t.ProjectItem.OwnerId == userId)
+            .Include(t => t.ProjectItem)
+            .OrderByDescending(t => t.DeletedAtUtc).ToListAsync();
+    }
 }

@@ -88,4 +88,32 @@ public class ProjectService(ApplicationDbContext context)
 
         await context.SaveChangesAsync();
     }
+
+    public async Task<List<ProjectItem>> GetDeleted(string? userId)
+    {
+        return await context.ProjectItems.IgnoreQueryFilters().Where(p => p.IsDeleted && p.OwnerId == userId)
+            .Include(p => p.Tasks.Where(t => t.IsDeleted))
+            .OrderByDescending(p => p.DeletedAtUtc).ToListAsync();
+    }
+
+    public async Task<ProjectItem?> GetDeletedProject(int? projectId)
+    {
+        return await context.ProjectItems.IgnoreQueryFilters().Include(p => p.Tasks.Where(t => t.IsDeleted)).FirstOrDefaultAsync(p => p.Id == projectId);
+    }
+
+    public async Task RestoreProject(ProjectItem projectItem)
+    {
+        DateTime? projectDeletedAt = projectItem.DeletedAtUtc;
+        projectItem.IsDeleted = false;
+        projectItem.DeletedAtUtc = null;
+        projectItem.DeletedByUserId = null;
+
+        foreach (TaskItem taskItem in projectItem.Tasks.Where(t => t.DeletedAtUtc == projectDeletedAt)) {
+            taskItem.IsDeleted = false;
+            taskItem.DeletedAtUtc = null;
+            taskItem.DeletedByUserId = null;
+        }
+
+        await context.SaveChangesAsync();
+    }
 }
