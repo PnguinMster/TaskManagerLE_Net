@@ -96,9 +96,14 @@ public class ProjectService(ApplicationDbContext context)
             .OrderByDescending(p => p.DeletedAtUtc).ToListAsync();
     }
 
-    public async Task<ProjectItem?> GetDeletedProject(int? projectId)
+    public async Task<ProjectItem?> GetDeletedProjectWithDeletedTasks(int? projectId)
     {
         return await context.ProjectItems.IgnoreQueryFilters().Include(p => p.Tasks.Where(t => t.IsDeleted)).FirstOrDefaultAsync(p => p.Id == projectId);
+    }
+
+    public async Task<ProjectItem?> GetDeletedProjectAllTasks(int? projectId)
+    {
+        return await context.ProjectItems.IgnoreQueryFilters().Include(p => p.Tasks).FirstOrDefaultAsync(p => p.Id == projectId && p.IsDeleted);
     }
 
     public async Task RestoreProject(ProjectItem projectItem)
@@ -113,6 +118,14 @@ public class ProjectService(ApplicationDbContext context)
             taskItem.DeletedAtUtc = null;
             taskItem.DeletedByUserId = null;
         }
+
+        await context.SaveChangesAsync();
+    }
+
+    public async Task PurgeProject(ProjectItem projectItem)
+    {
+        context.TaskItems.RemoveRange(projectItem.Tasks);
+        context.ProjectItems.Remove(projectItem);
 
         await context.SaveChangesAsync();
     }

@@ -81,11 +81,22 @@ public class TaskService(ApplicationDbContext context)
         return await context.TaskItems.IgnoreQueryFilters().Include(t => t.ProjectItem).FirstOrDefaultAsync(t => t.Id == taskId);
     }
 
+    public async Task<TaskItem?> GetIsDeletedTask(int? taskId)
+    {
+        return await context.TaskItems.IgnoreQueryFilters().Include(t => t.ProjectItem).FirstOrDefaultAsync(t => t.Id == taskId && t.IsDeleted);
+    }
+
     public async Task RestoreTask(TaskItem taskItem)
     {
         taskItem.IsDeleted = false;
         taskItem.DeletedAtUtc = null;
         taskItem.DeletedByUserId = null;
+        await context.SaveChangesAsync();
+    }
+
+    public async Task PurgeTask(TaskItem taskItem)
+    {
+        context.TaskItems.Remove(taskItem);
         await context.SaveChangesAsync();
     }
 }

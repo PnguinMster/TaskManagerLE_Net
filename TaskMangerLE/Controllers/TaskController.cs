@@ -138,7 +138,23 @@ public class TaskController(
         if (!authResult.Succeeded) return Forbid();
 
         await taskService.RestoreTask(taskItem);
-        
+
         return RedirectToAction(nameof(Restore));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> PurgeProject(int? taskId)
+    {
+        TaskItem? taskItem = await taskService.GetIsDeletedTask(taskId);
+
+        if (taskItem == null) return NotFound();
+
+        var authResult = await authorizationService.AuthorizeAsync(User, taskItem.ProjectItem, "ProjectOwner");
+        if (!authResult.Succeeded) return Forbid();
+
+        await taskService.PurgeTask(taskItem);
+
+        return RedirectToAction(nameof(Restore), "Task");
     }
 }

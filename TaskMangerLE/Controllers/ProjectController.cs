@@ -100,7 +100,7 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
     {
         return RedirectToAction(nameof(Index), "Home");
     }
-    
+
     public async Task<IActionResult> Restore()
     {
         string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -113,7 +113,7 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Restore(int? projectId)
     {
-        ProjectItem? projectItem = await services.GetDeletedProject(projectId);
+        ProjectItem? projectItem = await services.GetDeletedProjectWithDeletedTasks(projectId);
 
         if (projectItem == null) return NotFound();
 
@@ -121,6 +121,22 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         if (!authResult.Succeeded) return Forbid();
 
         await services.RestoreProject(projectItem);
+
+        return RedirectToAction(nameof(Restore), "Project");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> PurgeProject(int? projectId)
+    {
+        ProjectItem? projectItem = await services.GetDeletedProjectAllTasks(projectId);
+
+        if (projectItem == null) return NotFound();
+
+        var authResult = await authorizationService.AuthorizeAsync(User, projectItem, "ProjectOwner");
+        if (!authResult.Succeeded) return Forbid();
+
+        await services.PurgeProject(projectItem);
 
         return RedirectToAction(nameof(Restore), "Project");
     }

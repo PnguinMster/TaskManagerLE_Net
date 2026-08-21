@@ -29,10 +29,15 @@
                 @Html.DisplayFor(_ => task.DeletedByUserId)
             </td>
             <td>
-                <form asp-action="Restore" asp-controller="Project" asp-route-taskId="@task.Id" method="post"
+                <form asp-action="Restore" asp-controller="Task" asp-route-taskId="@task.Id" method="post"
                       onsubmit="return confirm('Restore this @task.Name?');">
                     @Html.AntiForgeryToken()
                     <button type="submit" class="btn btn-primary">Restore</button>
+                </form>
+                <form asp-action="PurgeTask" asp-controller="Task" asp-route-taskId="@task.Id" method="post"
+                      onsubmit="return confirm('Permanantly Delete @task.Name? This Project will NOT be able to be restored again');">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-primary">Purge</button>
                 </form>
             </td>
         </tr>
