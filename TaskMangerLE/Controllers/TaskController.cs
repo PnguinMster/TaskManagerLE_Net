@@ -118,17 +118,22 @@ public class TaskController(
         return RedirectToAction(nameof(Index), "Home");
     }
 
-    public async Task<IActionResult> Restore()
+    [HttpGet]
+    public async Task<IActionResult> Restore(int? projectId)
     {
-        string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var deletedTask = await taskService.GetDeleted(userId);
+        ProjectItem? projectItem = await projectService.GetDeletedProjectWithDeletedTasks(projectId);
 
-        return View(nameof(Restore), deletedTask);
+        if (projectItem == null) return NotFound();
+
+        var deletedTasks = projectItem.Tasks;
+
+        return View(nameof(Restore), deletedTasks);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Restore(int? taskId)
+    [ActionName("Restore")]
+    public async Task<IActionResult> RestoreConfirmed(int? taskId)
     {
         TaskItem? taskItem = await taskService.GetDeletedTask(taskId);
 
@@ -139,7 +144,7 @@ public class TaskController(
 
         await taskService.RestoreTask(taskItem);
 
-        return RedirectToAction(nameof(Restore));
+        return RedirectToAction(nameof(Restore), taskItem.ProjectId);
     }
 
     [HttpPost]
@@ -155,6 +160,6 @@ public class TaskController(
 
         await taskService.PurgeTask(taskItem);
 
-        return RedirectToAction(nameof(Restore), "Task");
+        return RedirectToAction(nameof(Restore), "Task", taskItem.ProjectId);
     }
 }

@@ -69,7 +69,7 @@ public class TaskService(ApplicationDbContext context)
         await context.SaveChangesAsync();
     }
 
-    public async Task<List<TaskItem>> GetDeleted(string? userId)
+    public async Task<List<TaskItem>> GetDeleted(string? userId, int? projectId)
     {
         return await context.TaskItems.IgnoreQueryFilters().Where(t => t.IsDeleted && !t.ProjectItem!.IsDeleted && t.ProjectItem.OwnerId == userId)
             .Include(t => t.ProjectItem)
