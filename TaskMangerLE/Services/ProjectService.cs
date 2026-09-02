@@ -76,13 +76,15 @@ public class ProjectService(ApplicationDbContext context)
 
     public async Task DeleteProject(ProjectItem projectItem, string? deletedByUserId)
     {
+        DateTime deletedTime = DateTime.UtcNow;
+
         projectItem.IsDeleted = true;
-        projectItem.DeletedAtUtc = DateTime.UtcNow;
+        projectItem.DeletedAtUtc = deletedTime;
         projectItem.DeletedByUserId = deletedByUserId;
 
         foreach (TaskItem taskItem in projectItem.Tasks) {
             taskItem.IsDeleted = true;
-            taskItem.DeletedAtUtc = DateTime.UtcNow;
+            taskItem.DeletedAtUtc = deletedTime;
             taskItem.DeletedByUserId = deletedByUserId;
         }
 
