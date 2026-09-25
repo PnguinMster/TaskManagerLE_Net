@@ -1,4 +1,4 @@
-﻿@model IEnumerable<TaskMangerLE.Models.TaskItem>
+﻿@model ProjectItem
 
 @{
     ViewData["Title"] = "Restore";
@@ -17,7 +17,7 @@
     </tr>
     </thead>
     <tbody>
-    @foreach (TaskItem task in Model) {
+    @foreach (TaskItem task in Model.Tasks) {
         <tr>
             <td>
                 @Html.DisplayFor(_ => task.Name)
@@ -46,5 +46,5 @@
 </table>
 
 <div>
-    <a asp-action="Index" asp-controller="Task" asp-route-projectId="@Model.FirstOrDefault()!.ProjectId">Back to List</a>
+    <a asp-action="Index" asp-controller="Task" asp-route-projectId="@Model.Id">Back to List</a>
 </div>
