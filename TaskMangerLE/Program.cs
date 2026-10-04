@@ -21,6 +21,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
         options.Password.RequiredLength = 8;
         options.Password.RequireDigit = true;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireNonAlphanumeric = false;
         options.User.RequireUniqueEmail = true;
         options.SignIn.RequireConfirmedAccount = false;
     })
@@ -29,7 +31,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Index";
-    options.AccessDeniedPath = "/Account/AccesDenied";
+    options.AccessDeniedPath = "/Account/AccessDenied";
 });
 
 builder.Services.AddControllersWithViews();
