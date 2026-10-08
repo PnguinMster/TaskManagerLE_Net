@@ -4,7 +4,7 @@ using TaskMangerLE.Models;
 
 namespace TaskMangerLE.Controllers;
 
-public class AccountController(SignInManager<ApplicationUser> signInManager) : Controller
+public class AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager) : Controller
 {
     [HttpGet]
     public IActionResult Index(string? returnUrl = null)
@@ -14,27 +14,48 @@ public class AccountController(SignInManager<ApplicationUser> signInManager) : C
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Index(LoginViewModel model)
+    public async Task<IActionResult> Index(LoginViewModel loginModel)
     {
         if (!ModelState.IsValid)
-            return View(model);
+            return View(loginModel);
 
-        var result = await signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
+        var result = await signInManager.PasswordSignInAsync(loginModel.Email, loginModel.Password, loginModel.RememberMe, lockoutOnFailure: true);
 
         if (result.Succeeded) {
-            if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
-                return Redirect(model.ReturnUrl);
+            if (!string.IsNullOrEmpty(loginModel.ReturnUrl) && Url.IsLocalUrl(loginModel.ReturnUrl))
+                return Redirect(loginModel.ReturnUrl);
 
             return RedirectToAction("Index", "Project");
         }
 
         if (result.IsLockedOut) {
             ModelState.AddModelError(string.Empty, "Account locked. Try again later.");
-            return View(model);
+            return View(loginModel);
         }
 
         ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-        return View(model);
+        return View(loginModel);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Register(RegisterUser registerModel)
+    {
+        ApplicationUser user = new ApplicationUser
+        {
+            UserName = registerModel.DisplayName,
+            Email = registerModel.Email,
+        };
+
+        var result = await userManager.CreateAsync(user, registerModel.Password);
+        if (!result.Succeeded) {
+            foreach (IdentityError error in result.Errors)
+                ModelState.AddModelError(error.Code, error.Description);
+
+            return ValidationProblem(ModelState);
+        }
+
+        return Ok(new { message = "User register successfully." });
     }
 
     [HttpPost]
