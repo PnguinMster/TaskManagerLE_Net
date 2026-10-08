@@ -37,6 +37,9 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
         return View(loginModel);
     }
 
+    [HttpGet]
+    public IActionResult Register() => View();
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterUser registerModel)
