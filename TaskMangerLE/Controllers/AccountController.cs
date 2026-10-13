@@ -44,21 +44,26 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterUser registerModel)
     {
+        if (!ModelState.IsValid)
+            return View(registerModel);
+
         ApplicationUser user = new ApplicationUser
         {
-            UserName = registerModel.DisplayName,
+            DisplayName = registerModel.DisplayName,
             Email = registerModel.Email,
         };
 
         var result = await userManager.CreateAsync(user, registerModel.Password);
         if (!result.Succeeded) {
             foreach (IdentityError error in result.Errors)
-                ModelState.AddModelError(error.Code, error.Description);
+                ModelState.AddModelError(string.Empty, error.Description);
 
-            return ValidationProblem(ModelState);
+            return View(registerModel);
         }
 
-        return Ok(new { message = "User register successfully." });
+        await userManager.AddToRoleAsync(user, "User");
+        await signInManager.SignInAsync(user, isPersistent: false);
+        return RedirectToAction(nameof(Index), "Home");
     }
 
     [HttpPost]
@@ -66,7 +71,7 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
     public async Task<IActionResult> Logout()
     {
         await signInManager.SignOutAsync();
-        return RedirectToAction("Index", "Home");
+        return RedirectToAction(nameof(Index), "Home");
     }
 
     [HttpGet]
