@@ -19,7 +19,16 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
         if (!ModelState.IsValid)
             return View(loginModel);
 
-        var result = await signInManager.PasswordSignInAsync(loginModel.Email, loginModel.Password, loginModel.RememberMe, lockoutOnFailure: true);
+        ApplicationUser? user = loginModel.UserLogin.Contains('@')
+            ? await userManager.FindByEmailAsync(loginModel.UserLogin)
+            : await userManager.FindByNameAsync(loginModel.UserLogin);
+
+        if (user == null) {
+            ModelState.AddModelError(string.Empty, "Invalid login attempt");
+            return View(loginModel);
+        }
+
+        var result = await signInManager.PasswordSignInAsync(user.UserName!, loginModel.Password, loginModel.RememberMe, lockoutOnFailure: true);
 
         if (result.Succeeded) {
             if (!string.IsNullOrEmpty(loginModel.ReturnUrl) && Url.IsLocalUrl(loginModel.ReturnUrl))
@@ -28,12 +37,15 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
             return RedirectToAction("Index", "Project");
         }
 
-        if (result.IsLockedOut) {
+        if (result.IsNotAllowed)
+            ModelState.AddModelError(string.Empty, "Not allowed: email not confirmed!");
+        else if (result.IsLockedOut)
             ModelState.AddModelError(string.Empty, "Account locked. Try again later.");
-            return View(loginModel);
-        }
+        else if (result.RequiresTwoFactor)
+            ModelState.AddModelError(string.Empty, "Two-factor required.");
+        else
+            ModelState.AddModelError(string.Empty, "Wrong username or password.");
 
-        ModelState.AddModelError(string.Empty, "Invalid login attempt.");
         return View(loginModel);
     }
 
