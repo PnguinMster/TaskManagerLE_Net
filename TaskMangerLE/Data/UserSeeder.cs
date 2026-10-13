@@ -28,9 +28,9 @@ public static class UserSeeder
         if (admin == null) {
             admin = new ApplicationUser
             {
-                DisplayName = "Administrator",
+                UserName = "Administrator",
                 Email = email,
-                EmailConfirmed = false // Warning: Hope I remember to change
+                EmailConfirmed = true
             };
 
             IdentityResult result = await userManager.CreateAsync(admin, password);

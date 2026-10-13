@@ -5,6 +5,4 @@ namespace TaskMangerLE.Models;
 
 public class ApplicationUser : IdentityUser
 {
-    [MaxLength(70)]
-    public string? DisplayName { get; set; }
 }

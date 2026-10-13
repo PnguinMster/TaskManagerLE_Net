@@ -49,7 +49,7 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
 
         ApplicationUser user = new ApplicationUser
         {
-            DisplayName = registerModel.DisplayName,
+            UserName = registerModel.UserName,
             Email = registerModel.Email,
         };
 
