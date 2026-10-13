@@ -38,6 +38,12 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
+// User Seeding
+using (var scope = app.Services.CreateScope()) {
+    await UserSeeder.SeedAsync(scope.ServiceProvider, app.Configuration);
+}
+
+/*
 using (var scope = app.Services.CreateScope()) {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
@@ -54,6 +60,7 @@ using (var scope = app.Services.CreateScope()) {
         await userManager.AddToRoleAsync(admin, "Admin");
     }
 }
+*/
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment()) {
