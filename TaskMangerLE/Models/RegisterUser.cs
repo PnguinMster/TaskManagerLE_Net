@@ -4,7 +4,8 @@ namespace TaskMangerLE.Models;
 
 public class RegisterUser
 {
-    [Required, MaxLength(100)] public string UserName { get; set; } = string.Empty;
+    [Required, MaxLength(30), MinLength(3)]
+    public string UserName { get; set; } = string.Empty;
 
     [Required, EmailAddress] public string Email { get; set; } = string.Empty;
 
