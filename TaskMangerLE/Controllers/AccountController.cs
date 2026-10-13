@@ -37,14 +37,17 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
             return RedirectToAction("Index", "Project");
         }
 
-        if (result.IsNotAllowed)
-            ModelState.AddModelError(string.Empty, "Not allowed: email not confirmed!");
-        else if (result.IsLockedOut)
+        ModelState.AddModelError(string.Empty, result.IsLockedOut ? "Account locked. Try again later." : "Invalid login attempt");
+        /*
+        if (result.IsLockedOut)
             ModelState.AddModelError(string.Empty, "Account locked. Try again later.");
+        else if (result.IsNotAllowed)
+            ModelState.AddModelError(string.Empty, "Not allowed: email not confirmed!");
         else if (result.RequiresTwoFactor)
             ModelState.AddModelError(string.Empty, "Two-factor required.");
         else
             ModelState.AddModelError(string.Empty, "Wrong username or password.");
+            */
 
         return View(loginModel);
     }
