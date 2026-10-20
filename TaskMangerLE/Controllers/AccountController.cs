@@ -39,6 +39,7 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
 
         ModelState.AddModelError(string.Empty, result.IsLockedOut ? "Account locked. Try again later." : "Invalid login attempt");
         /*
+         // Testing
         if (result.IsLockedOut)
             ModelState.AddModelError(string.Empty, "Account locked. Try again later.");
         else if (result.IsNotAllowed)
