@@ -6,7 +6,7 @@ namespace TaskMangerLE.Controllers;
 
 public class AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager) : Controller
 {
-    [HttpGet]
+    [HttpGet] // Login function
     public IActionResult Index(string? returnUrl = null)
     {
         return View(new LoginViewModel { ReturnUrl = returnUrl });
