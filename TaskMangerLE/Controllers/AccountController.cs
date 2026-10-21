@@ -6,19 +6,20 @@ namespace TaskMangerLE.Controllers;
 
 public class AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager) : Controller
 {
-    [HttpGet] // Login function
-    public IActionResult Index(string? returnUrl = null)
+    [HttpGet]
+    public IActionResult Login(string? returnUrl = null)
     {
         return View(new LoginViewModel { ReturnUrl = returnUrl });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Index(LoginViewModel loginModel)
+    public async Task<IActionResult> Login(LoginViewModel loginModel)
     {
         if (!ModelState.IsValid)
             return View(loginModel);
 
+        // Determine if logging using Email or Username
         ApplicationUser? user = loginModel.UserLogin.Contains('@')
             ? await userManager.FindByEmailAsync(loginModel.UserLogin)
             : await userManager.FindByNameAsync(loginModel.UserLogin);
@@ -28,18 +29,21 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
             return View(loginModel);
         }
 
+        // Sign in attempt
         var result = await signInManager.PasswordSignInAsync(user.UserName!, loginModel.Password, loginModel.RememberMe, lockoutOnFailure: true);
 
         if (result.Succeeded) {
+            // Check for empty string and local url
             if (!string.IsNullOrEmpty(loginModel.ReturnUrl) && Url.IsLocalUrl(loginModel.ReturnUrl))
                 return Redirect(loginModel.ReturnUrl);
 
             return RedirectToAction("Index", "Project");
         }
 
+        // General invalid login
         ModelState.AddModelError(string.Empty, result.IsLockedOut ? "Account locked. Try again later." : "Invalid login attempt");
         /*
-         // Testing
+         // Testing invalid login
         if (result.IsLockedOut)
             ModelState.AddModelError(string.Empty, "Account locked. Try again later.");
         else if (result.IsNotAllowed)
@@ -63,13 +67,16 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
         if (!ModelState.IsValid)
             return View(registerModel);
 
+        // User 
         ApplicationUser user = new ApplicationUser
         {
             UserName = registerModel.UserName,
             Email = registerModel.Email,
         };
 
+        // Create user
         var result = await userManager.CreateAsync(user, registerModel.Password);
+
         if (!result.Succeeded) {
             foreach (IdentityError error in result.Errors)
                 ModelState.AddModelError(string.Empty, error.Description);
@@ -91,8 +98,5 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
     }
 
     [HttpGet]
-    public IActionResult AccessDenied()
-    {
-        return View();
-    }
+    public IActionResult AccessDenied() => View();
 }
