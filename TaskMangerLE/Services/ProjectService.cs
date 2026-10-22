@@ -31,19 +31,14 @@ public class ProjectService(ApplicationDbContext context)
         await context.SaveChangesAsync();
     }
 
-    public async Task<bool> UpdateProjectAsync(ProjectItemUpdateViewModel projectItemModel)
+    public async Task UpdateProjectAsync(ProjectItem projectItem, ProjectItemUpdateViewModel projectItemModel)
     {
-        ProjectItem? projectItem = await context.ProjectItems.FindAsync(projectItemModel.Id);
-
-        if (projectItem == null) return false;
-
         projectItem.Name = projectItemModel.Name;
         projectItem.Description = projectItemModel.Description;
         projectItem.Status = projectItemModel.Status;
         projectItem.LastUpdated = DateTime.UtcNow;
 
         await context.SaveChangesAsync();
-        return true;
     }
 
     public async Task<ProjectItem?> FindProjectAsync(int? id)
@@ -91,12 +86,16 @@ public class ProjectService(ApplicationDbContext context)
         await context.SaveChangesAsync();
     }
 
-    public async Task<List<ProjectItem>> GetDeleted(string? userId)
-    {
-        return await context.ProjectItems.IgnoreQueryFilters().Where(p => p.IsDeleted && p.OwnerId == userId)
+    public Task<List<ProjectItem>> GetAllDeletedAsync() => GetDeletedQuery().ToListAsync();
+
+    public Task<List<ProjectItem>> GetAllDeletedForUserAsync(string? userid) =>
+        GetDeletedQuery().Where(p => p.OwnerId == userid).ToListAsync();
+
+
+    private IQueryable<ProjectItem> GetDeletedQuery() =>
+        context.ProjectItems.IgnoreQueryFilters().Where(p => p.IsDeleted)
             .Include(p => p.Tasks.Where(t => t.IsDeleted))
-            .OrderByDescending(p => p.DeletedAtUtc).ToListAsync();
-    }
+            .OrderByDescending(p => p.DeletedAtUtc);
 
     public async Task<ProjectItem?> GetDeletedProjectWithDeletedTasks(int? projectId)
     {

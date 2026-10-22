@@ -66,10 +66,15 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         if (!ModelState.IsValid)
             return View(projectItemModel);
 
-        bool isUpdated = await services.UpdateProjectAsync(projectItemModel);
-        if (!isUpdated)
-            return View(projectItemModel);
+        ProjectItem? projectItem = await services.FindProjectAsync(projectItemModel.Id);
+        if (projectItem == null)
+            return NotFound();
 
+        var authResult = await authorizationService.AuthorizeAsync(User, projectItem, Policies.ProjectOwner);
+        if (!authResult.Succeeded)
+            return Forbid();
+
+        await services.UpdateProjectAsync(projectItem, projectItemModel);
         return RedirectToAction(nameof(Index));
     }
 
@@ -87,7 +92,6 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
 
         string? deletedByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         await services.DeleteProject(projectItem, deletedByUserId);
-
         return RedirectToAction(nameof(Index));
     }
 
@@ -98,10 +102,11 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
     [HttpGet]
     public async Task<IActionResult> Restore()
     {
+        bool isAdmin = User.IsInRole(Roles.User);
         string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var deletedProjects = await services.GetDeleted(userId);
+        var deletedProjects = isAdmin ? await services.GetAllDeletedAsync() : await services.GetAllDeletedForUserAsync(userId);
 
-        return View(nameof(Restore), deletedProjects);
+        return View(deletedProjects);
     }
 
     [HttpPost]
@@ -117,7 +122,7 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
             return Forbid();
 
         await services.RestoreProject(projectItem);
-        return RedirectToAction(nameof(Restore), "Project");
+        return RedirectToAction(nameof(Restore));
     }
 
     [HttpPost]
@@ -125,7 +130,6 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
     public async Task<IActionResult> PurgeProject(int? projectId)
     {
         ProjectItem? projectItem = await services.GetDeletedProjectAllTasks(projectId);
-
         if (projectItem == null)
             return NotFound();
 
@@ -134,6 +138,6 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
             return Forbid();
 
         await services.PurgeProject(projectItem);
-        return RedirectToAction(nameof(Restore), "Project");
+        return RedirectToAction(nameof(Restore));
     }
 }
