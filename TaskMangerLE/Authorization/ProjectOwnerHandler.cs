@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using TaskMangerLE.Models;
 
-namespace TaskMangerLE.Services;
+namespace TaskMangerLE.Authorization;
 
 public class ProjectOwnerRequirement : IAuthorizationRequirement
 {
