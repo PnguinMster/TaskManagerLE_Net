@@ -59,7 +59,8 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         return View(projectItemModel);
     }
 
-    [HttpPut]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Update(ProjectItemUpdateViewModel projectItemModel)
     {
         if (!ModelState.IsValid)
