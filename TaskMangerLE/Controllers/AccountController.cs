@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using TaskMangerLE.Authorization;
 using TaskMangerLE.Models;
 
 namespace TaskMangerLE.Controllers;
@@ -7,10 +8,8 @@ namespace TaskMangerLE.Controllers;
 public class AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager) : Controller
 {
     [HttpGet]
-    public IActionResult Login(string? returnUrl = null)
-    {
-        return View(new LoginViewModel { ReturnUrl = returnUrl });
-    }
+    public IActionResult Login(string? returnUrl = null) =>
+        View(new LoginViewModel { ReturnUrl = returnUrl });
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -29,11 +28,9 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
             return View(loginModel);
         }
 
-        // Sign in attempt
         var signInResult = await signInManager.PasswordSignInAsync(user.UserName!, loginModel.Password, loginModel.RememberMe, lockoutOnFailure: true);
 
         if (signInResult.Succeeded) {
-            // Check for empty string and local url
             if (!string.IsNullOrEmpty(loginModel.ReturnUrl) && Url.IsLocalUrl(loginModel.ReturnUrl))
                 return Redirect(loginModel.ReturnUrl);
 
@@ -83,7 +80,7 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
             return View(registerModel);
         }
 
-        await userManager.AddToRoleAsync(user, "User");
+        await userManager.AddToRoleAsync(user, Roles.User);
         await signInManager.SignInAsync(user, isPersistent: false);
         return RedirectToAction(nameof(Index), "Home");
     }

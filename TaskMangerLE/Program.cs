@@ -4,6 +4,7 @@ using TaskMangerLE.Data;
 using Microsoft.AspNetCore.Identity;
 using TaskMangerLE.Models;
 using TaskMangerLE.Services;
+using TaskMangerLE.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
