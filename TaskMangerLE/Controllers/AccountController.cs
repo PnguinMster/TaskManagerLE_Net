@@ -74,11 +74,10 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
             Email = registerModel.Email,
         };
 
-        // Create user
-        var result = await userManager.CreateAsync(user, registerModel.Password);
+        var registerResult = await userManager.CreateAsync(user, registerModel.Password);
 
-        if (!result.Succeeded) {
-            foreach (IdentityError error in result.Errors)
+        if (!registerResult.Succeeded) {
+            foreach (IdentityError error in registerResult.Errors)
                 ModelState.AddModelError(string.Empty, error.Description);
 
             return View(registerModel);
