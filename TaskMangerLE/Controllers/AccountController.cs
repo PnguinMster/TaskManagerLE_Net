@@ -30,9 +30,9 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
         }
 
         // Sign in attempt
-        var result = await signInManager.PasswordSignInAsync(user.UserName!, loginModel.Password, loginModel.RememberMe, lockoutOnFailure: true);
+        var signInResult = await signInManager.PasswordSignInAsync(user.UserName!, loginModel.Password, loginModel.RememberMe, lockoutOnFailure: true);
 
-        if (result.Succeeded) {
+        if (signInResult.Succeeded) {
             // Check for empty string and local url
             if (!string.IsNullOrEmpty(loginModel.ReturnUrl) && Url.IsLocalUrl(loginModel.ReturnUrl))
                 return Redirect(loginModel.ReturnUrl);
@@ -41,7 +41,7 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
         }
 
         // General invalid login
-        ModelState.AddModelError(string.Empty, result.IsLockedOut ? "Account locked. Try again later." : "Invalid login attempt");
+        ModelState.AddModelError(string.Empty, signInResult.IsLockedOut ? "Account locked. Try again later." : "Invalid login attempt");
         /*
          // Testing invalid login
         if (result.IsLockedOut)
