@@ -43,8 +43,8 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         if (projectItem == null)
             return NotFound();
 
-        var authorizationResult = await authorizationService.AuthorizeAsync(User, projectItem, Policies.ProjectOwner);
-        if (!authorizationResult.Succeeded)
+        var authResult = await authorizationService.AuthorizeAsync(User, projectItem, Policies.ProjectOwner);
+        if (!authResult.Succeeded)
             return Forbid();
 
         ProjectItemUpdateViewModel projectItemModel = new ProjectItemUpdateViewModel
