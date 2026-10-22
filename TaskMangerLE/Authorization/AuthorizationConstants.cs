@@ -1,5 +1,4 @@
-﻿
-namespace TaskMangerLE.Authorization;
+﻿namespace TaskMangerLE.Authorization;
 
 public static class Roles
 {
