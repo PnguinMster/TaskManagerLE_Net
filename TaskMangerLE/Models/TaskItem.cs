@@ -10,5 +10,5 @@ public class TaskItem : ItemBase
     public DateOnly DueDate { get; set; }
 
     public int ProjectId { get; set; }
-    public ProjectItem? ProjectItem { get; set; } = null!;
+    public ProjectItem ProjectItem { get; set; } = null!;
 }
