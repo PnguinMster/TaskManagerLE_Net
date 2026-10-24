@@ -93,5 +93,6 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
         return RedirectToAction(nameof(Index), "Home");
     }
 
+    [HttpGet]
     public IActionResult AccessDenied() => View();
 }
