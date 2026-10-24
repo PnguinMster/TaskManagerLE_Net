@@ -82,10 +82,6 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         return RedirectToAction(nameof(Index));
     }
 
-    [AllowAnonymous]
-    public IActionResult AccessDenied() =>
-        RedirectToAction(nameof(Index), "Home");
-
     [HttpGet]
     public async Task<IActionResult> Restore()
     {
