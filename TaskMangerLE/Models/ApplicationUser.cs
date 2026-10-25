@@ -1,8 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 
 namespace TaskMangerLE.Models;
 
-public class ApplicationUser : IdentityUser
-{
-}
+public class ApplicationUser : IdentityUser;
