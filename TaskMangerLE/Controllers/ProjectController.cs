@@ -9,7 +9,8 @@ using TaskMangerLE.Authorization;
 namespace TaskMangerLE.Controllers;
 
 [Authorize]
-public class ProjectController(ProjectService services, UserManager<ApplicationUser> userManager, IAuthorizationService authorizationService) : Controller
+public class ProjectController(ProjectService services, UserManager<ApplicationUser> userManager, IAuthorizationService authorizationService)
+    : ItemControllerBase(authorizationService)
 {
     [HttpGet]
     public async Task<IActionResult> Index()
@@ -38,9 +39,9 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
     [HttpGet]
     public async Task<IActionResult> Update(int? projectId)
     {
-        var (projectItem, error) = await LoadAndAuthProjectAsync(() => services.FindProjectAsync(projectId));
-        if (error != null)
-            return error;
+        ProjectItem? projectItem = await LoadAuthorizedAsync(services.FindProjectAsync(projectId));
+        if (projectItem == null)
+            return NotFound();
 
         ProjectItemUpdateViewModel projectItemModel = new ProjectItemUpdateViewModel
         {
@@ -61,9 +62,9 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         if (!ModelState.IsValid)
             return View(projectItemModel);
 
-        var (projectItem, error) = await LoadAndAuthProjectAsync(() => services.FindProjectAsync(projectItemModel.Id));
-        if (error != null)
-            return error;
+        ProjectItem? projectItem = await LoadAuthorizedAsync(services.FindProjectAsync(projectItemModel.Id));
+        if (projectItem == null)
+            return NotFound();
 
         await services.UpdateProjectAsync(projectItem, projectItemModel);
         return RedirectToAction(nameof(Index));
@@ -73,9 +74,9 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int? projectId)
     {
-        var (projectItem, error) = await LoadAndAuthProjectAsync(() => services.GetByIdWithTasksAsync(projectId));
-        if (error != null)
-            return error;
+        ProjectItem? projectItem = await LoadAuthorizedAsync(services.GetByIdWithTasksAsync(projectId));
+        if (projectItem == null)
+            return NotFound();
 
         string? deletedByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         await services.DeleteProject(projectItem, deletedByUserId);
@@ -96,9 +97,9 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Restore(int? projectId)
     {
-        var (projectItem, error) = await LoadAndAuthProjectAsync(() => services.GetDeletedProjectWithDeletedTasks(projectId));
-        if (error != null)
-            return error;
+        ProjectItem? projectItem = await LoadAuthorizedAsync(services.GetDeletedProjectWithDeletedTasks(projectId));
+        if (projectItem == null)
+            return NotFound();
 
         await services.RestoreProject(projectItem);
         return RedirectToAction(nameof(Restore));
@@ -108,24 +109,11 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> PurgeProject(int? projectId)
     {
-        var (projectItem, error) = await LoadAndAuthProjectAsync(() => services.GetDeletedProjectAllTasks(projectId));
-        if (error != null)
-            return error;
+        ProjectItem? projectItem = await LoadAuthorizedAsync(services.GetDeletedProjectAllTasks(projectId));
+        if (projectItem == null)
+            return NotFound();
 
         await services.PurgeProject(projectItem);
         return RedirectToAction(nameof(Restore));
-    }
-
-    private async Task<(ProjectItem projectItem, IActionResult? error)> LoadAndAuthProjectAsync(Func<Task<ProjectItem?>> getProject)
-    {
-        ProjectItem? projectItem = await getProject();
-        if (projectItem == null)
-            return (null, NotFound())!;
-
-        var authResult = await authorizationService.AuthorizeAsync(User, projectItem, Policies.ProjectOwner);
-        if (!authResult.Succeeded)
-            return (null, Forbid())!;
-
-        return (projectItem, null);
     }
 }
