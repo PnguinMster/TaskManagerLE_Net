@@ -16,7 +16,7 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
     public async Task<IActionResult> Index()
     {
         string? userId = userManager.GetUserId(User);
-        bool isAdmin = User.IsInRole(Roles.User);
+        bool isAdmin = User.IsInRole(Roles.Admin);
         return isAdmin ? View(await services.GetAllAsync()) : View(await services.GetUserAllAsync(userId));
     }
 
@@ -86,7 +86,7 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
     [HttpGet]
     public async Task<IActionResult> Restore()
     {
-        bool isAdmin = User.IsInRole(Roles.User);
+        bool isAdmin = User.IsInRole(Roles.Admin);
         string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var deletedProjects = isAdmin ? await services.GetAllDeletedAsync() : await services.GetAllDeletedForUserAsync(userId);
 
