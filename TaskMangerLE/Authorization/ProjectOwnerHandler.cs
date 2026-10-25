@@ -14,7 +14,7 @@ public class ProjectOwnerHandler : AuthorizationHandler<ProjectOwnerRequirement,
     {
         var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (context.User.IsInRole("Admin") || resource.OwnerId == userId)
+        if (context.User.IsInRole(Roles.Admin) || resource.OwnerId == userId)
             context.Succeed(requirement);
 
         return Task.CompletedTask;
