@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using TaskMangerLE.Models;
 using TaskMangerLE.Services;
-using TaskMangerLE.Authorization;
 
 namespace TaskMangerLE.Controllers;
 
@@ -18,7 +17,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
         if (projectItem == null)
             return NotFound();
 
-        ViewData["ProjectName"] = projectItem?.Name;
+        ViewData["ProjectName"] = projectItem.Name;
         return View(projectItem);
     }
 
