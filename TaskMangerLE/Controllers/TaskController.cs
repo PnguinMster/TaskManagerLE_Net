@@ -14,7 +14,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     public async Task<IActionResult> Index(int? projectId)
     {
         ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetByIdWithTasksAsync(projectId));
-        if (projectItem == null)
+        if (projectItem is null)
             return NotFound();
 
         ViewData["ProjectName"] = projectItem.Name;
@@ -25,7 +25,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     public async Task<IActionResult> Create(int? projectId)
     {
         ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.FindProjectAsync(projectId));
-        if (projectItem == null)
+        if (projectItem is null)
             return NotFound();
 
         ViewData["ProjectName"] = projectItem.Name;
@@ -37,7 +37,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     public async Task<IActionResult> Create(TaskItemCreateViewModel taskItemModel)
     {
         ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.FindProjectAsync(taskItemModel.ProjectId));
-        if (projectItem == null)
+        if (projectItem is null)
             return NotFound();
 
         if (!ModelState.IsValid)
@@ -52,7 +52,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     public async Task<IActionResult> Update(int? taskId)
     {
         TaskItem? taskItem = await LoadAuthorizedAsync(taskService.FindTaskAsync(taskId), t => t.ProjectItem);
-        if (taskItem == null)
+        if (taskItem is null)
             return NotFound();
 
         TaskItemUpdateViewModel taskItemModel = new TaskItemUpdateViewModel
@@ -78,7 +78,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
             return View(taskItemModel);
 
         TaskItem? taskItem = await LoadAuthorizedAsync(taskService.FindTaskAsync(taskItemModel.Id), t => t.ProjectItem);
-        if (taskItem == null)
+        if (taskItem is null)
             return NotFound();
 
         await taskService.UpdateTaskAsync(taskItem, taskItemModel);
@@ -90,7 +90,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     public async Task<IActionResult> Delete(int taskId)
     {
         TaskItem? taskItem = await LoadAuthorizedAsync(taskService.FindTaskWithOwnerAsync(taskId), t => t.ProjectItem);
-        if (taskItem == null)
+        if (taskItem is null)
             return NotFound();
 
         string? deletedByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -102,7 +102,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     public async Task<IActionResult> Restore(int? projectId)
     {
         ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetDeletedProjectWithDeletedTasks(projectId));
-        if (projectItem == null)
+        if (projectItem is null)
             return NotFound();
 
         return View(nameof(Restore), projectItem);
@@ -114,7 +114,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     public async Task<IActionResult> RestoreConfirmed(int? taskId)
     {
         TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetIsDeletedTask(taskId), t => t.ProjectItem);
-        if (taskItem == null)
+        if (taskItem is null)
             return NotFound();
 
         await taskService.RestoreTask(taskItem);
@@ -126,7 +126,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     public async Task<IActionResult> PurgeTask(int? taskId)
     {
         TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetIsDeletedTask(taskId), t => t.ProjectItem);
-        if (taskItem == null)
+        if (taskItem is null)
             return NotFound();
 
         int? taskProjectId = taskItem.ProjectId;

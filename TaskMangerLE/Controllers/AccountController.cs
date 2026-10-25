@@ -23,7 +23,7 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
             ? await userManager.FindByEmailAsync(loginModel.UserLogin)
             : await userManager.FindByNameAsync(loginModel.UserLogin);
 
-        if (user == null) {
+        if (user is null) {
             ModelState.AddModelError(string.Empty, "Invalid login attempt");
             return View(loginModel);
         }

@@ -10,7 +10,7 @@ public abstract class ItemControllerBase(IAuthorizationService authorizationServ
     protected async Task<T?> LoadAuthorizedAsync<T>(Task<T?> loadItem, Func<T, object>? getResource = null) where T : ItemBase
     {
         T? item = await loadItem;
-        if (item == null)
+        if (item is null)
             return null;
 
         object resource = getResource?.Invoke(item) ?? item;

@@ -40,7 +40,7 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
     public async Task<IActionResult> Update(int? projectId)
     {
         ProjectItem? projectItem = await LoadAuthorizedAsync(services.FindProjectAsync(projectId));
-        if (projectItem == null)
+        if (projectItem is null)
             return NotFound();
 
         ProjectItemUpdateViewModel projectItemModel = new ProjectItemUpdateViewModel
@@ -63,7 +63,7 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
             return View(projectItemModel);
 
         ProjectItem? projectItem = await LoadAuthorizedAsync(services.FindProjectAsync(projectItemModel.Id));
-        if (projectItem == null)
+        if (projectItem is null)
             return NotFound();
 
         await services.UpdateProjectAsync(projectItem, projectItemModel);
@@ -75,7 +75,7 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
     public async Task<IActionResult> Delete(int? projectId)
     {
         ProjectItem? projectItem = await LoadAuthorizedAsync(services.GetByIdWithTasksAsync(projectId));
-        if (projectItem == null)
+        if (projectItem is null)
             return NotFound();
 
         string? deletedByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -98,7 +98,7 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
     public async Task<IActionResult> Restore(int? projectId)
     {
         ProjectItem? projectItem = await LoadAuthorizedAsync(services.GetDeletedProjectWithDeletedTasks(projectId));
-        if (projectItem == null)
+        if (projectItem is null)
             return NotFound();
 
         await services.RestoreProject(projectItem);
@@ -110,7 +110,7 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
     public async Task<IActionResult> PurgeProject(int? projectId)
     {
         ProjectItem? projectItem = await LoadAuthorizedAsync(services.GetDeletedProjectAllTasks(projectId));
-        if (projectItem == null)
+        if (projectItem is null)
             return NotFound();
 
         await services.PurgeProject(projectItem);
