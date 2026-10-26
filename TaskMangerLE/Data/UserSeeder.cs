@@ -10,8 +10,8 @@ public static class UserSeeder
 
     public static async Task SeedAsync(IServiceProvider serviceProvider, IConfiguration config)
     {
-        RoleManager<IdentityRole> roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-        UserManager<ApplicationUser> userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         ILogger logger = serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger(nameof(UserSeeder));
 
         await SeedRolesAsync(roleManager);
