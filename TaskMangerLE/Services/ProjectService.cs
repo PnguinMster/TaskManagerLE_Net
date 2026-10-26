@@ -23,8 +23,6 @@ public class ProjectService(ApplicationDbContext context)
             Description = projectItemModel.Description,
             Status = projectItemModel.Status,
             OwnerId = userId!,
-            CreatedAtUtc = DateTime.UtcNow,
-            UpdatedAttUtc = DateTime.UtcNow,
         };
 
         await context.ProjectItems.AddAsync(projectItem);
@@ -36,7 +34,6 @@ public class ProjectService(ApplicationDbContext context)
         projectItem.Name = projectItemModel.Name;
         projectItem.Description = projectItemModel.Description;
         projectItem.Status = projectItemModel.Status;
-        projectItem.UpdatedAttUtc = DateTime.UtcNow;
 
         await context.SaveChangesAsync();
     }
