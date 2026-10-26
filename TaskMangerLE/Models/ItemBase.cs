@@ -15,9 +15,9 @@ public abstract class ItemBase
 {
     public int Id { get; set; }
     [Required, MaxLength(ItemConstraints.NameMaxLength)]
-    public string Name { get; set; }
+    public string? Name { get; set; }
     [Required, MaxLength(ItemConstraints.DescriptionMaxLength)]
-    public string Description { get; set; }
+    public string? Description { get; set; }
     public DateTime UpdatedAttUtc { get; set; }
     public DateTime CreatedAtUtc { get; set; }
 
