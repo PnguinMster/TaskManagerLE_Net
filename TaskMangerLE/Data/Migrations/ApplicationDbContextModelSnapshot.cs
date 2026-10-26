@@ -228,7 +228,7 @@ namespace TaskMangerLE.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedDate")
+                    b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("DeletedAtUtc")
@@ -245,9 +245,6 @@ namespace TaskMangerLE.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<DateTime>("LastUpdated")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(70)
@@ -260,6 +257,9 @@ namespace TaskMangerLE.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAttUtc")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -276,7 +276,7 @@ namespace TaskMangerLE.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedDate")
+                    b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("DeletedAtUtc")
@@ -296,9 +296,6 @@ namespace TaskMangerLE.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<DateTime>("LastUpdated")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(70)
@@ -312,6 +309,9 @@ namespace TaskMangerLE.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAttUtc")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
