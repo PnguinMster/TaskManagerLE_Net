@@ -17,4 +17,19 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         builder.Entity<TaskItem>().HasQueryFilter(t => !t.IsDeleted);
         builder.Entity<TaskItem>().HasOne(t => t.ProjectItem).WithMany(p => p.Tasks).HasForeignKey(t => t.ProjectId);
     }
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        DateTime now = DateTime.UtcNow;
+        foreach (var entityEntry in ChangeTracker.Entries<ItemBase>()) {
+            if (entityEntry.State == EntityState.Added) {
+                entityEntry.Entity.CreatedAtUtc = now;
+                entityEntry.Entity.UpdatedAttUtc = now;
+            }
+            else if (entityEntry.State == EntityState.Modified)
+                entityEntry.Entity.UpdatedAttUtc = now;
+        }
+
+        return base.SaveChangesAsync(cancellationToken);
+    }
 }

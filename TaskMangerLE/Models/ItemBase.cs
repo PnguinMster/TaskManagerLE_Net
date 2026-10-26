@@ -17,8 +17,8 @@ public abstract class ItemBase
     public string Name { get; set; }
     [Required, MaxLength(ItemConstraints.DescriptionMaxLength)]
     public string Description { get; set; }
-    public DateTime LastUpdated { get; set; }
-    public DateTime CreatedDate { get; set; }
+    public DateTime UpdatedAttUtc { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
 
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAtUtc { get; set; }

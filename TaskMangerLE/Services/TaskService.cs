@@ -20,8 +20,8 @@ public class TaskService(ApplicationDbContext context)
             Priority = taskItemModel.Priority,
             Status = taskItemModel.Status,
             DueDate = taskItemModel.DueDate,
-            CreatedDate = DateTime.UtcNow,
-            LastUpdated = DateTime.UtcNow,
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAttUtc = DateTime.UtcNow,
             ProjectId = taskItemModel.ProjectId
         };
 
@@ -36,7 +36,7 @@ public class TaskService(ApplicationDbContext context)
         taskItem.Priority = taskItemModel.Priority;
         taskItem.Status = taskItemModel.Status;
         taskItem.DueDate = taskItemModel.DueDate;
-        taskItem.LastUpdated = DateTime.UtcNow;
+        taskItem.UpdatedAttUtc = DateTime.UtcNow;
 
         await context.SaveChangesAsync();
     }
