@@ -7,7 +7,7 @@ namespace TaskMangerLE.Controllers;
 
 public abstract class ItemControllerBase(IAuthorizationService authorizationService) : Controller
 {
-    protected async Task<T?> LoadAuthorizedAsync<T>(Task<T?> loadItem, Func<T, object>? getResource = null) where T : ItemBase
+    protected async Task<T?> LoadAuthorizedAsync<T>(Task<T?> loadItem, Func<T, object>? getResource = null) where T : class
     {
         T? item = await loadItem;
         if (item is null)
