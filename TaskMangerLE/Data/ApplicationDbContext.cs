@@ -24,10 +24,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         foreach (var entityEntry in ChangeTracker.Entries<ItemBase>()) {
             if (entityEntry.State == EntityState.Added) {
                 entityEntry.Entity.CreatedAtUtc = now;
-                entityEntry.Entity.UpdatedAttUtc = now;
+                entityEntry.Entity.UpdatedAtUtc = now;
             }
             else if (entityEntry.State == EntityState.Modified)
-                entityEntry.Entity.UpdatedAttUtc = now;
+                entityEntry.Entity.UpdatedAtUtc = now;
         }
 
         return base.SaveChangesAsync(cancellationToken);
