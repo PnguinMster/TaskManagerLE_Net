@@ -1,15 +1,24 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 
 namespace TaskMangerLE.Models;
 
+public static class ItemConstraints
+{
+    public const int NameMaxLength = 70;
+    public const int DescriptionMaxLength = 700;
+}
+
+// Not EF entity type
 public abstract class ItemBase
 {
     public int Id { get; set; }
-    [MaxLength(70)] public string Name { get; set; } = "Untitled";
-    [MaxLength(700)] public string Description { get; set; } = "No Description";
+    [Required, MaxLength(ItemConstraints.NameMaxLength)]
+    public string Name { get; set; }
+    [Required, MaxLength(ItemConstraints.DescriptionMaxLength)]
+    public string Description { get; set; }
     public DateTime LastUpdated { get; set; }
     public DateTime CreatedDate { get; set; }
-
 
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAtUtc { get; set; }
