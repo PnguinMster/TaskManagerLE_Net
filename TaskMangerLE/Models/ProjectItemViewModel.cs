@@ -5,10 +5,10 @@ namespace TaskMangerLE.Models;
 
 public abstract class ProjectItemViewModelBase
 {
-    [Required, MaxLength(ItemConstraints.NameMaxLength)]
-    public string? Name { get; set; }
-    [Required, MaxLength(ItemConstraints.DescriptionMaxLength)]
-    public string? Description { get; set; }
+    [MaxLength(ItemConstraints.NameMaxLength)]
+    public string Name { get; set; } = string.Empty;
+    [MaxLength(ItemConstraints.DescriptionMaxLength)]
+    public string Description { get; set; } = string.Empty;
     public ProjectStatus Status { get; set; }
 }
 

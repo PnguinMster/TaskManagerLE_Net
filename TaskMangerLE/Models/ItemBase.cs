@@ -13,10 +13,10 @@ public static class ItemConstraints
 public abstract class ItemBase
 {
     public int Id { get; set; }
-    [Required, MaxLength(ItemConstraints.NameMaxLength)]
-    public string? Name { get; set; }
-    [Required, MaxLength(ItemConstraints.DescriptionMaxLength)]
-    public string? Description { get; set; }
+    [MaxLength(ItemConstraints.NameMaxLength)]
+    public string Name { get; set; } = string.Empty;
+    [MaxLength(ItemConstraints.DescriptionMaxLength)]
+    public string Description { get; set; } = string.Empty;
     public DateTime UpdatedAtUtc { get; set; }
     public DateTime CreatedAtUtc { get; set; }
 
