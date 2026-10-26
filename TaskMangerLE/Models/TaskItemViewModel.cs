@@ -8,9 +8,9 @@ public abstract class TaskItemViewModelBase
 {
     public int ProjectId { get; set; }
     [Required, MaxLength(ItemConstraints.NameMaxLength)]
-    public string Name { get; set; }
+    public string? Name { get; set; }
     [Required, MaxLength(ItemConstraints.DescriptionMaxLength)]
-    public string Description { get; set; }
+    public string? Description { get; set; }
     public TaskPriority Priority { get; set; }
     public TaskStatus Status { get; set; }
     public DateOnly DueDate { get; set; }
