@@ -8,11 +8,6 @@ public class TaskService(ApplicationDbContext context)
 {
     public async Task AddTaskAsync(TaskItemCreateViewModel taskItemModel)
     {
-        if (string.IsNullOrWhiteSpace(taskItemModel.Name))
-            taskItemModel.Name = "Untitled Task";
-        if (string.IsNullOrWhiteSpace(taskItemModel.Description))
-            taskItemModel.Description = "No Description";
-
         TaskItem taskItem = new TaskItem
         {
             Name = taskItemModel.Name,

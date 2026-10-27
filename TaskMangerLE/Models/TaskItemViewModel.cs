@@ -7,8 +7,10 @@ namespace TaskMangerLE.Models;
 public abstract class TaskItemViewModelBase
 {
     public int ProjectId { get; set; }
+    [Required]
     [MaxLength(ItemConstraints.NameMaxLength)]
     public string Name { get; set; } = string.Empty;
+    [DataType(DataType.MultilineText)]
     [MaxLength(ItemConstraints.DescriptionMaxLength)]
     public string Description { get; set; } = string.Empty;
     public TaskPriority Priority { get; set; }
@@ -16,9 +18,7 @@ public abstract class TaskItemViewModelBase
     public DateOnly DueDate { get; set; }
 }
 
-public class TaskItemCreateViewModel : TaskItemViewModelBase
-{
-}
+public class TaskItemCreateViewModel : TaskItemViewModelBase;
 
 public class TaskItemUpdateViewModel : TaskItemViewModelBase
 {
