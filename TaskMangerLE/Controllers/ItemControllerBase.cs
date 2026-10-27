@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TaskMangerLE.Authorization;
-using TaskMangerLE.Models;
 using Microsoft.AspNetCore.Authorization;
 
 namespace TaskMangerLE.Controllers;
