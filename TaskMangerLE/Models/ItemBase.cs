@@ -24,4 +24,18 @@ public abstract class ItemBase
     public DateTime? DeletedAtUtc { get; set; }
     [MaxLength(ItemConstraints.UserIdMaxLength)]
     public string? DeletedByUserId { get; set; }
+
+    public void SoftDelete(string deletedByUserId, DateTime deletedAtUtc)
+    {
+        IsDeleted = true;
+        DeletedByUserId = deletedByUserId;
+        DeletedAtUtc = deletedAtUtc;
+    }
+
+    public void Restore()
+    {
+        IsDeleted = false;
+        DeletedByUserId = null;
+        DeletedAtUtc = null;
+    }
 }
