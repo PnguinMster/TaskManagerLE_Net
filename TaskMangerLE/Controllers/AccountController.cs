@@ -80,7 +80,13 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
             return View(registerModel);
         }
 
-        await userManager.AddToRoleAsync(user, Roles.User);
+        IdentityResult roleResult = await userManager.AddToRoleAsync(user, Roles.User);
+        if (!roleResult.Succeeded) {
+            await userManager.DeleteAsync(user);
+            ModelState.AddModelError(string.Empty, "We couldn't finish setting up your account. Please try again later.");
+            return View(registerModel);
+        }
+
         await signInManager.SignInAsync(user, isPersistent: false);
         return RedirectToAction(nameof(Index), "Home");
     }
