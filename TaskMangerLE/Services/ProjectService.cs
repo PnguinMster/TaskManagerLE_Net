@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualBasic;
+﻿using Microsoft.EntityFrameworkCore;
 using TaskMangerLE.Data;
 using TaskMangerLE.Models;
 
@@ -9,17 +6,17 @@ namespace TaskMangerLE.Services;
 
 public class ProjectService(ApplicationDbContext context)
 {
-    public async Task AddProjectAsync(ProjectItemCreateViewModel projectItemModel, string? userId)
+    public async Task AddProjectAsync(ProjectItemCreateViewModel projectItemModel, string userId)
     {
         ProjectItem projectItem = new ProjectItem
         {
             Name = projectItemModel.Name,
             Description = projectItemModel.Description,
             Status = projectItemModel.Status,
-            OwnerId = userId!,
+            OwnerId = userId,
         };
 
-        await context.ProjectItems.AddAsync(projectItem);
+        context.ProjectItems.Add(projectItem);
         await context.SaveChangesAsync();
     }
 
@@ -32,89 +29,60 @@ public class ProjectService(ApplicationDbContext context)
         await context.SaveChangesAsync();
     }
 
-    public async Task<ProjectItem?> FindProjectAsync(int? id)
+    public Task<ProjectItem?> GetProjectAsync(int projectId) =>
+        context.ProjectItems.FirstOrDefaultAsync(p => p.Id == projectId);
+
+    public Task<ProjectItem?> GetProjectWithTasksAsync(int projectId) =>
+        context.ProjectItems.Include(p => p.Tasks).FirstOrDefaultAsync(p => p.Id == projectId);
+
+    public Task<List<ProjectItem>> GetProjectsForUserAsync(string userId) =>
+        context.ProjectItems.AsNoTracking().Where(p => p.OwnerId == userId).ToListAsync();
+
+    public Task<List<ProjectItem>> GetAllProjectsAsync() =>
+        context.ProjectItems.AsNoTracking().ToListAsync();
+
+    public async Task DeleteProjectAsync(ProjectItem projectItem, string deletedByUserId)
     {
-        return await context.ProjectItems.FindAsync(id);
-    }
+        DateTime deletedAtUtc = DateTime.UtcNow;
 
-    public async Task<ProjectItem?> GetByIdWithTasksAsync(int? projectId)
-    {
-        return await context.ProjectItems.Include(p => p.Tasks).FirstOrDefaultAsync(p => p.Id == projectId);
-    }
-
-    public async Task<List<TaskItem>> GetByProjectIdAsync(int? projectId)
-    {
-        return await context.TaskItems.Where(t => t.ProjectId == projectId).ToListAsync();
-    }
-
-    public async Task<List<ProjectItem>> GetUserAllAsync(string? userId)
-    {
-        return await context.ProjectItems.Where(p => p.OwnerId == userId).ToListAsync();
-        // return await context.ProjectItems.Where(p => p.OwnerId == userId).Include(p => p.Tasks).ToListAsync();
-    }
-
-
-    [Authorize(Roles = "Admin")]
-    public async Task<List<ProjectItem>> GetAllAsync()
-    {
-        return await context.ProjectItems.ToListAsync();
-    }
-
-    public async Task DeleteProject(ProjectItem projectItem, string? deletedByUserId)
-    {
-        DateTime deletedTime = DateTime.UtcNow;
-
-        projectItem.IsDeleted = true;
-        projectItem.DeletedAtUtc = deletedTime;
-        projectItem.DeletedByUserId = deletedByUserId;
-
-        foreach (TaskItem taskItem in projectItem.Tasks) {
-            taskItem.IsDeleted = true;
-            taskItem.DeletedAtUtc = deletedTime;
-            taskItem.DeletedByUserId = deletedByUserId;
-        }
+        projectItem.SoftDelete(deletedByUserId, deletedAtUtc);
+        foreach (TaskItem taskItem in projectItem.Tasks)
+            taskItem.SoftDelete(deletedByUserId, deletedAtUtc);
 
         await context.SaveChangesAsync();
     }
 
-    public Task<List<ProjectItem>> GetAllDeletedAsync() => GetDeletedQuery().ToListAsync();
+    public Task<List<ProjectItem>> GetDeletedProjectsAsync() =>
+        GetDeletedProjectsQuery().AsNoTracking().OrderByDescending(p => p.DeletedAtUtc).ToListAsync();
 
-    public Task<List<ProjectItem>> GetAllDeletedForUserAsync(string? userid) =>
-        GetDeletedQuery().Where(p => p.OwnerId == userid).ToListAsync();
+    public Task<List<ProjectItem>> GetDeletedProjectsForUserAsync(string userId) =>
+        GetDeletedProjectsQuery().AsNoTracking().Where(p => p.OwnerId == userId)
+            .OrderByDescending(p => p.DeletedAtUtc).ToListAsync();
 
+    // Restore page and restore POST. Tasks that were deleted with the project.
+    public Task<ProjectItem?> GetDeletedProjectWithDeletedTasksAsync(int projectId) =>
+        GetDeletedProjectsQuery().Include(p => p.Tasks.Where(t => t.IsDeleted))
+            .FirstOrDefaultAsync(p => p.Id == projectId);
 
-    private IQueryable<ProjectItem> GetDeletedQuery() =>
-        context.ProjectItems.IgnoreQueryFilters().Where(p => p.IsDeleted)
-            .Include(p => p.Tasks.Where(t => t.IsDeleted))
-            .OrderByDescending(p => p.DeletedAtUtc);
+    // Purge needs every task, including the deleted ones.
+    public Task<ProjectItem?> GetDeletedProjectWithAllTasksAsync(int projectId) =>
+        GetDeletedProjectsQuery().Include(p => p.Tasks).FirstOrDefaultAsync(p => p.Id == projectId);
 
-    public async Task<ProjectItem?> GetDeletedProjectWithDeletedTasks(int? projectId)
-    {
-        return await context.ProjectItems.IgnoreQueryFilters().Include(p => p.Tasks.Where(t => t.IsDeleted)).FirstOrDefaultAsync(p => p.Id == projectId);
-    }
+    private IQueryable<ProjectItem> GetDeletedProjectsQuery() =>
+        context.ProjectItems.IgnoreQueryFilters().Where(p => p.IsDeleted);
 
-    public async Task<ProjectItem?> GetDeletedProjectAllTasks(int? projectId)
-    {
-        return await context.ProjectItems.IgnoreQueryFilters().Include(p => p.Tasks).FirstOrDefaultAsync(p => p.Id == projectId && p.IsDeleted);
-    }
-
-    public async Task RestoreProject(ProjectItem projectItem)
+    public async Task RestoreProjectAsync(ProjectItem projectItem)
     {
         DateTime? projectDeletedAt = projectItem.DeletedAtUtc;
-        projectItem.IsDeleted = false;
-        projectItem.DeletedAtUtc = null;
-        projectItem.DeletedByUserId = null;
 
-        foreach (TaskItem taskItem in projectItem.Tasks.Where(t => t.DeletedAtUtc == projectDeletedAt)) {
-            taskItem.IsDeleted = false;
-            taskItem.DeletedAtUtc = null;
-            taskItem.DeletedByUserId = null;
-        }
+        projectItem.Restore();
+        foreach (TaskItem taskItem in projectItem.Tasks.Where(t => t.DeletedAtUtc == projectDeletedAt))
+            taskItem.Restore();
 
         await context.SaveChangesAsync();
     }
 
-    public async Task PurgeProject(ProjectItem projectItem)
+    public async Task PurgeProjectAsync(ProjectItem projectItem)
     {
         context.TaskItems.RemoveRange(projectItem.Tasks);
         context.ProjectItems.Remove(projectItem);

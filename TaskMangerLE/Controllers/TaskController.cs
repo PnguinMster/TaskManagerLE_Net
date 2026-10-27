@@ -13,7 +13,10 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     [HttpGet]
     public async Task<IActionResult> Index(int? projectId)
     {
-        ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetByIdWithTasksAsync(projectId));
+        if (projectId is not { } id)
+            return NotFound();
+
+        ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetProjectWithTasksAsync(id));
         if (projectItem is null)
             return NotFound();
 
@@ -24,7 +27,10 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     [HttpGet]
     public async Task<IActionResult> Create(int? projectId)
     {
-        ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.FindProjectAsync(projectId));
+        if (projectId is not { } id)
+            return NotFound();
+
+        ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetProjectAsync(id));
         if (projectItem is null)
             return NotFound();
 
@@ -40,7 +46,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(TaskItemCreateViewModel taskItemModel)
     {
-        ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.FindProjectAsync(taskItemModel.ProjectId));
+        ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetProjectAsync(taskItemModel.ProjectId));
         if (projectItem is null)
             return NotFound();
 
@@ -98,6 +104,9 @@ public class TaskController(TaskService taskService, ProjectService projectServi
             return NotFound();
 
         string? deletedByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (deletedByUserId is null)
+            return Challenge();
+        
         await taskService.DeleteTask(taskItem, deletedByUserId);
         return RedirectToAction(nameof(Index), new { projectId = taskItem.ProjectId });
     }
@@ -105,7 +114,10 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     [HttpGet]
     public async Task<IActionResult> Restore(int? projectId)
     {
-        ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetDeletedProjectWithDeletedTasks(projectId));
+        if (projectId is not { } id)
+            return NotFound();
+
+        ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetDeletedProjectWithDeletedTasksAsync(id));
         if (projectItem is null)
             return NotFound();
 

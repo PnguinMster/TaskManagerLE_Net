@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using TaskMangerLE.Models;
@@ -15,9 +14,14 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
     [HttpGet]
     public async Task<IActionResult> Index()
     {
+        if (User.IsInRole(Roles.Admin))
+            return View(await services.GetAllProjectsAsync());
+
         string? userId = userManager.GetUserId(User);
-        bool isAdmin = User.IsInRole(Roles.Admin);
-        return isAdmin ? View(await services.GetAllAsync()) : View(await services.GetUserAllAsync(userId));
+        if (userId is null)
+            return Challenge();
+
+        return View(await services.GetProjectsForUserAsync(userId));
     }
 
     [HttpGet]
@@ -31,6 +35,8 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
             return View(projectItemModel);
 
         string? userId = userManager.GetUserId(User);
+        if (userId is null)
+            return Challenge();
 
         await services.AddProjectAsync(projectItemModel, userId);
         return RedirectToAction(nameof(Index));
@@ -39,7 +45,10 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
     [HttpGet]
     public async Task<IActionResult> Update(int? projectId)
     {
-        ProjectItem? projectItem = await LoadAuthorizedAsync(services.FindProjectAsync(projectId));
+        if (projectId is not { } id)
+            return NotFound();
+
+        ProjectItem? projectItem = await LoadAuthorizedAsync(services.GetProjectAsync(id));
         if (projectItem is null)
             return NotFound();
 
@@ -62,7 +71,7 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         if (!ModelState.IsValid)
             return View(projectItemModel);
 
-        ProjectItem? projectItem = await LoadAuthorizedAsync(services.FindProjectAsync(projectItemModel.Id));
+        ProjectItem? projectItem = await LoadAuthorizedAsync(services.GetProjectAsync(projectItemModel.Id));
         if (projectItem is null)
             return NotFound();
 
@@ -74,34 +83,46 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int? projectId)
     {
-        ProjectItem? projectItem = await LoadAuthorizedAsync(services.GetByIdWithTasksAsync(projectId));
+        if (projectId is not { } id)
+            return NotFound();
+
+        ProjectItem? projectItem = await LoadAuthorizedAsync(services.GetProjectWithTasksAsync(id));
         if (projectItem is null)
             return NotFound();
 
-        string? deletedByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        await services.DeleteProject(projectItem, deletedByUserId);
+        string? deletedByUserId = userManager.GetUserId(User);
+        if (deletedByUserId is null)
+            return Challenge();
+
+        await services.DeleteProjectAsync(projectItem, deletedByUserId);
         return RedirectToAction(nameof(Index));
     }
 
     [HttpGet]
     public async Task<IActionResult> Restore()
     {
-        bool isAdmin = User.IsInRole(Roles.Admin);
-        string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var deletedProjects = isAdmin ? await services.GetAllDeletedAsync() : await services.GetAllDeletedForUserAsync(userId);
+        if (User.IsInRole(Roles.Admin))
+            return View(await services.GetDeletedProjectsAsync());
 
-        return View(deletedProjects);
+        string? userId = userManager.GetUserId(User);
+        if (userId is null)
+            return Challenge();
+
+        return View(await services.GetDeletedProjectsForUserAsync(userId));
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Restore(int? projectId)
     {
-        ProjectItem? projectItem = await LoadAuthorizedAsync(services.GetDeletedProjectWithDeletedTasks(projectId));
+        if (projectId is not { } id)
+            return NotFound();
+
+        ProjectItem? projectItem = await LoadAuthorizedAsync(services.GetDeletedProjectWithDeletedTasksAsync(id));
         if (projectItem is null)
             return NotFound();
 
-        await services.RestoreProject(projectItem);
+        await services.RestoreProjectAsync(projectItem);
         return RedirectToAction(nameof(Restore));
     }
 
@@ -109,11 +130,14 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> PurgeProject(int? projectId)
     {
-        ProjectItem? projectItem = await LoadAuthorizedAsync(services.GetDeletedProjectAllTasks(projectId));
+        if (projectId is not { } id)
+            return NotFound();
+
+        ProjectItem? projectItem = await LoadAuthorizedAsync(services.GetDeletedProjectWithAllTasksAsync(id));
         if (projectItem is null)
             return NotFound();
 
-        await services.PurgeProject(projectItem);
+        await services.PurgeProjectAsync(projectItem);
         return RedirectToAction(nameof(Restore));
     }
 }
