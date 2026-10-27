@@ -5,16 +5,16 @@ namespace TaskMangerLE.Models;
 
 public abstract class ProjectItemViewModelBase
 {
+    [Required]
     [MaxLength(ItemConstraints.NameMaxLength)]
     public string Name { get; set; } = string.Empty;
+    [DataType(DataType.MultilineText)]
     [MaxLength(ItemConstraints.DescriptionMaxLength)]
     public string Description { get; set; } = string.Empty;
-    public ProjectStatus Status { get; set; }
+    [EnumDataType(typeof(ProjectStatus))] public ProjectStatus Status { get; set; }
 }
 
-public class ProjectItemCreateViewModel : ProjectItemViewModelBase
-{
-}
+public class ProjectItemCreateViewModel : ProjectItemViewModelBase;
 
 public class ProjectItemUpdateViewModel : ProjectItemViewModelBase
 {

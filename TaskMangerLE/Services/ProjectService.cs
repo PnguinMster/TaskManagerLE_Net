@@ -11,12 +11,6 @@ public class ProjectService(ApplicationDbContext context)
 {
     public async Task AddProjectAsync(ProjectItemCreateViewModel projectItemModel, string? userId)
     {
-        // Check for empty strings
-        if (string.IsNullOrWhiteSpace(projectItemModel.Name))
-            projectItemModel.Name = "Untitled Project";
-        if (string.IsNullOrWhiteSpace(projectItemModel.Description))
-            projectItemModel.Description = "No Description";
-
         ProjectItem projectItem = new ProjectItem
         {
             Name = projectItemModel.Name,
