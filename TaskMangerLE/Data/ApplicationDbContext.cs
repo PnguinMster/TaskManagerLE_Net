@@ -15,7 +15,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         builder.Entity<ProjectItem>().HasQueryFilter(p => !p.IsDeleted);
         builder.Entity<TaskItem>().HasQueryFilter(t => !t.IsDeleted);
-        builder.Entity<TaskItem>().HasOne(t => t.Project).WithMany(p => p.Tasks).HasForeignKey(t => t.ProjectId);
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
