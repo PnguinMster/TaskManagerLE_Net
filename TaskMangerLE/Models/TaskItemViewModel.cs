@@ -13,9 +13,9 @@ public abstract class TaskItemViewModelBase
     [DataType(DataType.MultilineText)]
     [MaxLength(ItemConstraints.DescriptionMaxLength)]
     public string Description { get; set; } = string.Empty;
-    public TaskPriority Priority { get; set; }
-    public TaskStatus Status { get; set; }
-    public DateOnly DueDate { get; set; }
+    [EnumDataType(typeof(TaskPriority))] public TaskPriority Priority { get; set; }
+    [EnumDataType(typeof(TaskStatus))] public TaskStatus Status { get; set; }
+    [Display(Name = "Due Date")] public DateOnly DueDate { get; set; }
 }
 
 public class TaskItemCreateViewModel : TaskItemViewModelBase;
