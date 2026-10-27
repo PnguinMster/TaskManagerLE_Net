@@ -12,8 +12,8 @@ using TaskMangerLE.Data;
 namespace TaskMangerLE.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20261026234801_UpdatedNameAndLength")]
-    partial class UpdatedNameAndLength
+    [Migration("20261027001829_RenameTimestampsAndLimitDeletedBy")]
+    partial class RenameTimestampsAndLimitDeletedBy
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
