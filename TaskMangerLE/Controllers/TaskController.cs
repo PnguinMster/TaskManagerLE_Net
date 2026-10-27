@@ -29,7 +29,11 @@ public class TaskController(TaskService taskService, ProjectService projectServi
             return NotFound();
 
         ViewData["ProjectName"] = projectItem.Name;
-        return View(new TaskItemCreateViewModel { ProjectId = projectItem.Id });
+        return View(new TaskItemCreateViewModel
+        {
+            ProjectId = projectItem.Id,
+            DueDate = DateOnly.FromDateTime(DateTime.Today)
+        });
     }
 
     [HttpPost]
