@@ -51,7 +51,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     [HttpGet]
     public async Task<IActionResult> Update(int? taskId)
     {
-        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.FindTaskAsync(taskId), t => t.ProjectItem);
+        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.FindTaskAsync(taskId), t => t.Project);
         if (taskItem is null)
             return NotFound();
 
@@ -77,7 +77,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
         if (!ModelState.IsValid)
             return View(taskItemModel);
 
-        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.FindTaskAsync(taskItemModel.Id), t => t.ProjectItem);
+        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.FindTaskAsync(taskItemModel.Id), t => t.Project);
         if (taskItem is null)
             return NotFound();
 
@@ -89,7 +89,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int taskId)
     {
-        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.FindTaskWithOwnerAsync(taskId), t => t.ProjectItem);
+        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.FindTaskWithOwnerAsync(taskId), t => t.Project);
         if (taskItem is null)
             return NotFound();
 
@@ -113,7 +113,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     [ActionName("Restore")]
     public async Task<IActionResult> RestoreConfirmed(int? taskId)
     {
-        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetIsDeletedTask(taskId), t => t.ProjectItem);
+        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetIsDeletedTask(taskId), t => t.Project);
         if (taskItem is null)
             return NotFound();
 
@@ -125,7 +125,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> PurgeTask(int? taskId)
     {
-        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetIsDeletedTask(taskId), t => t.ProjectItem);
+        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetIsDeletedTask(taskId), t => t.Project);
         if (taskItem is null)
             return NotFound();
 

@@ -45,7 +45,7 @@ public class TaskService(ApplicationDbContext context)
 
     public async Task<TaskItem?> FindTaskWithOwnerAsync(int? taskId)
     {
-        return await context.TaskItems.Include(t => t.ProjectItem).FirstOrDefaultAsync(t => t.Id == taskId);
+        return await context.TaskItems.Include(t => t.Project).FirstOrDefaultAsync(t => t.Id == taskId);
     }
 
     public async Task<List<TaskItem>> GetAllAsync()
@@ -63,19 +63,19 @@ public class TaskService(ApplicationDbContext context)
 
     public async Task<List<TaskItem>> GetDeleted(string? userId, int? projectId)
     {
-        return await context.TaskItems.IgnoreQueryFilters().Where(t => t.IsDeleted && !t.ProjectItem!.IsDeleted && t.ProjectItem.OwnerId == userId)
-            .Include(t => t.ProjectItem)
+        return await context.TaskItems.IgnoreQueryFilters().Where(t => t.IsDeleted && !t.Project!.IsDeleted && t.Project.OwnerId == userId)
+            .Include(t => t.Project)
             .OrderByDescending(t => t.DeletedAtUtc).ToListAsync();
     }
 
     public async Task<TaskItem?> GetDeletedTask(int? taskId)
     {
-        return await context.TaskItems.IgnoreQueryFilters().Include(t => t.ProjectItem).FirstOrDefaultAsync(t => t.Id == taskId);
+        return await context.TaskItems.IgnoreQueryFilters().Include(t => t.Project).FirstOrDefaultAsync(t => t.Id == taskId);
     }
 
     public async Task<TaskItem?> GetIsDeletedTask(int? taskId)
     {
-        return await context.TaskItems.IgnoreQueryFilters().Include(t => t.ProjectItem).FirstOrDefaultAsync(t => t.Id == taskId && t.IsDeleted);
+        return await context.TaskItems.IgnoreQueryFilters().Include(t => t.Project).FirstOrDefaultAsync(t => t.Id == taskId && t.IsDeleted);
     }
 
     public async Task RestoreTask(TaskItem taskItem)
