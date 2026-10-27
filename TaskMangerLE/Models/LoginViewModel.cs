@@ -4,9 +4,12 @@ namespace TaskMangerLE.Models;
 
 public class LoginViewModel
 {
-    [Required] public string UserLogin { get; set; } = string.Empty;
-    [Required, DataType(DataType.Password)]
+    [Required]
+    [Display(Name = "Username or Email")]
+    public string UsernameOrEmail { get; set; } = string.Empty;
+    [Required]
+    [DataType(DataType.Password)]
     public string Password { get; set; } = string.Empty;
-    [Display(Name = "Remember me")] public bool RememberMe { get; set; } = default;
+    [Display(Name = "Remember me")] public bool RememberMe { get; set; }
     public string? ReturnUrl { get; set; }
 }

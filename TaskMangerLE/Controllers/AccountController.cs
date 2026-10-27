@@ -19,9 +19,9 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
             return View(loginModel);
 
         // Determine if logging using Email or Username
-        ApplicationUser? user = loginModel.UserLogin.Contains('@')
-            ? await userManager.FindByEmailAsync(loginModel.UserLogin)
-            : await userManager.FindByNameAsync(loginModel.UserLogin);
+        ApplicationUser? user = loginModel.UsernameOrEmail.Contains('@')
+            ? await userManager.FindByEmailAsync(loginModel.UsernameOrEmail)
+            : await userManager.FindByNameAsync(loginModel.UsernameOrEmail);
 
         if (user is null) {
             ModelState.AddModelError(string.Empty, "Invalid login attempt");
@@ -59,7 +59,7 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Register(RegisterUser registerModel)
+    public async Task<IActionResult> Register(RegisterViewModel registerModel)
     {
         if (!ModelState.IsValid)
             return View(registerModel);
