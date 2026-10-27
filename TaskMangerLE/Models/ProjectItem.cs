@@ -8,8 +8,8 @@ public class ProjectItem : ItemBase
     public ProjectStatus Status { get; set; }
 
     [MaxLength(ItemConstraints.UserIdMaxLength)]
-    public string OwnerId { get; set; } = string.Empty;
-    public ApplicationUser? Owner { get; set; } = null;
+    public required string OwnerId { get; init; }
+    public ApplicationUser Owner { get; set; } = null!;
 
-    public ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();
+    public ICollection<TaskItem> Tasks { get; } = new List<TaskItem>();
 }
