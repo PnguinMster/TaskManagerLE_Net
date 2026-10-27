@@ -2,7 +2,7 @@
 
 namespace TaskMangerLE.Models;
 
-public class RegisterUser
+public class RegisterViewModel
 {
     [Required, MaxLength(30), MinLength(3)]
     public string UserName { get; set; } = string.Empty;
