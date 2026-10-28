@@ -8,13 +8,15 @@ public class TaskService(ApplicationDbContext context)
 {
     public async Task AddTaskAsync(TaskItemCreateViewModel taskItemModel)
     {
+        DateOnly dueDate = taskItemModel.DueDate ?? throw new ArgumentException("A due date is required", nameof(taskItemModel));
+
         TaskItem taskItem = new TaskItem
         {
             Name = taskItemModel.Name,
             Description = taskItemModel.Description,
             Priority = taskItemModel.Priority,
             Status = taskItemModel.Status,
-            DueDate = taskItemModel.DueDate,
+            DueDate = dueDate,
             ProjectId = taskItemModel.ProjectId,
         };
 
@@ -24,11 +26,13 @@ public class TaskService(ApplicationDbContext context)
 
     public async Task UpdateTaskAsync(TaskItem taskItem, TaskItemUpdateViewModel taskItemModel)
     {
+        DateOnly dueDate = taskItemModel.DueDate ?? throw new ArgumentException("A due date is required", nameof(taskItemModel));
+
         taskItem.Name = taskItemModel.Name;
         taskItem.Description = taskItemModel.Description;
         taskItem.Priority = taskItemModel.Priority;
         taskItem.Status = taskItemModel.Status;
-        taskItem.DueDate = taskItemModel.DueDate;
+        taskItem.DueDate = dueDate;
 
         await context.SaveChangesAsync();
     }
