@@ -64,6 +64,11 @@ public class ProjectService(ApplicationDbContext context)
         GetDeletedProjectsQuery().Include(p => p.Tasks.Where(t => t.IsDeleted))
             .FirstOrDefaultAsync(p => p.Id == projectId);
 
+    public Task<ProjectItem?> GetProjectWithDeletedTasksAsync(int projectId) =>
+        context.ProjectItems.IgnoreQueryFilters().Where(p => !p.IsDeleted)
+            .Include(p => p.Tasks.Where(t => t.IsDeleted))
+            .FirstOrDefaultAsync(p => p.Id == projectId);
+
     // Purge needs every task, including the deleted ones.
     public Task<ProjectItem?> GetDeletedProjectWithAllTasksAsync(int projectId) =>
         GetDeletedProjectsQuery().Include(p => p.Tasks).FirstOrDefaultAsync(p => p.Id == projectId);

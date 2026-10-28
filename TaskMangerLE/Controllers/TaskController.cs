@@ -123,7 +123,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
         if (projectId is not { } id)
             return NotFound();
 
-        ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetDeletedProjectWithDeletedTasksAsync(id));
+        ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetProjectWithDeletedTasksAsync(id));
         if (projectItem is null)
             return NotFound();
 
