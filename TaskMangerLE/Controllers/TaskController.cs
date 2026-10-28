@@ -38,7 +38,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
         return View(new TaskItemCreateViewModel
         {
             ProjectId = projectItem.Id,
-            DueDate = DateOnly.FromDateTime(DateTime.Today)
+            DueDate = DateOnly.FromDateTime(DateTime.UtcNow)
         });
     }
 
