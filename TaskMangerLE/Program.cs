@@ -50,25 +50,6 @@ using (var scope = app.Services.CreateScope()) {
     await UserSeeder.SeedAsync(scope.ServiceProvider, app.Configuration);
 }
 
-/*
-using (var scope = app.Services.CreateScope()) {
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-
-    foreach (var role in new[] { "Admin", "User" }) {
-        if (!await roleManager.RoleExistsAsync(role))
-            await roleManager.CreateAsync(new IdentityRole(role));
-    }
-
-    var adminEmail = "admin@example.com";
-    if (await userManager.FindByEmailAsync(adminEmail) is null) {
-        var admin = new ApplicationUser { UserName = adminEmail, Email = adminEmail, EmailConfirmed = true };
-        await userManager.CreateAsync(admin, "ChangeMe123!");
-        await userManager.AddToRoleAsync(admin, "Admin");
-    }
-}
-*/
-
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment()) {
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
