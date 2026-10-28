@@ -68,12 +68,12 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Update(ProjectItemUpdateViewModel projectItemModel)
     {
-        if (!ModelState.IsValid)
-            return View(projectItemModel);
-
         ProjectItem? projectItem = await LoadAuthorizedAsync(services.GetProjectAsync(projectItemModel.Id));
         if (projectItem is null)
             return NotFound();
+
+        if (!ModelState.IsValid)
+            return View(projectItemModel);
 
         await services.UpdateProjectAsync(projectItem, projectItemModel);
         return RedirectToAction(nameof(Index));

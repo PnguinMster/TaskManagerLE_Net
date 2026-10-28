@@ -46,14 +46,15 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(TaskItemCreateViewModel taskItemModel)
     {
-        if (!ModelState.IsValid)
-            return View(taskItemModel);
-
         ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetProjectAsync(taskItemModel.ProjectId));
         if (projectItem is null)
             return NotFound();
 
         ViewData["ProjectName"] = projectItem.Name;
+        
+        if (!ModelState.IsValid)
+            return View(taskItemModel);
+        
         await taskService.AddTaskAsync(taskItemModel);
         return RedirectToAction(nameof(Index), new { projectId = taskItemModel.ProjectId });
     }
@@ -87,12 +88,12 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Update(TaskItemUpdateViewModel taskItemModel)
     {
-        if (!ModelState.IsValid)
-            return View(taskItemModel);
-
         TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetTaskWithProjectAsync(taskItemModel.Id), t => t.Project);
         if (taskItem is null)
             return NotFound();
+        
+        if (!ModelState.IsValid)
+            return View(taskItemModel);
 
         await taskService.UpdateTaskAsync(taskItem, taskItemModel);
         return RedirectToAction(nameof(Index), new { projectId = taskItem.ProjectId });
