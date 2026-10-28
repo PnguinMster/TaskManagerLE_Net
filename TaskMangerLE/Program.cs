@@ -44,9 +44,7 @@ var app = builder.Build();
 
 // User Seeding
 using (var scope = app.Services.CreateScope()) {
-    if (app.Environment.IsDevelopment())
-        await scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.MigrateAsync();
-
+    await scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.MigrateAsync();
     await UserSeeder.SeedAsync(scope.ServiceProvider, app.Configuration);
 }
 
