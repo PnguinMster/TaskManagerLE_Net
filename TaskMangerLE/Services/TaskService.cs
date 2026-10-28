@@ -15,10 +15,10 @@ public class TaskService(ApplicationDbContext context)
             Priority = taskItemModel.Priority,
             Status = taskItemModel.Status,
             DueDate = taskItemModel.DueDate,
-            ProjectId = taskItemModel.ProjectId
+            ProjectId = taskItemModel.ProjectId,
         };
 
-        await context.TaskItems.AddAsync(taskItem);
+        context.TaskItems.Add(taskItem);
         await context.SaveChangesAsync();
     }
 
@@ -33,55 +33,27 @@ public class TaskService(ApplicationDbContext context)
         await context.SaveChangesAsync();
     }
 
-    public async Task<TaskItem?> FindTaskAsync(int? taskId)
-    {
-        return await context.TaskItems.FindAsync(taskId);
-    }
+    // Project included for authorization
+    public Task<TaskItem?> GetTaskWithProjectAsync(int taskId) =>
+        context.TaskItems.Include(t => t.Project).FirstOrDefaultAsync(t => t.Id == taskId);
 
-    public async Task<TaskItem?> FindTaskWithOwnerAsync(int? taskId)
+    public async Task DeleteTaskAsync(TaskItem taskItem, string deletedByUserId)
     {
-        return await context.TaskItems.Include(t => t.Project).FirstOrDefaultAsync(t => t.Id == taskId);
-    }
-
-    public async Task<List<TaskItem>> GetAllAsync()
-    {
-        return await context.TaskItems.ToListAsync();
-    }
-
-    public async Task DeleteTask(TaskItem taskItem, string? deletedByUserId)
-    {
-        taskItem.IsDeleted = true;
-        taskItem.DeletedAtUtc = DateTime.UtcNow;
-        taskItem.DeletedByUserId = deletedByUserId;
+        taskItem.SoftDelete(deletedByUserId, DateTime.UtcNow);
         await context.SaveChangesAsync();
     }
 
-    public async Task<List<TaskItem>> GetDeleted(string? userId, int? projectId)
-    {
-        return await context.TaskItems.IgnoreQueryFilters().Where(t => t.IsDeleted && !t.Project!.IsDeleted && t.Project.OwnerId == userId)
-            .Include(t => t.Project)
-            .OrderByDescending(t => t.DeletedAtUtc).ToListAsync();
-    }
+    public Task<TaskItem?> GetDeletedTaskAsync(int taskId) =>
+        context.TaskItems.IgnoreQueryFilters().Include(t => t.Project)
+            .FirstOrDefaultAsync(t => t.Id == taskId && t.IsDeleted);
 
-    public async Task<TaskItem?> GetDeletedTask(int? taskId)
+    public async Task RestoreTaskAsync(TaskItem taskItem)
     {
-        return await context.TaskItems.IgnoreQueryFilters().Include(t => t.Project).FirstOrDefaultAsync(t => t.Id == taskId);
-    }
-
-    public async Task<TaskItem?> GetIsDeletedTask(int? taskId)
-    {
-        return await context.TaskItems.IgnoreQueryFilters().Include(t => t.Project).FirstOrDefaultAsync(t => t.Id == taskId && t.IsDeleted);
-    }
-
-    public async Task RestoreTask(TaskItem taskItem)
-    {
-        taskItem.IsDeleted = false;
-        taskItem.DeletedAtUtc = null;
-        taskItem.DeletedByUserId = null;
+        taskItem.Restore();
         await context.SaveChangesAsync();
     }
 
-    public async Task PurgeTask(TaskItem taskItem)
+    public async Task PurgeTaskAsync(TaskItem taskItem)
     {
         context.TaskItems.Remove(taskItem);
         await context.SaveChangesAsync();

@@ -46,22 +46,25 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(TaskItemCreateViewModel taskItemModel)
     {
+        if (!ModelState.IsValid)
+            return View(taskItemModel);
+
         ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetProjectAsync(taskItemModel.ProjectId));
         if (projectItem is null)
             return NotFound();
 
-        if (!ModelState.IsValid)
-            return View(taskItemModel);
-
-        await taskService.AddTaskAsync(taskItemModel);
         ViewData["ProjectName"] = projectItem.Name;
+        await taskService.AddTaskAsync(taskItemModel);
         return RedirectToAction(nameof(Index), new { projectId = taskItemModel.ProjectId });
     }
 
     [HttpGet]
     public async Task<IActionResult> Update(int? taskId)
     {
-        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.FindTaskAsync(taskId), t => t.Project);
+        if (taskId is not { } id)
+            return NotFound();
+
+        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetTaskWithProjectAsync(id), t => t.Project);
         if (taskItem is null)
             return NotFound();
 
@@ -87,27 +90,30 @@ public class TaskController(TaskService taskService, ProjectService projectServi
         if (!ModelState.IsValid)
             return View(taskItemModel);
 
-        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.FindTaskAsync(taskItemModel.Id), t => t.Project);
+        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetTaskWithProjectAsync(taskItemModel.Id), t => t.Project);
         if (taskItem is null)
             return NotFound();
 
         await taskService.UpdateTaskAsync(taskItem, taskItemModel);
-        return RedirectToAction(nameof(Index), new { projectId = taskItemModel.ProjectId });
+        return RedirectToAction(nameof(Index), new { projectId = taskItem.ProjectId });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(int taskId)
+    public async Task<IActionResult> Delete(int? taskId)
     {
-        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.FindTaskWithOwnerAsync(taskId), t => t.Project);
+        if (taskId is not { } id)
+            return NotFound();
+
+        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetTaskWithProjectAsync(id), t => t.Project);
         if (taskItem is null)
             return NotFound();
 
         string? deletedByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (deletedByUserId is null)
             return Challenge();
-        
-        await taskService.DeleteTask(taskItem, deletedByUserId);
+
+        await taskService.DeleteTaskAsync(taskItem, deletedByUserId);
         return RedirectToAction(nameof(Index), new { projectId = taskItem.ProjectId });
     }
 
@@ -129,11 +135,14 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     [ActionName("Restore")]
     public async Task<IActionResult> RestoreConfirmed(int? taskId)
     {
-        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetIsDeletedTask(taskId), t => t.Project);
+        if (taskId is not { } id)
+            return NotFound();
+
+        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetDeletedTaskAsync(id), t => t.Project);
         if (taskItem is null)
             return NotFound();
 
-        await taskService.RestoreTask(taskItem);
+        await taskService.RestoreTaskAsync(taskItem);
         return RedirectToAction(nameof(Restore), new { projectId = taskItem.ProjectId });
     }
 
@@ -141,12 +150,15 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> PurgeTask(int? taskId)
     {
-        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetIsDeletedTask(taskId), t => t.Project);
+        if (taskId is not { } id)
+            return NotFound();
+
+        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetDeletedTaskAsync(id), t => t.Project);
         if (taskItem is null)
             return NotFound();
 
-        int? taskProjectId = taskItem.ProjectId;
-        await taskService.PurgeTask(taskItem);
+        int taskProjectId = taskItem.ProjectId;
+        await taskService.PurgeTaskAsync(taskItem);
         return RedirectToAction(nameof(Restore), new { projectId = taskProjectId });
     }
 }
