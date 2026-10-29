@@ -1,3 +1,67 @@
+/* ----- New Theme ----- */
+/* LIGHT THEME */
+:root,
+[data-theme="light"] {
+    color-scheme: light;
+
+    /* Brand colors */
+    --color-primary: #243B64;
+    --color-primary-hover: #1B2E4D;
+    --color-accent: #16A36A;
+    --color-accent-hover: #128454;
+
+    /* Surfaces */
+    --color-bg: #F3F7FA;
+    --color-surface: #FFFFFF;
+    --color-surface-secondary: #EAF0F5;
+
+    /* Text */
+    --color-text: #243247;
+    --color-muted: #64748B;
+
+    /* Borders and status */
+    --color-border: #DFE7EF;
+    --color-success: #087847;
+    --color-success-bg: #DDF7E9;
+
+    /* Form controls */
+    --color-input-bg: #FFFFFF;
+
+    /* Shape */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+}
+
+/* DARK THEME */
+[data-theme="dark"] {
+    color-scheme: dark;
+
+    /* Brand colors */
+    --color-primary: #8DB7FF;
+    --color-primary-hover: #B1CEFF;
+    --color-accent: #42CB91;
+    --color-accent-hover: #70DDAE;
+
+    /* Surfaces */
+    --color-bg: #17212F;
+    --color-surface: #222E3E;
+    --color-surface-secondary: #2B394B;
+
+    /* Text */
+    --color-text: #EDF3FA;
+    --color-muted: #A8B6C8;
+
+    /* Borders and status */
+    --color-border: #344255;
+    --color-success: #79E0B1;
+    --color-success-bg: #173F34;
+
+    /* Form controls */
+    --color-input-bg: #1B2736;
+}
+
+
 /* ----- General ----- */
 
 :root {
