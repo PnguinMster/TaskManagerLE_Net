@@ -8,7 +8,13 @@ namespace TaskMangerLE.Controllers;
 public class AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager) : Controller
 {
     [HttpGet]
-    public IActionResult Login() => View(new LoginViewModel());
+    public IActionResult Login()
+    {
+        if (User.Identity?.IsAuthenticated == true)
+            return RedirectToAction(nameof(Index), "Home");
+
+        return View(new LoginViewModel());
+    }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -51,7 +57,13 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
     }
 
     [HttpGet]
-    public IActionResult Register() => View();
+    public IActionResult Register()
+    {
+        if (User.Identity?.IsAuthenticated == true)
+            return RedirectToAction(nameof(Index), "Home");
+
+        return View();
+    }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
