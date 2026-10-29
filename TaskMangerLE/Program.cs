@@ -56,7 +56,7 @@ if (!app.Environment.IsDevelopment()) {
 
 app.UseHttpsRedirection();
 
-app.UseStatusCodePagesWithReExecute("Home/PageNotFound");
+app.UseStatusCodePagesWithReExecute("/Home/PageNotFound");
 
 app.UseRouting();
 
