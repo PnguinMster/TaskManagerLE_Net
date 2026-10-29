@@ -8,8 +8,7 @@ namespace TaskMangerLE.Controllers;
 public class AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager) : Controller
 {
     [HttpGet]
-    public IActionResult Login(string? returnUrl = null) =>
-        View(new LoginViewModel { ReturnUrl = returnUrl });
+    public IActionResult Login() => View(new LoginViewModel());
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -30,12 +29,9 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
 
         var signInResult = await signInManager.PasswordSignInAsync(user.UserName!, loginModel.Password, loginModel.RememberMe, lockoutOnFailure: true);
 
-        if (signInResult.Succeeded) {
-            if (!string.IsNullOrEmpty(loginModel.ReturnUrl) && Url.IsLocalUrl(loginModel.ReturnUrl))
-                return Redirect(loginModel.ReturnUrl);
-
+        if (signInResult.Succeeded)
             return RedirectToAction("Index", "Project");
-        }
+
 
         // General invalid login
         ModelState.AddModelError(string.Empty, signInResult.IsLockedOut ? "Account locked. Try again later." : "Invalid login attempt");
