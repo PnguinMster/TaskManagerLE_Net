@@ -9,4 +9,10 @@ public class HomeController : Controller
 
     [HttpGet]
     public IActionResult Privacy() => View();
+
+    public IActionResult PageNotFound()
+    {
+        Response.StatusCode = StatusCodes.Status404NotFound;
+        return View();
+    }
 }

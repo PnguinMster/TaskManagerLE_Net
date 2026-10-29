@@ -1,0 +1,18 @@
+﻿@{
+    ViewData["Title"] = "Page not found";
+}
+
+<h1>Page not found</h1>
+<p>
+    We couldn't find the page you requested. It may have been deleted, or you may not have access to it.
+</p>
+
+<p>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Go to Home</a>
+
+    @if (User.Identity?.IsAuthenticated == true) {
+        <a asp-controller="Project" asp-action="Index" class="btn btn-primary">Go to My Projects</a>
+    }
+
+    <button type="button" class="btn btn-link" onclick="history.back()">Go Back</button>
+</p>
