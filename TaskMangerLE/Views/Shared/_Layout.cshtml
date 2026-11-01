@@ -14,16 +14,21 @@
 <header>
     <nav class="navbar" aria-label="Main navigation">
         <a class="brand" asp-controller="Home" asp-action="Index">
-            <span class="brand-mark" aria-hidden="true">T</span>
-            <span>TaskMangerLE</span>
+            <span class="brand-mark">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                     aria-hidden="true"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>
+            </span>
+            TaskMangerLE
         </a>
 
-        <div class="nav-links">
-            <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
-            <a class="nav-link" asp-controller="Projects" asp-action="Index">Projects</a>
-            <a class="nav-link" asp-controller="Tasks" asp-action="Index">Tasks</a>
-            @* <a class="nav-link" asp-controller="Trash" asp-action="Index">Tasks</a> *@
-        </div>
+        @if (User.Identity?.IsAuthenticated == true) {
+            <div class="nav-links">
+                <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
+                <a class="nav-link" asp-controller="Projects" asp-action="Index">Projects</a>
+                <a class="nav-link" asp-controller="Tasks" asp-action="Index">Tasks</a>
+                @* <a class="nav-link" asp-controller="Trash" asp-action="Index">Tasks</a> *@
+            </div>
+        }
 
         <div class="nav-actions">
             <button type="button" id="theme-toggle" class="icon-btn" aria-label="Toggle light and dark theme">
@@ -33,7 +38,7 @@
                     <path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>
                 </svg>
             </button>
-           
+
             <partial name="_LoginPartial"/>
         </div>
     </nav>
