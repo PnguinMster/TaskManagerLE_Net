@@ -3,36 +3,48 @@
     ViewData["Title"] = "Log in";
 }
 
-<h1>Log in</h1>
-
-
-<p>
-    <a asp-action="Register" class="">Register an Account</a>
-</p>
-
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Login" asp-controller="Account" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <div class="form-group">
-                <label asp-for="UsernameOrEmail"></label>
-                <input asp-for="UsernameOrEmail" class="form-control"/>
-                <span asp-validation-for="UsernameOrEmail" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Password"></label>
-                <input asp-for="Password" class="form-control"/>
-                <span asp-validation-for="Password" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <input asp-for="RememberMe"/>
-                <label asp-for="RememberMe"></label>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Log in</button>
-        </form>
+<div class="card" style="width: 100%; max-width: 440px; margin: 40px auto 0; padding: 32px">
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+        <h1 style="font-size: 26px; font-weight: 700;">Welcome back</h1>
+        <p class="muted">Log in to your ProjectPulse account.</p>
     </div>
+
+    <form asp-action="Login" asp-controller="Account" method="post"
+          style="display: flex; flex-direction: column; gap: 18px; margin-top: 24px;">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="field">
+            <div class="row between">
+                <label asp-for="UsernameOrEmail"></label>
+            </div>
+            <input asp-for="UsernameOrEmail" class="input" autocomplete="username" placeholder="email@example.com"/>
+            <span asp-validation-for="UsernameOrEmail" class="text-danger"></span>
+        </div>
+
+        <div class="field">
+            <div class="row between">
+                <label asp-for="Password"></label>
+                <a href="#" style="color: var(--bt); text-decoration: none; font-weight: 600;">
+                    Forgot password?
+                </a>
+            </div>
+            <input asp-for="Password" class="input" autocomplete="current-password" placeholder="Enter your password"/>
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+
+        <label class="row" style="gap: 10px;">
+            <input asp-for="RememberMe" class="checkbox"/>
+            <span>Remember me</span>
+        </label>
+
+        <button type="submit" class="btn btn-primary btn-lg btn-block">Log in</button>
+    </form>
+
+    <p class="muted" style="text-align: center; border-top: 1px solid var(--divider); padding-top: 20px; margin-top: 24px;">
+        New to TaskManagerLE?
+        <a asp-action="Register" asp-controller="Account"
+           style="color: var(--bt); text-decoration: none; font-weight: 600;">
+            Create an account
+        </a>
+    </p>
 </div>
