@@ -1,47 +1,56 @@
 ﻿@model TaskMangerLE.Models.RegisterViewModel
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = "Create an account";
 }
 
-<h1>Register</h1>
-
-<h4>Create an account</h4>
-
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Register" asp-controller="Account" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <div class="form-group">
-                <label asp-for="UserName"></label>
-                <input asp-for="UserName" class="form-control" autocomplete="username"/>
-                <span asp-validation-for="UserName" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Email"></label>
-                <input asp-for="Email" class="form-control" autocomplete="email"/>
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Password"></label>
-                <input asp-for="Password" class="form-control" autocomplete="new-password"/>
-                <span asp-validation-for="Password" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="ConfirmPassword"></label>
-                <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password"/>
-                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Register</button>
-        </form>
-
-        <p>
-            Already have an account? <a asp-action="Login" asp-controller="Account" class="nav-link">Login</a>
-        </p>
-
+<div class="card" style="width: 100%; max-width: 440px; margin: 40px auto 0; padding: 32px">
+    <div class="stack">
+        <h1>Create an account</h1>
+        <p class="muted">Sign up for your TaskManagerLE account.</p>
     </div>
+
+    <form asp-action="Register" asp-controller="Account" method="post"
+          class="stack" style="margin-top: 24px;">
+        <div asp-validation-summary="ModelOnly" class="alert field-error"></div>
+
+        <div class="field">
+            <label asp-for="UserName"></label>
+            <input asp-for="UserName" class="input" autocomplete="username"
+                   placeholder="Choose a username"/>
+            <span asp-validation-for="UserName" class="field-error"></span>
+        </div>
+
+        <div class="field">
+            <label asp-for="Email"></label>
+            <input asp-for="Email" class="input" autocomplete="email"
+                   placeholder="email@example.com"/>
+            <span asp-validation-for="Email" class="field-error"></span>
+        </div>
+
+        <div class="field">
+            <label asp-for="Password"></label>
+            <input asp-for="Password" class="input" autocomplete="new-password"
+                   placeholder="Create a password"/>
+            <span asp-validation-for="Password" class="field-error"></span>
+        </div>
+
+        <div class="field">
+            <label asp-for="ConfirmPassword"></label>
+            <input asp-for="ConfirmPassword" class="input" autocomplete="new-password"
+                   placeholder="Enter your password again"/>
+            <span asp-validation-for="ConfirmPassword" class="field-error"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg btn-block">
+            Create account
+        </button>
+    </form>
+
+    <p class="muted" style="text-align: center; border-top: 1px solid var(--divider); padding-top: 20px; margin-top: 24px;">
+        Already have an account?
+        <a asp-action="Login" asp-controller="Account"
+           style="color: var(--bt); text-decoration: none; font-weight: 600;">
+            Log in
+        </a>
+    </p>
 </div>
