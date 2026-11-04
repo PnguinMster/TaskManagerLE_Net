@@ -1,6 +1,8 @@
 ﻿@model TaskMangerLE.Models.LoginViewModel
 @{
     ViewData["Title"] = "Log in";
+
+    var hasLoginError = ViewData.ModelState.ContainsKey(string.Empty) && ViewData.ModelState[string.Empty]!.Errors.Count > 0;
 }
 
 <div class="card" style="width: 100%; max-width: 440px; margin: 40px auto 0; padding: 32px">
@@ -11,13 +13,14 @@
 
     <form asp-action="Login" asp-controller="Account" method="post"
           style="display: flex; flex-direction: column; gap: 18px; margin-top: 24px;">
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div asp-validation-summary="ModelOnly" class="alert field-error"></div>
 
         <div class="field">
             <div class="row between">
                 <label asp-for="UsernameOrEmail"></label>
             </div>
-            <input asp-for="UsernameOrEmail" class="input" autocomplete="username" placeholder="email@example.com"/>
+            <input asp-for="UsernameOrEmail" class="input @(hasLoginError ? "input-validation-error" : "")" autocomplete="username"
+                   placeholder="email@example.com"/>
             <span asp-validation-for="UsernameOrEmail" class="text-danger"></span>
         </div>
 
@@ -28,7 +31,8 @@
                     Forgot password?
                 </a>
             </div>
-            <input asp-for="Password" class="input" autocomplete="current-password" placeholder="Enter your password"/>
+            <input asp-for="Password" class="input @(hasLoginError ? "input-validation-error" : "")" autocomplete="current-password"
+                   placeholder="Enter your password"/>
             <span asp-validation-for="Password" class="text-danger"></span>
         </div>
 

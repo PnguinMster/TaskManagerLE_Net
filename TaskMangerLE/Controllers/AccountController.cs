@@ -29,7 +29,7 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
             : await userManager.FindByNameAsync(loginModel.UsernameOrEmail);
 
         if (user is null) {
-            ModelState.AddModelError(string.Empty, "Invalid login attempt");
+            ModelState.AddModelError(string.Empty, "Invalid username or password. Please try again");
             return View(loginModel);
         }
 
@@ -40,7 +40,8 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
 
 
         // General invalid login
-        ModelState.AddModelError(string.Empty, signInResult.IsLockedOut ? "Account locked. Try again later." : "Invalid login attempt");
+        ModelState.AddModelError(string.Empty,
+            signInResult.IsLockedOut ? "Account locked. Try again later." : "Invalid username or password. Please try again");
         /*
          // Testing invalid login
         if (result.IsLockedOut)
