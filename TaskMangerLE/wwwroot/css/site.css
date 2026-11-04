@@ -491,7 +491,8 @@ button {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 20px;
+    padding: 24px;
+    margin: 8px;
 }
 
 .card-hover:hover {

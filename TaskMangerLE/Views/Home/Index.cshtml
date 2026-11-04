@@ -26,7 +26,7 @@
 
 <section class="features" aria-label="Features">
     <article class="card stack">
-        <div class="icon-tile is-lg" aria-hidden="true">
+        <div class="icon-tile is-lg" style="width:50px; height:50px; border-radius:12px" aria-hidden="true">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
                  stroke="currentColor" stroke-width="1.8"
                  stroke-linecap="round" stroke-linejoin="round">
@@ -42,7 +42,7 @@
     </article>
 
     <article class="card stack">
-        <div class="icon-tile is-lg is-green" aria-hidden="true">
+        <div class="icon-tile is-lg is-green" style="width:50px; height:50px; border-radius:12px" aria-hidden="true">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
                  stroke="currentColor" stroke-width="1.8"
                  stroke-linecap="round" stroke-linejoin="round">
@@ -58,7 +58,7 @@
     </article>
 
     <article class="card stack">
-        <div class="icon-tile is-lg is-amber" aria-hidden="true">
+        <div class="icon-tile is-lg is-amber" style="width:50px; height:50px; border-radius:12px" aria-hidden="true">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
                  stroke="currentColor" stroke-width="1.8"
                  stroke-linecap="round" stroke-linejoin="round">
@@ -76,9 +76,9 @@
     </article>
 </section>
 
-<section class="stack" aria-labelledby="preview-heading">
+<section class="stack" style="padding:24px 0" aria-labelledby="preview-heading">
     <h2 id="preview-heading"
-        style="font-size:26px; text-align:center; margin-bottom:4px">
+        style="font-size:24px; text-align:center; margin-bottom:4px">
         See it in action
     </h2>
 
@@ -156,4 +156,19 @@
             </label>
         </div>
     </div>
+</section>
+
+<section class="card stack"
+         style="align-items:center; padding:40px 24px; text-align:center">
+    <h2 style="font-size:26px">Ready to get organized?</h2>
+
+    <p class="muted">
+        Create your account and start your first project in minutes.
+    </p>
+
+    <a class="btn btn-primary btn-lg"
+       asp-controller="Account"
+       asp-action="Register">
+        Create your account
+    </a>
 </section>
