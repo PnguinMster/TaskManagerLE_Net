@@ -109,5 +109,12 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
     }
 
     [HttpGet]
+    public IActionResult ForgotPassword() => View();
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult ForgotPassword(int t) => View();
+
+    [HttpGet]
     public IActionResult AccessDenied() => View();
 }

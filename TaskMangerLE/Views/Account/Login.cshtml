@@ -27,7 +27,8 @@
         <div class="field">
             <div class="row between">
                 <label asp-for="Password"></label>
-                <a href="#" style="color: var(--bt); text-decoration: none; font-weight: 600;">
+                <a asp-action="ForgotPassword" asp-controller="Account"
+                   style="color: var(--bt); text-decoration: none; font-weight: 600;">
                     Forgot password?
                 </a>
             </div>
