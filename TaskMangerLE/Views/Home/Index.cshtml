@@ -24,42 +24,136 @@
     </div>
 </section>
 
-<section class="features" aria-label="What you can do">
-    <article class="card">
-        <div class="icon-tile" aria-hidden="true">
+<section class="features" aria-label="Features">
+    <article class="card stack">
+        <div class="icon-tile is-lg" aria-hidden="true">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                 stroke-linejoin="round">
-                <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                 stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <path d="M3 9h18"/>
             </svg>
         </div>
         <h2>Dedicated projects</h2>
-        <p class="muted">Give every project its own space with a description, due date, and live progress bar.</p>
+        <p class="muted">
+            Give every project its own space with a description, due date,
+            and a live progress bar.
+        </p>
     </article>
 
-    <article class="card">
-        <div class="icon-tile is-green" aria-hidden="true">
+    <article class="card stack">
+        <div class="icon-tile is-lg is-green" aria-hidden="true">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                 stroke-linejoin="round">
-                <path d="M9 11l3 3L22 4"/>
-                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                 stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="4" width="16" height="16" rx="3"/>
+                <path d="m8 12 2.5 2.5L16 9"/>
             </svg>
         </div>
-        <h2>Tasks that stay organized</h2>
-        <p class="muted">Break projects into clear tasks, set priorities and due dates, and keep work moving.</p>
+        <h2>Tasks that stay clear</h2>
+        <p class="muted">
+            Break projects into focused tasks, set priorities, and keep due
+            dates easy to find.
+        </p>
     </article>
 
-    <article class="card">
-        <div class="icon-tile is-amber" aria-hidden="true">
+    <article class="card stack">
+        <div class="icon-tile is-lg is-amber" aria-hidden="true">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                 stroke-linejoin="round">
-                <path d="M3 3v18h18"/>
-                <path d="m19 9-5 5-4-4-5 5"/>
+                 stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19V5"/>
+                <path d="M4 19h17"/>
+                <path d="m7 15 4-4 3 2 5-6"/>
+                <path d="M16 7h3v3"/>
             </svg>
         </div>
         <h2>Progress at a glance</h2>
-        <p class="muted">See what’s complete and what still needs attention across your projects.</p>
+        <p class="muted">
+            See what’s complete and what still needs attention as your work
+            moves forward.
+        </p>
     </article>
+</section>
+
+<section class="stack" aria-labelledby="preview-heading">
+    <h2 id="preview-heading"
+        style="font-size:26px; text-align:center; margin-bottom:4px">
+        See it in action
+    </h2>
+
+    <div class="card split" style="padding:24px; background:var(--pill)">
+        <div class="stack">
+            <article class="card stack">
+                <div class="row between">
+                    <h3>Website Redesign</h3>
+                    <span class="badge badge-blue">In Progress</span>
+                </div>
+
+                <p class="muted">
+                    Refresh the marketing site with a new design system.
+                </p>
+
+                <div class="progress-meta">
+                    <span>5 of 8 tasks completed</span>
+                    <span class="text-blue">63%</span>
+                </div>
+                <div class="progress" aria-label="63% complete">
+                    <div class="progress-bar" style="width:63%"></div>
+                </div>
+            </article>
+
+            <article class="card stack">
+                <div class="row between">
+                    <h3>Onboarding Flow</h3>
+                    <span class="badge badge-amber">Due Soon</span>
+                </div>
+
+                <p class="muted">
+                    Shorter signup and a guided first-project checklist.
+                </p>
+
+                <div class="progress-meta">
+                    <span>2 of 4 tasks completed</span>
+                    <span class="text-amber">50%</span>
+                </div>
+                <div class="progress" aria-label="50% complete">
+                    <div class="progress-bar is-amber" style="width:50%"></div>
+                </div>
+            </article>
+        </div>
+
+        <div class="card stack" style="padding:4px 20px">
+            <h3 style="padding:12px 0 4px">Tasks Due Soon</h3>
+
+            <label class="row" style="padding:12px 0; align-items:flex-start">
+                <input type="checkbox" class="checkbox"
+                       aria-label="Complete Finalize homepage hero copy">
+                <span>
+                    <strong>Finalize homepage hero copy</strong><br>
+                    <span class="muted small">Website Redesign · Priority: High</span>
+                </span>
+            </label>
+
+            <label class="row"
+                   style="padding:12px 0; border-top:1px solid var(--divider); align-items:flex-start">
+                <input type="checkbox" class="checkbox"
+                       aria-label="Complete Fix signup validation on mobile">
+                <span>
+                    <strong>Fix signup validation on mobile</strong><br>
+                    <span class="muted small">Onboarding Flow · Priority: High</span>
+                </span>
+            </label>
+
+            <label class="row"
+                   style="padding:12px 0; border-top:1px solid var(--divider); align-items:flex-start">
+                <input type="checkbox" class="checkbox" checked
+                       aria-label="Wireframe key pages completed">
+                <span>
+                    <strong class="is-done">Wireframe key pages</strong><br>
+                    <span class="muted small">Website Redesign · Priority: Medium</span>
+                </span>
+            </label>
+        </div>
+    </div>
 </section>
