@@ -126,5 +126,8 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
     public IActionResult CheckEmail(string email) => View(email);
 
     [HttpGet]
+    public IActionResult ResetPassword() => View();
+
+    [HttpGet]
     public IActionResult AccessDenied() => View();
 }
