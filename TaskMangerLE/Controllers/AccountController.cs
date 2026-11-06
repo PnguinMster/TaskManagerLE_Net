@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using TaskMangerLE.Authorization;
 using TaskMangerLE.Models;
 
@@ -109,11 +110,20 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
     }
 
     [HttpGet]
-    public IActionResult ForgotPassword() => View();
+    public IActionResult ForgotPassword() => View(new ForgotPasswordViewModel());
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult ForgotPassword(int t) => View();
+    public IActionResult ForgotPassword(ForgotPasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return View(model);
+
+        return View(nameof(CheckEmail), model.Email);
+    }
+
+    [HttpGet]
+    public IActionResult CheckEmail(string email) => View(email);
 
     [HttpGet]
     public IActionResult AccessDenied() => View();

@@ -5,7 +5,7 @@
     var hasLoginError = ViewData.ModelState.ContainsKey(string.Empty) && ViewData.ModelState[string.Empty]!.Errors.Count > 0;
 }
 
-<div class="card" style="width: 100%; max-width: 440px; margin: 40px auto 0; padding: 32px">
+<div class="card auth-card" style="gap:0">
     <div style="display: flex; flex-direction: column; gap: 6px;">
         <h1 style="font-size: 26px; font-weight: 700;">Welcome back</h1>
         <p class="muted">Log in to your ProjectPulse account.</p>

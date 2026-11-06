@@ -716,6 +716,11 @@ select.input.input-inline {
     min-width: 170px;
 }
 
+strong {
+    color: var(--text);
+}
+
+
 /* Validation: manual (.is-invalid) and ASP.NET Core (jquery-validation) classes */
 .input.is-invalid, .input-validation-error {
     border-color: var(--rt);
