@@ -101,6 +101,21 @@ public class TaskController(TaskService taskService, ProjectService projectServi
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Complete(int? taskId)
+    {
+        if (taskId is not { } id)
+            return NotFound();
+
+        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetTaskWithProjectAsync(id), t => t.Project);
+        if (taskItem is null)
+            return NotFound();
+
+        await taskService.CompleteTaskAsync(taskItem);
+        return RedirectToAction("Index", "Home");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int? taskId)
     {
         if (taskId is not { } id)

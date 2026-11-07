@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TaskMangerLE.Data;
 using TaskMangerLE.Models;
+using TaskMangerLE.Models.Enums;
+using TaskStatus = TaskMangerLE.Models.Enums.TaskStatus;
 
 namespace TaskMangerLE.Services;
 
@@ -34,6 +36,12 @@ public class TaskService(ApplicationDbContext context)
         taskItem.Status = taskItemModel.Status;
         taskItem.DueDate = dueDate;
 
+        await context.SaveChangesAsync();
+    }
+
+    public async Task CompleteTaskAsync(TaskItem taskItem)
+    {
+        taskItem.Status = TaskStatus.Done;
         await context.SaveChangesAsync();
     }
 

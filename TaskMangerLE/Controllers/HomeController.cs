@@ -1,11 +1,23 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using TaskMangerLE.Models;
+using TaskMangerLE.Services;
 
 namespace TaskMangerLE.Controllers;
 
-public class HomeController : Controller
+public class HomeController(DashboardServices services, UserManager<ApplicationUser> userManager) : Controller
 {
     [HttpGet]
-    public IActionResult Index() => View();
+    public async Task<IActionResult> Index()
+    {
+        string? userId = userManager.GetUserId(User);
+
+        if (userId is null)
+            return View(new DashboardViewModel { IsAuthenticated = false });
+
+        DashboardViewModel model = await services.GetDashboardAsync(userId);
+        return View(model);
+    }
 
     [HttpGet]
     public IActionResult Privacy() => View();

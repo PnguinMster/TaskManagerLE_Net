@@ -9,8 +9,10 @@ using TaskMangerLE.Authorization;
 var builder = WebApplication.CreateBuilder(args);
 
 // Inject Services
+builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<ProjectService>();
 builder.Services.AddScoped<TaskService>();
+builder.Services.AddScoped<DashboardServices>();
 
 // Authorization
 builder.Services.AddAuthorizationBuilder()

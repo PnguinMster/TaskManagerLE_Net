@@ -1,174 +1,305 @@
-﻿@{
+﻿@model TaskMangerLE.Models.DashboardViewModel
+@{
     ViewData["Title"] = "Home";
 }
 
-<section class="hero">
-    <h1>Manage Projects and Tasks Without the Bloat.</h1>
-
-    <p class="muted">
-        Keep your projects organized, break work into manageable tasks, restore anything you delete by mistake,
-        and see what needs your attention—all in one place.
-    </p>
-
-    <div class="row wrap">
-        <a class="btn btn-primary btn-lg"
-           asp-controller="Account"
-           asp-action="Register">
-            Get Started - Register
-        </a>
-        <a class="btn btn-lg"
-           asp-controller="Account"
-           asp-action="Login">
-            Log in
-        </a>
+@if (User.Identity?.IsAuthenticated == true) {
+    <div class="page-header">
+        <div>
+            <h1>Welcome back, @User.Identity?.Name</h1>
+            <p class="muted">Here is where your projects stand today.</p>
+        </div>
     </div>
-</section>
 
-<section class="features" aria-label="Features">
-    <article class="card stack">
-        <div class="icon-tile is-lg" style="width:50px; height:50px; border-radius:12px" aria-hidden="true">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="1.8"
-                 stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                <path d="M3 9h18"/>
-            </svg>
-        </div>
-        <h2>Dedicated projects</h2>
+    <section class="grid-kpi" aria-label="Project and task statistics">
+        <article class="card">
+            <p class="kpi-label">Active Projects</p>
+            <p class="kpi-value" style="color: var(--bt)">@Model.ActiveProjectsCount</p>
+        </article>
+
+        <article class="card">
+            <p class="kpi-label">Pending Tasks</p>
+            <p class="kpi-value">@Model.PendingTasksCount</p>
+        </article>
+
+        <article class="card">
+            <p class="kpi-label">Overdue Tasks</p>
+            <p class="kpi-value" style="color: var(--rt)">@Model.OverdueTasksCount</p>
+        </article>
+
+        <article class="card">
+            <p class="kpi-label">Completed Projects</p>
+            <p class="kpi-value" style="color: var(--gt)">@Model.CompletedProjectsCount</p>
+        </article>
+    </section>
+
+    <section class="dashboard-overview" aria-label="Project and task overview">
+        <section class="dashboard-projects">
+            <div class="section-head">
+                <h2>Recent Projects</h2>
+                <a asp-controller="Project" asp-action="Index">All Projects →</a>
+            </div>
+
+            <div class="stack">
+                @foreach (DashboardProjectViewModel project in Model.RecentProjects) {
+                    var (statusLabel, badgeClass, progressClass, textClass) = project.Status switch
+                    {
+                        ProjectStatus.Active => ("In Progress", "badge-blue", "", "text-blue"),
+                        ProjectStatus.Planning => ("Planning", "badge-purple", "", "text-purple"),
+                        ProjectStatus.OnHold => ("On Hold", "badge-amber", "is-amber", "text-amber"),
+                        ProjectStatus.Completed => ("Completed", "badge-green", "is-green", "text-green"),
+                        ProjectStatus.Cancelled => ("Cancelled", "badge-rose", "", "text-rose"),
+                        ProjectStatus.Archived => ("Archived", "badge-muted", "", "muted"),
+                        _ => (project.Status.ToString(), "badge-muted", "", "muted")
+                    };
+
+                    <a class="card card-hover dashboard-project-card"
+                       asp-controller="Task"
+                       asp-action="Index"
+                       asp-route-projectId="@project.Id">
+                        <div class="row between dashboard-project-heading">
+                            <h3>@project.Name</h3>
+                            <span class="badge @badgeClass">@statusLabel</span>
+                        </div>
+
+                        <p class="muted dashboard-project-description">
+                            @(string.IsNullOrWhiteSpace(project.DueTaskName)
+                                ? "No open tasks"
+                                : project.DueTaskName)
+                        </p>
+
+                        <div class="progress-meta">
+                            <span>@project.CompletedTasksCount of @project.TotalTasksCount tasks completed</span>
+                            <span class="@textClass">@project.CompletedPercent%</span>
+                        </div>
+
+                        <div class="progress"
+                             role="progressbar"
+                             aria-label="@project.CompletedPercent% of @project.Name tasks completed"
+                             aria-valuenow="@project.CompletedPercent"
+                             aria-valuemin="0"
+                             aria-valuemax="100">
+                            <div class="progress-bar @progressClass"
+                                 style="width:@(project.CompletedPercent)%"></div>
+                        </div>
+                    </a>
+                }
+            </div>
+        </section>
+
+        <section class="dashboard-task-section">
+            <div class="section-head">
+                <h2>Tasks Due Soon</h2>
+                <a asp-controller="Task" asp-action="Index">All Tasks →</a>
+            </div>
+
+            <div class="card dashboard-tasks">
+                <div class="dashboard-task-list">
+                    @foreach (var task in Model.UpcomingTasks) {
+                        bool isDueToday = task.DueDateUtc?.Date == DateTime.UtcNow.Date;
+
+                        var task1 = task;
+                        <div class="row dashboard-task">
+                            <form asp-controller="Task"
+                                  asp-action="Complete"
+                                  asp-route-taskId="@task1.Id"
+                                  method="post"
+                                  class="dashboard-complete-form">
+                                <input type="checkbox"
+                                       class="checkbox"
+                                       aria-label="Complete @task1.Name"
+                                       onchange="this.form.submit()">
+                            </form>
+                            <span class="dashboard-task-details">
+                                <span class="dashboard-task-name">@task1.Name</span>
+                                <span class="small dashboard-task-meta">
+                                    <a class="text-blue"
+                                       asp-controller="Task"
+                                       asp-action="Index"
+                                       asp-route-projectId="@task1.ProjectId">@task1.ProjectName</a>
+                                    <span class="muted"> · Priority: @task1.Priority</span>
+                                </span>
+                            </span>
+
+                            <span class="badge @(isDueToday ? "badge-rose" : "badge-muted")">
+                                @(isDueToday ? "Today" : task1.DueDateUtc?.ToString("MMM d"))
+                            </span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </section>
+    </section>
+}
+else {
+    <section class="hero">
+        <h1>Manage Projects and Tasks Without the Bloat.</h1>
+
         <p class="muted">
-            Give every project its own space with a description, due date,
-            and a live progress bar.
+            Keep your projects organized, break work into manageable tasks, restore anything you delete by mistake,
+            and see what needs your attention—all in one place.
         </p>
-    </article>
 
-    <article class="card stack">
-        <div class="icon-tile is-lg is-green" style="width:50px; height:50px; border-radius:12px" aria-hidden="true">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="1.8"
-                 stroke-linecap="round" stroke-linejoin="round">
-                <rect x="4" y="4" width="16" height="16" rx="3"/>
-                <path d="m8 12 2.5 2.5L16 9"/>
-            </svg>
+        <div class="row wrap">
+            <a class="btn btn-primary btn-lg"
+               asp-controller="Account"
+               asp-action="Register">
+                Get Started - Register
+            </a>
+            <a class="btn btn-lg"
+               asp-controller="Account"
+               asp-action="Login">
+                Log in
+            </a>
         </div>
-        <h2>Tasks that stay clear</h2>
-        <p class="muted">
-            Break projects into focused tasks, set priorities, and keep due
-            dates easy to find.
-        </p>
-    </article>
+    </section>
 
-    <article class="card stack">
-        <div class="icon-tile is-lg is-amber" style="width:50px; height:50px; border-radius:12px" aria-hidden="true">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="1.8"
-                 stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 19V5"/>
-                <path d="M4 19h17"/>
-                <path d="m7 15 4-4 3 2 5-6"/>
-                <path d="M16 7h3v3"/>
-            </svg>
-        </div>
-        <h2>Progress at a glance</h2>
-        <p class="muted">
-            See what’s complete and what still needs attention as your work
-            moves forward.
-        </p>
-    </article>
-</section>
+    <section class="features" aria-label="Features">
+        <article class="card stack">
+            <div class="icon-tile is-lg" style="width:50px; height:50px; border-radius:12px" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="1.8"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    <path d="M3 9h18"/>
+                </svg>
+            </div>
+            <h2>Dedicated projects</h2>
+            <p class="muted">
+                Give every project its own space with a description, due date,
+                and a live progress bar.
+            </p>
+        </article>
 
-<section class="stack" style="padding:24px 0" aria-labelledby="preview-heading">
-    <h2 id="preview-heading"
-        style="font-size:24px; text-align:center; margin-bottom:4px">
-        See it in action
-    </h2>
+        <article class="card stack">
+            <div class="icon-tile is-lg is-green" style="width:50px; height:50px; border-radius:12px" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="1.8"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4" y="4" width="16" height="16" rx="3"/>
+                    <path d="m8 12 2.5 2.5L16 9"/>
+                </svg>
+            </div>
+            <h2>Tasks that stay clear</h2>
+            <p class="muted">
+                Break projects into focused tasks, set priorities, and keep due
+                dates easy to find.
+            </p>
+        </article>
 
-    <div class="card split" style="padding:24px; background:var(--pill)">
-        <div class="stack">
-            <article class="card stack">
-                <div class="row between">
-                    <h3>Website Redesign</h3>
-                    <span class="badge badge-blue">In Progress</span>
-                </div>
+        <article class="card stack">
+            <div class="icon-tile is-lg is-amber" style="width:50px; height:50px; border-radius:12px" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="1.8"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19V5"/>
+                    <path d="M4 19h17"/>
+                    <path d="m7 15 4-4 3 2 5-6"/>
+                    <path d="M16 7h3v3"/>
+                </svg>
+            </div>
+            <h2>Progress at a glance</h2>
+            <p class="muted">
+                See what’s complete and what still needs attention as your work
+                moves forward.
+            </p>
+        </article>
+    </section>
 
-                <p class="muted">
-                    Refresh the marketing site with a new design system.
-                </p>
+    <section class="stack" style="padding:24px 0" aria-labelledby="preview-heading">
+        <h2 id="preview-heading"
+            style="font-size:24px; text-align:center; margin-bottom:4px">
+            See it in action
+        </h2>
 
-                <div class="progress-meta">
-                    <span>5 of 8 tasks completed</span>
-                    <span class="text-blue">63%</span>
-                </div>
-                <div class="progress" aria-label="63% complete">
-                    <div class="progress-bar" style="width:63%"></div>
-                </div>
-            </article>
+        <div class="card split" style="padding:24px; background:var(--pill)">
+            <div class="stack">
+                <article class="card stack">
+                    <div class="row between">
+                        <h3>Website Redesign</h3>
+                        <span class="badge badge-blue">In Progress</span>
+                    </div>
 
-            <article class="card stack">
-                <div class="row between">
-                    <h3>Onboarding Flow</h3>
-                    <span class="badge badge-amber">Due Soon</span>
-                </div>
+                    <p class="muted">
+                        Refresh the marketing site with a new design system.
+                    </p>
 
-                <p class="muted">
-                    Shorter signup and a guided first-project checklist.
-                </p>
+                    <div class="progress-meta">
+                        <span>5 of 8 tasks completed</span>
+                        <span class="text-blue">63%</span>
+                    </div>
+                    <div class="progress" aria-label="63% complete">
+                        <div class="progress-bar" style="width:63%"></div>
+                    </div>
+                </article>
 
-                <div class="progress-meta">
-                    <span>2 of 4 tasks completed</span>
-                    <span class="text-amber">50%</span>
-                </div>
-                <div class="progress" aria-label="50% complete">
-                    <div class="progress-bar is-amber" style="width:50%"></div>
-                </div>
-            </article>
-        </div>
+                <article class="card stack">
+                    <div class="row between">
+                        <h3>Onboarding Flow</h3>
+                        <span class="badge badge-amber">On Hold</span>
+                    </div>
 
-        <div class="card stack" style="padding:4px 20px">
-            <h3 style="padding:12px 0 4px">Tasks Due Soon</h3>
+                    <p class="muted">
+                        Shorter signup and a guided first-project checklist.
+                    </p>
 
-            <label class="row" style="padding:12px 0; align-items:flex-start">
-                <input type="checkbox" class="checkbox"
-                       aria-label="Complete Finalize homepage hero copy">
-                <span>
+                    <div class="progress-meta">
+                        <span>2 of 4 tasks completed</span>
+                        <span class="text-amber">50%</span>
+                    </div>
+                    <div class="progress" aria-label="50% complete">
+                        <div class="progress-bar is-amber" style="width:50%"></div>
+                    </div>
+                </article>
+            </div>
+
+            <div class="card stack" style="padding:4px 20px">
+                <h3 style="padding:12px 0 4px">Tasks Due Soon</h3>
+
+                <label class="row" style="padding:12px 0; align-items:flex-start">
+                    <input type="checkbox" class="checkbox"
+                           aria-label="Complete Finalize homepage hero copy">
+                    <span>
                     <strong>Finalize homepage hero copy</strong><br>
                     <span class="muted small">Website Redesign · Priority: High</span>
                 </span>
-            </label>
+                </label>
 
-            <label class="row"
-                   style="padding:12px 0; border-top:1px solid var(--divider); align-items:flex-start">
-                <input type="checkbox" class="checkbox"
-                       aria-label="Complete Fix signup validation on mobile">
-                <span>
+                <label class="row"
+                       style="padding:12px 0; border-top:1px solid var(--divider); align-items:flex-start">
+                    <input type="checkbox" class="checkbox"
+                           aria-label="Complete Fix signup validation on mobile">
+                    <span>
                     <strong>Fix signup validation on mobile</strong><br>
                     <span class="muted small">Onboarding Flow · Priority: High</span>
                 </span>
-            </label>
+                </label>
 
-            <label class="row"
-                   style="padding:12px 0; border-top:1px solid var(--divider); align-items:flex-start">
-                <input type="checkbox" class="checkbox" checked
-                       aria-label="Wireframe key pages completed">
-                <span>
+                <label class="row"
+                       style="padding:12px 0; border-top:1px solid var(--divider); align-items:flex-start">
+                    <input type="checkbox" class="checkbox" checked
+                           aria-label="Wireframe key pages completed">
+                    <span>
                     <strong class="is-done">Wireframe key pages</strong><br>
                     <span class="muted small">Website Redesign · Priority: Medium</span>
                 </span>
-            </label>
+                </label>
+            </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<section class="card stack"
-         style="align-items:center; padding:40px 24px; text-align:center">
-    <h2 style="font-size:26px">Ready to get organized?</h2>
+    <section class="card stack"
+             style="align-items:center; padding:40px 24px; text-align:center">
+        <h2 style="font-size:26px">Ready to get organized?</h2>
 
-    <p class="muted">
-        Create your account and start your first project in minutes.
-    </p>
+        <p class="muted">
+            Create your account and start your first project in minutes.
+        </p>
 
-    <a class="btn btn-primary btn-lg"
-       asp-controller="Account"
-       asp-action="Register">
-        Create your account
-    </a>
-</section>
+        <a class="btn btn-primary btn-lg"
+           asp-controller="Account"
+           asp-action="Register">
+            Create your account
+        </a>
+    </section>
+}

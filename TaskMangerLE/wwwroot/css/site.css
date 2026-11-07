@@ -565,6 +565,10 @@ button {
     color: var(--bt);
 }
 
+.text-purple {
+    color: var(--pt);
+}
+
 .text-green {
     color: var(--gt);
 }
@@ -1269,3 +1273,112 @@ dialog.modal::backdrop {
         animation: none !important;
     }
 }
+
+/* ---------- Dashboard ---------- */
+.dashboard-overview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    align-items: start;
+}
+
+.dashboard-projects,
+.dashboard-task-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1 1 420px;
+    min-width: min(100%, 320px);
+}
+
+.dashboard-overview .section-head h2 {
+    font-weight: 700;
+}
+
+.dashboard-project-card {
+    display: block;
+    margin: 0;
+    padding: 20px;
+    text-decoration: none;
+}
+
+.dashboard-project-card:hover {
+    text-decoration: none;
+}
+
+.dashboard-project-card h3 {
+    color: var(--text);
+}
+
+.dashboard-project-heading {
+    margin-bottom: 8px;
+}
+
+.dashboard-project-description {
+    margin-bottom: 14px;
+}
+
+.dashboard-project-card .progress-meta {
+    margin-bottom: 6px;
+    font-size: 12px;
+}
+
+.dashboard-tasks {
+    min-width: 0;
+    margin: 0;
+    padding: 4px 20px;
+}
+
+.dashboard-task-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-complete-form {
+    display: flex;
+    flex: none;
+    margin: 0;
+}
+
+.dashboard-complete-form .checkbox {
+    flex: none;
+    padding: 0;
+}
+
+.dashboard-task {
+    align-items: flex-start;
+    padding: 14px 0;
+    text-decoration: none;
+}
+
+.dashboard-task + .dashboard-task {
+    border-top: 1px solid var(--divider);
+}
+
+.dashboard-task:hover {
+    text-decoration: none;
+}
+
+.dashboard-task-details {
+    flex: 1;
+    min-width: 0;
+    display: block;
+}
+
+.dashboard-task-name {
+    display: block;
+    color: var(--text);
+    font-weight: 600;
+}
+
+.dashboard-task-meta {
+    display: block;
+}
+
+.dashboard-task-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+}
+
