@@ -167,6 +167,9 @@ namespace TaskMangerLE.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -386,13 +389,13 @@ namespace TaskMangerLE.Migrations
 
             modelBuilder.Entity("TaskMangerLE.Models.TaskItem", b =>
                 {
-                    b.HasOne("TaskMangerLE.Models.ProjectItem", "ProjectItem")
+                    b.HasOne("TaskMangerLE.Models.ProjectItem", "Project")
                         .WithMany("Tasks")
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("ProjectItem");
+                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("TaskMangerLE.Models.ProjectItem", b =>

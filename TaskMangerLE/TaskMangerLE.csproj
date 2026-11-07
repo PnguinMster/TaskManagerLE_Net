@@ -26,6 +26,18 @@
 
     <ItemGroup>
       <_ContentIncludedByDefault Remove="Views\Home\Projects\Index.cshtml" />
+      <_ContentIncludedByDefault Remove="build-check\appsettings.Development.json" />
+      <_ContentIncludedByDefault Remove="build-check\appsettings.json" />
+      <_ContentIncludedByDefault Remove="build-check\build-check\appsettings.Development.json" />
+      <_ContentIncludedByDefault Remove="build-check\build-check\appsettings.json" />
+      <_ContentIncludedByDefault Remove="build-check\build-check\TaskMangerLE.deps.json" />
+      <_ContentIncludedByDefault Remove="build-check\build-check\TaskMangerLE.runtimeconfig.json" />
+      <_ContentIncludedByDefault Remove="build-check\build-check\TaskMangerLE.staticwebassets.endpoints.json" />
+      <_ContentIncludedByDefault Remove="build-check\build-check\TaskMangerLE.staticwebassets.runtime.json" />
+      <_ContentIncludedByDefault Remove="build-check\TaskMangerLE.deps.json" />
+      <_ContentIncludedByDefault Remove="build-check\TaskMangerLE.runtimeconfig.json" />
+      <_ContentIncludedByDefault Remove="build-check\TaskMangerLE.staticwebassets.endpoints.json" />
+      <_ContentIncludedByDefault Remove="build-check\TaskMangerLE.staticwebassets.runtime.json" />
     </ItemGroup>
 
 </Project>

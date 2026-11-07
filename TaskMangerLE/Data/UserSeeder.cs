@@ -46,7 +46,8 @@ public static class UserSeeder
             {
                 UserName = username,
                 Email = email,
-                EmailConfirmed = true
+                EmailConfirmed = true,
+                CreatedAtUtc = DateTime.UtcNow,
             };
 
             EnsureSucceeded(await userManager.CreateAsync(admin, password), $"create admin user '{email}'");

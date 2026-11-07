@@ -1,0 +1,105 @@
+﻿@model TaskMangerLE.Models.ProfileViewModel
+
+@{
+    ViewData["Title"] = "Profile";
+
+    var avatarText = string.Concat(
+        Model.UserName
+            .Split('@', StringSplitOptions.RemoveEmptyEntries)
+            .FirstOrDefault()?
+            .Split('.', ' ', '_', '-')
+            .Where(part => part.Length > 0)
+            .Take(2)
+            .Select(part => char.ToUpperInvariant(part[0])) ?? []);
+
+    if (string.IsNullOrWhiteSpace(avatarText)) {
+        avatarText = "?";
+    }
+}
+
+<div class="profile-page">
+    <header class="page-header stack" style="align-items: flex-start;">
+        <h1>Profile</h1>
+        <p class="muted">Manage your account details and profile settings.</p>
+    </header>
+
+    @if (TempData["StatusMessage"] is string statusMessage) {
+        <p role="status" class="success-message">@statusMessage</p>
+    }
+
+    <div class="card stack">
+        <div class="row">
+            <span class="avatar avatar-lg">@avatarText</span>
+            <div class="stack">
+                <h2>@Model.UserName</h2>
+                <p class="muted">
+                    Member since @Model.MemberSinceUtc.ToLocalTime().ToString("MMM d, yyyy")
+                </p>
+            </div>
+        </div>
+
+        <form asp-action="Profile" method="post" class="stack">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="field-error"></div>
+
+            <div class="grid-kpi">
+                <div class="field">
+                    <label asp-for="NewUserName"></label>
+                    <input asp-for="NewUserName" class="input" autocomplete="username"/>
+                    <span asp-validation-for="NewUserName" class="field-error"></span>
+                </div>
+
+                <div class="field">
+                    <label asp-for="NewEmail"></label>
+                    <input asp-for="NewEmail" class="input" autocomplete="email"/>
+                    <span asp-validation-for="NewEmail" class="field-error"></span>
+                </div>
+            </div>
+
+            <div class="field">
+                <label asp-for="CurrentPassword"></label>
+                <input asp-for="CurrentPassword" class="input" autocomplete="current-password" placeholder="Enter current password"/>
+                <span asp-validation-for="CurrentPassword" class="field-error"></span>
+            </div>
+
+            <div class="row" style="justify-content: flex-end;">
+                <button type="submit" class="btn btn-primary">Save changes</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card stack">
+        <h2>Change password</h2>
+        <p class="muted">Enter your current password, then choose a new one.</p>
+
+        <form asp-action="ChangePassword" method="post" class="stack">
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly" class="field-error"></div>
+
+            <div class="field">
+                <label asp-for="CurrentPassword"></label>
+                <input asp-for="CurrentPassword" class="input" autocomplete="current-password" placeholder="Enter current password"/>
+                <span asp-validation-for="CurrentPassword" class="field-error"></span>
+            </div>
+
+            <div class="grid-kpi">
+                <div class="field">
+                    <label asp-for="NewPassword"></label>
+                    <input asp-for="NewPassword" class="input" autocomplete="new-password" placeholder="New Password"/>
+                    <span asp-validation-for="NewPassword" class="field-error"></span>
+                </div>
+
+                <div class="field">
+                    <label asp-for="ConfirmNewPassword"></label>
+                    <input asp-for="ConfirmNewPassword" class="input" autocomplete="new-password" placeholder="Repeat New Password"/>
+                    <span asp-validation-for="ConfirmNewPassword" class="field-error"></span>
+                </div>
+            </div>
+
+            <div class="row" style="justify-content: flex-end;">
+                <button type="submit" class="btn btn-primary">Update password</button>
+            </div>
+        </form>
+    </div>
+</div>

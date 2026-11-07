@@ -1395,8 +1395,165 @@ dialog.modal::backdrop {
     width: 2rem;
     height: 2rem;
     border-radius: 50%;
-    background: var(--bt);
+    background: var(--blue);
     color: white;
     font-size: 0.75rem;
     font-weight: 700;
+}
+
+.user-menu {
+    position: relative;
+}
+
+.user-menu > summary {
+    list-style: none;
+}
+
+.user-menu > summary::-webkit-details-marker {
+    display: none;
+}
+
+.user-menu-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.5rem;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    font: inherit;
+}
+
+.user-menu-trigger:hover,
+.user-menu[open] .user-menu-trigger {
+    background: var(--card-hover);
+}
+
+.user-menu-trigger-name {
+    max-width: 12rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.user-menu-chevron {
+    color: var(--muted);
+    transition: transform 0.15s ease;
+}
+
+.user-menu[open] .user-menu-chevron {
+    transform: rotate(180deg);
+}
+
+.user-menu-panel {
+    position: absolute;
+    z-index: 1000;
+    top: calc(100% + 0.75rem);
+    right: 0;
+    width: min(16rem, calc(100vw - 2rem));
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--card);
+    box-shadow: 0 12px 32px rgb(0 0 0 / 20%);
+}
+
+.user-menu-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+}
+
+.user-menu-identity {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 0.2rem;
+}
+
+.user-menu-name,
+.user-menu-email {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.user-menu-name {
+    color: var(--text);
+    /*font-weight: 600;*/
+}
+
+.user-menu-email {
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
+.user-menu-divider {
+    height: 1px;
+    margin: 0.25rem 0;
+    background: var(--border);
+}
+
+.user-menu-panel form {
+    margin: 0;
+}
+
+.user-menu-item {
+    display: block;
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+}
+
+.user-menu-item:hover {
+    background: var(--card-hover);
+    color: var(--text);
+    text-decoration: none;
+}
+
+.user-menu-logout {
+    color: var(--muted);
+}
+
+.user-menu-header .user-initials {
+    font-size: 1rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex: none;
+}
+
+.user-menu-profile,
+.user-menu-logout {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.user-menu-item-icon {
+    flex: none;
+}
+
+.profile-page {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+    max-width: 720px;
+    margin-inline: auto;
+}
+
+.profile-page > .page-header,
+.profile-page > .card {
+    width: 100%;
+    box-sizing: border-box;
 }
