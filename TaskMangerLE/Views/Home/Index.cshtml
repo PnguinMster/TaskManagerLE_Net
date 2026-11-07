@@ -33,7 +33,7 @@
         </article>
     </section>
 
-    @if (Model.ActiveProjectsCount == 0 && Model.CompletedProjectsCount == 0) {
+    @if (Model is { ActiveProjectsCount: 0, CompletedProjectsCount: 0 }) {
         <section class="card card-dashed empty-state">
             <div class="icon-tile is-lg" aria-hidden="true">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
@@ -49,7 +49,7 @@
                 Projects hold your tasks and track progress for you. Start with one and add tasks as you go.
             </p>
 
-            <a asp-action="Create" class="btn btn-primary btn-lg">+ New Project</a>
+            <a asp-action="Create" asp-controller="Project" class="btn btn-primary btn-lg">+ New Project</a>
         </section>
     }
     else {
