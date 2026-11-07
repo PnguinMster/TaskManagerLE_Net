@@ -1,4 +1,9 @@
-﻿<!DOCTYPE html>
+﻿
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+}
+
+<!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="utf-8"/>
@@ -23,10 +28,14 @@
 
         @if (User.Identity?.IsAuthenticated == true) {
             <div class="nav-links">
-                <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
-                <a class="nav-link" asp-controller="Projects" asp-action="Index">Projects</a>
-                <a class="nav-link" asp-controller="Tasks" asp-action="Index">Tasks</a>
-                @* <a class="nav-link" asp-controller="Trash" asp-action="Index">Tasks</a> *@
+                <a class="nav-link @(currentController == "Home" ? "is-active" : "")"
+                   asp-controller="Home" asp-action="Index">Home</a>
+                <a class="nav-link @(currentController == "Project" ? "is-active" : "")"
+                   asp-controller="Project" asp-action="Index">Projects</a>
+                <a class="nav-link @(currentController == "Task" ? "is-active" : "")"
+                   asp-controller="Task" asp-action="Index">Tasks</a>
+                <a class="nav-link @(currentController == "Trash" ? "is-active" : "")"
+                   asp-controller="Trash" asp-action="Index">Trash</a>
             </div>
         }
 
