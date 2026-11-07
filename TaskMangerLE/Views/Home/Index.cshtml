@@ -33,103 +33,124 @@
         </article>
     </section>
 
-    <section class="dashboard-overview" aria-label="Project and task overview">
-        <section class="dashboard-projects">
-            <div class="section-head">
-                <h2>Recent Projects</h2>
-                <a asp-controller="Project" asp-action="Index">All Projects →</a>
+    @if (Model.ActiveProjectsCount == 0 && Model.CompletedProjectsCount == 0) {
+        <section class="card card-dashed empty-state">
+            <div class="icon-tile is-lg" aria-hidden="true">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                </svg>
             </div>
 
-            <div class="stack">
-                @foreach (DashboardProjectViewModel project in Model.RecentProjects) {
-                    var (statusLabel, badgeClass, progressClass, textClass) = project.Status switch
-                    {
-                        ProjectStatus.Active => ("In Progress", "badge-blue", "", "text-blue"),
-                        ProjectStatus.Planning => ("Planning", "badge-purple", "", "text-purple"),
-                        ProjectStatus.OnHold => ("On Hold", "badge-amber", "is-amber", "text-amber"),
-                        ProjectStatus.Completed => ("Completed", "badge-green", "is-green", "text-green"),
-                        ProjectStatus.Cancelled => ("Cancelled", "badge-rose", "", "text-rose"),
-                        ProjectStatus.Archived => ("Archived", "badge-muted", "", "muted"),
-                        _ => (project.Status.ToString(), "badge-muted", "", "muted")
-                    };
+            <h2 style="font-size:20px; font-weight:700">Create your first project</h2>
 
-                    <a class="card card-hover dashboard-project-card"
-                       asp-controller="Task"
-                       asp-action="Index"
-                       asp-route-projectId="@project.Id">
-                        <div class="row between dashboard-project-heading">
-                            <h3>@project.Name</h3>
-                            <span class="badge @badgeClass">@statusLabel</span>
-                        </div>
+            <p class="muted">
+                Projects hold your tasks and track progress for you. Start with one and add tasks as you go.
+            </p>
 
-                        <p class="muted dashboard-project-description">
-                            @(string.IsNullOrWhiteSpace(project.DueTaskName)
-                                ? "No open tasks"
-                                : project.DueTaskName)
-                        </p>
-
-                        <div class="progress-meta">
-                            <span>@project.CompletedTasksCount of @project.TotalTasksCount tasks completed</span>
-                            <span class="@textClass">@project.CompletedPercent%</span>
-                        </div>
-
-                        <div class="progress"
-                             role="progressbar"
-                             aria-label="@project.CompletedPercent% of @project.Name tasks completed"
-                             aria-valuenow="@project.CompletedPercent"
-                             aria-valuemin="0"
-                             aria-valuemax="100">
-                            <div class="progress-bar @progressClass"
-                                 style="width:@(project.CompletedPercent)%"></div>
-                        </div>
-                    </a>
-                }
-            </div>
+            <a asp-action="Create" class="btn btn-primary btn-lg">+ New Project</a>
         </section>
+    }
+    else {
+        <section class="dashboard-overview" aria-label="Project and task overview">
+            <section class="dashboard-projects">
+                <div class="section-head">
+                    <h2>Recent Projects</h2>
+                    <a asp-controller="Project" asp-action="Index">All Projects →</a>
+                </div>
 
-        <section class="dashboard-task-section">
-            <div class="section-head">
-                <h2>Tasks Due Soon</h2>
-                <a asp-controller="Task" asp-action="Index">All Tasks →</a>
-            </div>
+                <div class="stack">
+                    @foreach (DashboardProjectViewModel project in Model.RecentProjects) {
+                        var (statusLabel, badgeClass, progressClass, textClass) = project.Status switch
+                        {
+                            ProjectStatus.Active => ("In Progress", "badge-blue", "", "text-blue"),
+                            ProjectStatus.Planning => ("Planning", "badge-purple", "", "text-purple"),
+                            ProjectStatus.OnHold => ("On Hold", "badge-amber", "is-amber", "text-amber"),
+                            ProjectStatus.Completed => ("Completed", "badge-green", "is-green", "text-green"),
+                            ProjectStatus.Cancelled => ("Cancelled", "badge-rose", "", "text-rose"),
+                            ProjectStatus.Archived => ("Archived", "badge-muted", "", "muted"),
+                            _ => (project.Status.ToString(), "badge-muted", "", "muted")
+                        };
 
-            <div class="card dashboard-tasks">
-                <div class="dashboard-task-list">
-                    @foreach (var task in Model.UpcomingTasks) {
-                        bool isDueToday = task.DueDateUtc?.Date == DateTime.UtcNow.Date;
+                        <a class="card card-hover dashboard-project-card"
+                           asp-controller="Task"
+                           asp-action="Index"
+                           asp-route-projectId="@project.Id">
+                            <div class="row between dashboard-project-heading">
+                                <h3>@project.Name</h3>
+                                <span class="badge @badgeClass">@statusLabel</span>
+                            </div>
 
-                        var task1 = task;
-                        <div class="row dashboard-task">
-                            <form asp-controller="Task"
-                                  asp-action="Complete"
-                                  asp-route-taskId="@task1.Id"
-                                  method="post"
-                                  class="dashboard-complete-form">
-                                <input type="checkbox"
-                                       class="checkbox"
-                                       aria-label="Complete @task1.Name"
-                                       onchange="this.form.submit()">
-                            </form>
-                            <span class="dashboard-task-details">
-                                <span class="dashboard-task-name">@task1.Name</span>
-                                <span class="small dashboard-task-meta">
-                                    <a class="text-blue"
-                                       asp-controller="Task"
-                                       asp-action="Index"
-                                       asp-route-projectId="@task1.ProjectId">@task1.ProjectName</a>
-                                    <span class="muted"> · Priority: @task1.Priority</span>
-                                </span>
-                            </span>
+                            <p class="muted dashboard-project-description">
+                                @(string.IsNullOrWhiteSpace(project.DueTaskName)
+                                    ? "No open tasks"
+                                    : project.DueTaskName)
+                            </p>
 
-                            <span class="badge @(isDueToday ? "badge-rose" : "badge-muted")">
-                                @(isDueToday ? "Today" : task1.DueDateUtc?.ToString("MMM d"))
-                            </span>
-                        </div>
+                            <div class="progress-meta">
+                                <span>@project.CompletedTasksCount of @project.TotalTasksCount tasks completed</span>
+                                <span class="@textClass">@project.CompletedPercent%</span>
+                            </div>
+
+                            <div class="progress"
+                                 role="progressbar"
+                                 aria-label="@project.CompletedPercent% of @project.Name tasks completed"
+                                 aria-valuenow="@project.CompletedPercent"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100">
+                                <div class="progress-bar @progressClass"
+                                     style="width:@(project.CompletedPercent)%"></div>
+                            </div>
+                        </a>
                     }
                 </div>
-            </div>
+            </section>
+
+            <section class="dashboard-task-section">
+                <div class="section-head">
+                    <h2>Tasks Due Soon</h2>
+                    <a asp-controller="Task" asp-action="Index">All Tasks →</a>
+                </div>
+
+                <div class="card dashboard-tasks">
+                    <div class="dashboard-task-list">
+                        @foreach (var task in Model.UpcomingTasks) {
+                            bool isDueToday = task.DueDateUtc?.Date == DateTime.UtcNow.Date;
+
+                            var task1 = task;
+                            <div class="row dashboard-task">
+                                <form asp-controller="Task"
+                                      asp-action="Complete"
+                                      asp-route-taskId="@task1.Id"
+                                      method="post"
+                                      class="dashboard-complete-form">
+                                    <input type="checkbox"
+                                           class="checkbox"
+                                           aria-label="Complete @task1.Name"
+                                           onchange="this.form.submit()">
+                                </form>
+                                <span class="dashboard-task-details">
+                                    <span class="dashboard-task-name">@task1.Name</span>
+                                    <span class="small dashboard-task-meta">
+                                        <a class="text-blue"
+                                           asp-controller="Task"
+                                           asp-action="Index"
+                                           asp-route-projectId="@task1.ProjectId">@task1.ProjectName</a>
+                                        <span class="muted"> · Priority: @task1.Priority</span>
+                                    </span>
+                                </span>
+
+                                <span class="badge @(isDueToday ? "badge-rose" : "badge-muted")">
+                                    @(isDueToday ? "Today" : task1.DueDateUtc?.ToString("MMM d"))
+                                </span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </section>
         </section>
-    </section>
+    }
 }
 else {
     <section class="hero">
