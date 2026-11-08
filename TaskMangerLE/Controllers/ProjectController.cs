@@ -15,13 +15,13 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
     public async Task<IActionResult> Index()
     {
         if (User.IsInRole(Roles.Admin))
-            return View(await services.GetAllProjectsAsync());
+            return View(await services.GetProjectCardsAsync());
 
         string? userId = userManager.GetUserId(User);
         if (userId is null)
             return Challenge();
 
-        return View(await services.GetProjectsForUserAsync(userId));
+        return View(await services.GetProjectCardsAsync(userId));
     }
 
     [HttpGet]

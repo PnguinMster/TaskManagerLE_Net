@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TaskMangerLE.Data;
 using TaskMangerLE.Models;
-using TaskMangerLE.Models.Enums;
 using TaskStatus = TaskMangerLE.Models.Enums.TaskStatus;
 
 namespace TaskMangerLE.Services;

@@ -41,4 +41,28 @@
                 }
             });
         }
+        
+        document.addEventListener("DOMContentLoaded", () => {
+            const gridButton = document.getElementById("grid-view");
+            const listButton = document.getElementById("list-view");
+            const grid = document.getElementById("project-grid");
+            const list = document.getElementById("project-list");
+        
+            if (!gridButton || !listButton || !grid || !list) return;
+        
+            function setView(view) {
+                const showGrid = view === "grid";
+        
+                grid.hidden = !showGrid;
+                list.hidden = showGrid;
+        
+                gridButton.classList.toggle("is-active", showGrid);
+                listButton.classList.toggle("is-active", !showGrid);
+                gridButton.setAttribute("aria-pressed", String(showGrid));
+                listButton.setAttribute("aria-pressed", String(!showGrid));
+            }
+        
+            gridButton.addEventListener("click", () => setView("grid"));
+            listButton.addEventListener("click", () => setView("list"));
+        });
 })();

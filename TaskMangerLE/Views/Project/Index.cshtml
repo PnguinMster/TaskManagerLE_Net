@@ -1,49 +1,254 @@
-﻿@model IEnumerable<TaskMangerLE.Models.ProjectItem>
+﻿@model IReadOnlyList<ProjectCardViewModel>
 
 @{
-    ViewData["Title"] = "Project Manager";
+    ViewData["Title"] = "Projects";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>
-    <a asp-action="Create" class="">Create New</a>
-</p>
+<header class="page-header">
+    <div>
+        <h1>Projects</h1>
+        <p class="muted">
+            @(Model.Count == 0 ? "No projects yet" : $"{Model.Count} projects in your workspace")
+        </p>
+    </div>
 
-<p>
-    <a asp-action="Restore" class="">Restore</a>
-</p>
+    <div class="row">
+        @if (Model.Count > 0) {
+            <div class="pills" role="group" aria-label="View">
+                <button id="grid-view"
+                        data-view="grid"
+                        class="is-active"
+                        type="button"
+                        aria-label="Grid view"
+                        aria-pressed="true"
+                        style="width:44px;height:36px;padding:0;display:grid;place-items:center">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round"
+                         aria-hidden="true">
+                        <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                        <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                        <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                        <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                    </svg>
+                </button>
+                <button id="list-view" type="button"
+                        data-view="list"
+                        aria-label="List view"
+                        aria-pressed="false"
+                        style="width:44px;height:36px;padding:0;display:grid;place-items:center">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round"
+                         aria-hidden="true">
+                        <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path>
+                    </svg>
+                </button>
+            </div>
+        }
+        <a asp-action="Create" class="btn btn-primary">+ New Project</a>
+    </div>
+</header>
 
-<table class="project-table">
-    <thead>
-    <tr>
-        <th>@Html.DisplayNameFor(model => model.Name)</th>
-        <th>@Html.DisplayNameFor(model => model.Description)</th>
-        <th>@Html.DisplayNameFor(model => model.Status)</th>
-        <th>Info</th>
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (ProjectItem project in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(_ => project.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(_ => project.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(_ => project.Status)
-            </td>
-            <td>
-                <a asp-controller="Task" asp-action="Index" asp-route-projectId="@project.Id">Details</a> |
-                <a asp-action="Update" asp-controller="Project" asp-route-projectId="@project.Id">Edit</a>
-                <form asp-action="Delete" asp-controller="Project" asp-route-projectId="@project.Id" method="post"
-                      onsubmit="return confirm('Delete this @project.Name? This cannot be undone.');">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-primary">Delete</button>
-                </form>
-            </td>
-        </tr>
-    }
-    </tbody>
-</table>
+@if (Model.Count == 0) {
+    <section class="card card-dashed empty-state">
+        <div class="icon-tile is-lg" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            </svg>
+        </div>
+
+        <h2 style="font-size:20px; font-weight:700">Create your first project</h2>
+
+        <p class="muted">
+            Projects hold your tasks and track progress for you. Start with one and add tasks as you go.
+        </p>
+
+        <a asp-action="Create" class="btn btn-primary btn-lg">+ New Project</a>
+    </section>
+}
+else {
+    <div class="row wrap">
+        <div class="pills" role="group" aria-label="Filter projects">
+            <button class="is-active" type="button" data-filer="all" aria-pressed="true">All</button>
+            <button type="button" aria-pressed="false">In Progress</button>
+            <button type="button" aria-pressed="false">Completed</button>
+        </div>
+
+        <div class="sp"></div>
+
+        <input id="project-search"
+               class="input input-inline"
+               type="search"
+               placeholder="Search projects…"
+               aria-label="Search projects"/>
+    </div>
+
+    <div id="project-grid" class="grid-cards">
+        @foreach (var project in Model) {
+            var (statusLabel, badgeClass, progressClass, textClass) = project.Status switch
+            {
+                ProjectStatus.Active => ("In Progress", "badge-blue", "", "text-blue"),
+                ProjectStatus.Planning => ("Planning", "badge-purple", "", "text-purple"),
+                ProjectStatus.OnHold => ("On Hold", "badge-amber", "is-amber", "text-amber"),
+                ProjectStatus.Completed => ("Completed", "badge-green", "is-green", "text-green"),
+                ProjectStatus.Cancelled => ("Cancelled", "badge-rose", "", "text-rose"),
+                ProjectStatus.Archived => ("Archived", "badge-muted", "", "muted"),
+                _ => (project.Status.ToString(), "badge-muted", "", "muted")
+            };
+            <div class="card card-hover"
+                 style="display:flex;flex-direction:column;gap:14px">
+
+                <div class="row" style="justify-content:space-between;align-items:flex-start">
+                    <h3>@project.Name</h3>
+                    <span class="badge @badgeClass">@statusLabel</span>
+                </div>
+
+                <p class="muted">
+                    @(string.IsNullOrWhiteSpace(project.NextDueTaskName)
+                        ? "No open tasks"
+                        : project.NextDueTaskName)
+                </p>
+
+                <div>
+                    <div class="progress-meta">
+                        <span>@project.CompletedTaskCount/@project.TotalTaskCount tasks</span>
+                        <span class="@textClass">@project.ProgressPercent%</span>
+                    </div>
+
+                    <div class="progress">
+                        <div class="progress-bar @progressClass"
+                             style="width:@(project.ProgressPercent)%">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row" style="margin-top:auto">
+                    <span class="muted small" style="flex:1">
+                        @if (project.NextDueDate is not null) {
+                            @:Due @project.NextDueDate.Value.ToString("MMM d")
+                        }
+                        else {
+                            @:No upcoming due date
+                        }
+                    </span>
+                    <a asp-controller="Task"
+                       asp-action="Index"
+                       asp-route-projectId="@project.Id"
+                       class="btn">Details</a>
+
+                    <form asp-controller="Project"
+                          asp-action="Delete"
+                          asp-route-projectId="@project.Id"
+                          method="post"
+                          onsubmit="return confirm('Move this project to trash?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit"
+                                class="icon-btn"
+                                aria-label="Move @project.Name to trash">
+                            <svg width="18" height="18" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round"
+                                 aria-hidden="true">
+                                <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"></path>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div id="project-list" class="card card-flush" hidden>
+        <div class="data-scroll">
+            <div class="data-table">
+                <div class="data-row cols-projects data-head">
+                    <span>Project</span>
+                    <span>Status</span>
+                    <span>Progress</span>
+                    <span>Next due</span>
+                    <span></span>
+                </div>
+
+                @foreach (var project in Model) {
+                    var (statusLabel, badgeClass, progressClass, textClass) = project.Status switch
+                    {
+                        ProjectStatus.Active => ("In Progress", "badge-blue", "is-blue", "text-blue"),
+                        ProjectStatus.Planning => ("Planning", "badge-purple", "is-purple", "text-purple"),
+                        ProjectStatus.OnHold => ("On Hold", "badge-amber", "is-amber", "text-amber"),
+                        ProjectStatus.Completed => ("Completed", "badge-green", "is-green", "text-green"),
+                        ProjectStatus.Cancelled => ("Cancelled", "badge-rose", "is-rose", "text-rose"),
+                        ProjectStatus.Archived => ("Archived", "badge-muted", "is-muted", "muted"),
+                        _ => (project.Status.ToString(), "badge-muted", "is-muted", "muted")
+                    };
+
+                    <div class="data-row cols-projects">
+                        <span class="stack">
+                            <strong class="truncate">
+                                <a asp-action="Details" asp-route-id="@project.Id" class="project-title-link">@project.Name</a>
+                            </strong>
+                            <span class="muted small truncate">
+                                @(string.IsNullOrWhiteSpace(project.NextDueTaskName)
+                                    ? "No open tasks"
+                                    : project.NextDueTaskName)
+                            </span>
+                        </span>
+
+                        <span style="display:flex">
+                            <span class="badge @badgeClass">@statusLabel</span>
+                        </span>
+
+                        <div>
+                            <div class="progress-meta">
+                                <span>@project.CompletedTaskCount/@project.TotalTaskCount tasks</span>
+                                <span class="@textClass">@project.ProgressPercent%</span>
+                            </div>
+
+                            <div class="progress">
+                                <div class="progress-bar @progressClass"
+                                     style="width:@(project.ProgressPercent)%">
+                                </div>
+                            </div>
+                        </div>
+
+                        <span class="muted small">
+                            @if (project.NextDueDate is not null) {
+                                @:Due @project.NextDueDate.Value.ToString("MMM d")
+                            }
+                            else {
+                                @:No upcoming due date
+                            }
+                        </span>
+
+                        <div class="project-actions">
+                            <a asp-controller="Task"
+                               asp-action="Index"
+                               asp-route-projectId="@project.Id"
+                               class="btn">Details</a>
+
+                            <form asp-controller="Project"
+                                  asp-action="Delete"
+                                  asp-route-projectId="@project.Id"
+                                  method="post"
+                                  onsubmit="return confirm('Move this project to trash?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="icon-btn"
+                                        aria-label="Move @project.Name to trash">
+                                    <svg width="18" height="18" viewBox="0 0 24 24"
+                                         fill="none" stroke="currentColor" stroke-width="2"
+                                         stroke-linecap="round" stroke-linejoin="round"
+                                         aria-hidden="true">
+                                        <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"></path>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+

@@ -1557,3 +1557,58 @@ dialog.modal::backdrop {
     width: 100%;
     box-sizing: border-box;
 }
+
+.grid-cards[hidden],
+#project-list[hidden] {
+    display: none;
+}
+
+.grid-cards {
+    gap: 12px;
+}
+
+.grid-cards > .card {
+    margin: 4px;
+}
+
+
+.cols-projects .stack {
+    gap: 0px;
+}
+
+.progress-bar.is-blue {
+    background: var(--bt);
+}
+
+.progress-bar.is-purple {
+    background: var(--pt);
+}
+
+.progress-bar.is-rose {
+    background: var(--rt);
+}
+
+.progress-bar.is-muted {
+    background: var(--muted);
+}
+
+.project-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.project-actions form {
+    margin: 0;
+}
+
+.project-title-link {
+    color: var(--text);
+    text-decoration: none;
+}
+
+.project-title-link:hover {
+    text-decoration: underline;
+}

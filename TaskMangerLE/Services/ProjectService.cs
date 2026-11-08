@@ -1,11 +1,50 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TaskMangerLE.Data;
 using TaskMangerLE.Models;
+using TaskStatus = TaskMangerLE.Models.Enums.TaskStatus;
 
 namespace TaskMangerLE.Services;
 
 public class ProjectService(ApplicationDbContext context)
 {
+    public async Task<List<ProjectCardViewModel>> GetProjectCardsAsync(string? userId = null)
+    {
+        var query = context.ProjectItems.AsNoTracking();
+
+        if (userId is not null)
+            query = query.Where(p => p.OwnerId == userId);
+
+        var projects = await query.Include(p => p.Tasks).ToListAsync();
+
+        return projects.Select(project =>
+        {
+            var tasks = project.Tasks.ToList();
+            var activeTasks = tasks
+                .Where(t => t.Status != TaskStatus.Done && t.Status != TaskStatus.Cancelled)
+                .ToList();
+            var completedCount = tasks.Count(t => t.Status == TaskStatus.Done);
+
+            return new ProjectCardViewModel
+            {
+                Id = project.Id,
+                Name = project.Name,
+                Status = project.Status,
+                NextDueTaskName = activeTasks
+                    .OrderBy(t => t.DueDate)
+                    .Select(t => t.Name)
+                    .FirstOrDefault(),
+                CompletedTaskCount = completedCount,
+                TotalTaskCount = tasks.Count,
+                ProgressPercent = tasks.Count == 0
+                    ? 0
+                    : (int)Math.Round(completedCount * 100.0 / tasks.Count),
+                NextDueDate = activeTasks
+                    .Select(t => (DateOnly?)t.DueDate)
+                    .Min()
+            };
+        }).ToList();
+    }
+
     public async Task AddProjectAsync(ProjectItemCreateViewModel projectItemModel, string userId)
     {
         ProjectItem projectItem = new ProjectItem
@@ -59,7 +98,7 @@ public class ProjectService(ApplicationDbContext context)
         GetDeletedProjectsQuery().AsNoTracking().Where(p => p.OwnerId == userId)
             .OrderByDescending(p => p.DeletedAtUtc).ToListAsync();
 
-    // Restore page and restore POST. Tasks that were deleted with the project.
+// Restore page and restore POST. Tasks that were deleted with the project.
     public Task<ProjectItem?> GetDeletedProjectWithDeletedTasksAsync(int projectId) =>
         GetDeletedProjectsQuery().Include(p => p.Tasks.Where(t => t.IsDeleted))
             .FirstOrDefaultAsync(p => p.Id == projectId);
@@ -69,7 +108,7 @@ public class ProjectService(ApplicationDbContext context)
             .Include(p => p.Tasks.Where(t => t.IsDeleted))
             .FirstOrDefaultAsync(p => p.Id == projectId);
 
-    // Purge needs every task, including the deleted ones.
+// Purge needs every task, including the deleted ones.
     public Task<ProjectItem?> GetDeletedProjectWithAllTasksAsync(int projectId) =>
         GetDeletedProjectsQuery().Include(p => p.Tasks).FirstOrDefaultAsync(p => p.Id == projectId);
 
