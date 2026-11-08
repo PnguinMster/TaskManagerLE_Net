@@ -29,10 +29,7 @@ public class ProjectService(ApplicationDbContext context)
                 Id = project.Id,
                 Name = project.Name,
                 Status = project.Status,
-                NextDueTaskName = activeTasks
-                    .OrderBy(t => t.DueDate)
-                    .Select(t => t.Name)
-                    .FirstOrDefault(),
+                Description = project.Description,
                 CompletedTaskCount = completedCount,
                 TotalTaskCount = tasks.Count,
                 ProgressPercent = tasks.Count == 0

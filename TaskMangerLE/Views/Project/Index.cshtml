@@ -107,9 +107,9 @@ else {
                 </div>
 
                 <p class="muted">
-                    @(string.IsNullOrWhiteSpace(project.NextDueTaskName)
-                        ? "No open tasks"
-                        : project.NextDueTaskName)
+                    @(string.IsNullOrWhiteSpace(project.Description)
+                        ? "No description provided"
+                        : project.Description)
                 </p>
 
                 <div>
@@ -190,9 +190,11 @@ else {
                                 <a asp-action="Details" asp-route-id="@project.Id" class="project-title-link">@project.Name</a>
                             </strong>
                             <span class="muted small truncate">
-                                @(string.IsNullOrWhiteSpace(project.NextDueTaskName)
-                                    ? "No open tasks"
-                                    : project.NextDueTaskName)
+                                <p class="muted">
+                                    @(string.IsNullOrWhiteSpace(project.Description)
+                                        ? "No description provided"
+                                        : project.Description)
+                                </p> 
                             </span>
                         </span>
 

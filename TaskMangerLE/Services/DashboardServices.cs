@@ -29,8 +29,7 @@ public class DashboardServices(ApplicationDbContext context, TimeProvider timePr
             {
                 Id = p.Id,
                 Name = p.Name,
-                DueTaskName = p.Tasks.Where(t => t.Status != TaskStatus.Done && t.Status != TaskStatus.Cancelled).OrderBy(t => t.DueDate).Select(t => t.Name)
-                    .FirstOrDefault() ?? string.Empty,
+                Description = p.Description,
                 Status = p.Status,
                 UpdatedAtUtc = p.UpdatedAtUtc,
                 TotalTasksCount = p.Tasks.Count,
