@@ -1,62 +1,73 @@
-﻿@model TaskMangerLE.Models.ProjectItem
+﻿@model TaskMangerLE.Models.TaskListViewModel
 
 @{
-    ViewData["Title"] = "Task Manager";
+    ViewData["Title"] = "Tasks";
+
+    var createTaskModel =
+        ViewData["CreateTaskModel"] as TaskItemCreateViewModel
+        ?? new TaskItemCreateViewModel();
 }
-<h1>@ViewData["Title"]</h1>
 
-<h4>@ViewData["ProjectName"]</h4>
+<header class="page-header">
+    <div>
+        <h1>Tasks</h1>
+        <p class="muted">
+            @($"{Model.TotalTaskCount} tasks across {Model.ProjectCount} projects")
+        </p>
+    </div>
 
-<p>
-    <a asp-action="Create" asp-controller="Task" asp-route-projectId="@Model.Id">Create New</a>
-</p>
+    <button type="button"
+            class="btn btn-primary"
+            onclick="document.getElementById('create-task-modal').showModal()">
+        + New Task
+    </button>
+</header>
 
-<p>
-    <a asp-action="Restore" asp-controller="Task" asp-route-projectId="@Model.Id">Restore</a>
-</p>
+<div class="stack">
+    <div class="row wrap">
+        <div class="pills" aria-label="Task status">
+            <button type="button" class="is-active">All (@Model.TotalTaskCount)</button>
+            <button type="button">In Progress (@Model.Tasks.Count(t => t.Status == TaskMangerLE.Models.Enums.TaskStatus.InProgress))</button>
+            <button type="button">Completed (@Model.Tasks.Count(t => t.Status == TaskMangerLE.Models.Enums.TaskStatus.Done))</button>
+        </div>
 
-<table class="project-table">
-    <thead>
-    <tr>
-        <th>@Html.DisplayNameFor(model => model.Name)</th>
-        <th>@Html.DisplayNameFor(model => model.Description)</th>
-        <th>@Html.DisplayNameFor(model => model.Status)</th>
-        <th>@Html.DisplayNameFor(model => model.Tasks.FirstOrDefault()!.Priority)</th>
-        <th>@Html.DisplayNameFor(model => model.Tasks.FirstOrDefault()!.DueDate)</th>
-        <th>Info</th>
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (TaskItem taskItem in Model.Tasks) {
-        <tr>
-            <td>
-                @Html.DisplayFor(_ => taskItem.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(_ => taskItem.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(_ => taskItem.Status)
-            </td>
-            <td>
-                @Html.DisplayFor(_ => taskItem.Priority)
-            </td>
-            <td>
-                @Html.DisplayFor(_ => taskItem.DueDate)
-            </td>
-            <td>
-                <a asp-action="Update" asp-controller="Task" asp-route-taskId="@taskItem.Id">Edit</a>
-                <form asp-action="Delete" asp-controller="Task" asp-route-taskId="@taskItem.Id" method="post"
-                      onsubmit="return confirm('Delete this @Model.Name? This cannot be undone.');">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-primary">Delete</button>
-                </form>
-            </td>
-        </tr>
-    }
-    </tbody>
-</table>
+        <div class="sp"></div>
+        <input class="input input-inline" type="search" placeholder="Search tasks…" aria-label="Search tasks">
+    </div>
 
-<div>
-    <a asp-action="Index" asp-controller="Project">Back to Projects</a>
+    <div class="row wrap filters-row">
+        <select class="input input-inline" aria-label="Project">
+            <option value="">All projects</option>
+            @foreach (var project in Model.Tasks.Select(t => t.ProjectName).Distinct().OrderBy(name => name)) {
+                <option value="@project">@project</option>
+            }
+        </select>
+
+        <select class="input" aria-label="Priority">
+            <option value="">Any priority</option>
+            <option>High</option>
+            <option>Medium</option>
+            <option>Low</option>
+        </select>
+
+        <select class="input" aria-label="Due date">
+            <option value="">Any due date</option>
+            <option>Overdue</option>
+            <option>Today</option>
+            <option>This week</option>
+            <option>Later</option>
+        </select>
+
+        <select class="input" aria-label="Group by">
+            <option value="">Group by: Due date</option>
+            <option>Group by: Project</option>
+            <option>Group by: Priority</option>
+            <option>No grouping</option>
+        </select>
+
+        <div class="sp"></div>
+        <a href="@Url.Action("Index", "Task")" class="btn-text" style="color: var(--bt)"> Clear filters </a>
+    </div>
 </div>
+
+<partial name="_CreateTaskModal" model="createTaskModel"/>

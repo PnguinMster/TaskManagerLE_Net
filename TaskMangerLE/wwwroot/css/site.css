@@ -1629,3 +1629,19 @@ dialog.modal::backdrop {
 dialog.modal {
     margin: 8vh auto auto;
 }
+
+.filters-row select.input {
+    width: auto;
+    flex: 0 1 190px;
+}
+
+@media (max-width: 760px) {
+    .filters-row select.input {
+        width: 100%;
+        flex-basis: 100%;
+    }
+}
+
+main.container:has(.filters-row) {
+    max-width: 1440px;
+}

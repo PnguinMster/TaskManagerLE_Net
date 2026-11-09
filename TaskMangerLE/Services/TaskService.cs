@@ -53,6 +53,37 @@ public class TaskService(ApplicationDbContext context)
         await context.SaveChangesAsync();
     }
 
+    public async Task<TaskListViewModel> GetTaskListAsync(string userId)
+    {
+        var tasks = await context.TaskItems
+            .AsNoTracking()
+            .Where(t => t.Project.OwnerId == userId)
+            .OrderBy(t => t.DueDate)
+            .ThenBy(t => t.Name)
+            .Select(t => new TaskListItemViewModel
+            {
+                Id = t.Id,
+                Name = t.Name,
+                ProjectId = t.ProjectId,
+                ProjectName = t.Project.Name,
+                Status = t.Status,
+                Priority = t.Priority,
+                DueDate = t.DueDate
+            })
+            .ToListAsync();
+
+        int projectCount = await context.ProjectItems
+            .AsNoTracking()
+            .CountAsync(p => p.OwnerId == userId);
+
+        return new TaskListViewModel
+        {
+            TotalTaskCount = tasks.Count,
+            ProjectCount = projectCount,
+            Tasks = tasks
+        };
+    }
+
     // Project included for authorization
     public Task<TaskItem?> GetTaskWithProjectAsync(int taskId) =>
         context.TaskItems.Include(t => t.Project).FirstOrDefaultAsync(t => t.Id == taskId);

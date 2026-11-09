@@ -11,17 +11,17 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     : ItemControllerBase(authorizationService)
 {
     [HttpGet]
-    public async Task<IActionResult> Index(int? projectId)
+    public async Task<IActionResult> Index()
     {
-        if (projectId is not { } id)
-            return NotFound();
+        string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId is null)
+            return Challenge();
 
-        ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetProjectWithTasksAsync(id));
-        if (projectItem is null)
-            return NotFound();
+        TaskListViewModel model = await taskService.GetTaskListAsync(userId);
+        ViewData["AvailableProjects"] =
+            await projectService.GetProjectCardsAsync(userId);
 
-        ViewData["ProjectName"] = projectItem.Name;
-        return View(projectItem);
+        return View(model);
     }
 
     [HttpGet]
@@ -46,17 +46,26 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(TaskItemCreateViewModel taskItemModel)
     {
-        ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetProjectAsync(taskItemModel.ProjectId));
+        ProjectItem? projectItem = await LoadAuthorizedAsync(
+            projectService.GetProjectAsync(taskItemModel.ProjectId));
+
         if (projectItem is null)
             return NotFound();
 
-        ViewData["ProjectName"] = projectItem.Name;
+        if (!ModelState.IsValid) {
+            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId is null)
+                return Challenge();
 
-        if (!ModelState.IsValid)
-            return View(taskItemModel);
+            ViewData["AvailableProjects"] =
+                await projectService.GetProjectCardsAsync(userId);
+
+            ViewData["CreateTaskModel"] = taskItemModel;
+            return View(nameof(Index), await taskService.GetTaskListAsync(userId));
+        }
 
         await taskService.AddTaskAsync(taskItemModel);
-        return RedirectToAction(nameof(Index), new { projectId = taskItemModel.ProjectId });
+        return RedirectToAction(nameof(Index));
     }
 
     [HttpGet]
