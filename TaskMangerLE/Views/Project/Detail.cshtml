@@ -221,12 +221,19 @@
                                 </p>
                             }
 
-                            <button type="button" class="btn btn-primary"
-                                    onclick="document.getElementById('create-project-modal').showModal()">
-                                + New Project
-                            </button>
-
-                            <partial name="_CreateProjectModal" model="new ProjectItemCreateViewModel()" />
+                            <div class="task-meta">
+                                <span class="badge @priorityClass">@task.Priority</span>
+                                <span class="due @(isDueToday ? "is-today" : "")">
+                                    <svg width="14" height="14" viewBox="0 0 24 24"
+                                         fill="none" stroke="currentColor" stroke-width="2"
+                                         stroke-linecap="round" stroke-linejoin="round"
+                                         aria-hidden="true">
+                                        <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+                                        <path d="M16 3v4M8 3v4M3 11h18"></path>
+                                    </svg>
+                                    Due @task.DueDate.ToString("MMM d")
+                                </span>
+                            </div>
                         </article>
                     }
 

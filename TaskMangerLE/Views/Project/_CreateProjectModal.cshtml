@@ -16,16 +16,15 @@
         </button>
     </div>
 
-    <form asp-controller="Project" asp-action="Create" method="post">
+    <form id="create-project-form" asp-controller="Project" asp-action="Create" method="post">
         @Html.AntiForgeryToken()
 
         <div class="modal-body">
             <div class="form-group">
                 <label asp-for="Name">Title</label>
-                <input asp-for="Name" class="input"
-                       placeholder="e.g. Website Redesign"
-                       autocomplete="off"/>
-                <span asp-validation-for="Name"></span>
+                <input asp-for="Name" class="input @(ViewData.ModelState["Name"]?.Errors.Count > 0 ? "input-validation-error" : "")"
+                       placeholder="e.g. Website Redesign" autocomplete="off"/>
+                <span asp-validation-for="Name" class="field-error"></span>
             </div>
 
             <div class="form-group">
@@ -65,3 +64,5 @@
         </div>
     </form>
 </dialog>
+
+<partial name="_ValidationScriptsPartial"/>
