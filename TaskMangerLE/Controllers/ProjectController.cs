@@ -25,6 +25,23 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
     }
 
     [HttpGet]
+    public async Task<IActionResult> Detail(int? projectId)
+    {
+        if (projectId is not { } id)
+            return NotFound();
+
+        ProjectItem? projectItem = await LoadAuthorizedAsync(services.GetProjectAsync(id));
+        if (projectItem is null)
+            return NotFound();
+
+        ProjectDetailViewModel? project = await services.GetProjectDetailAsync(id);
+        if (project is null)
+            return NotFound();
+
+        return View(project);
+    }
+
+    [HttpGet]
     public IActionResult Create() => View(new ProjectItemCreateViewModel());
 
     [HttpPost]

@@ -1612,3 +1612,20 @@ dialog.modal::backdrop {
 .project-title-link:hover {
     text-decoration: underline;
 }
+
+.container:has(.project-detail-page) {
+    max-width: 1400px;
+}
+
+.lane-dot.is-review {
+    background: var(--pt);
+}
+
+.project-title-link.is-done {
+    color: var(--muted);
+    text-decoration: line-through;
+}
+
+dialog.modal {
+    margin: 8vh auto auto;
+}

@@ -1,0 +1,67 @@
+﻿@model ProjectItemCreateViewModel
+
+<dialog id="create-project-modal" class="modal"
+        aria-labelledby="create-project-title">
+    <div class="modal-header">
+        <h2 id="create-project-title">New project</h2>
+        <button type="button" class="icon-btn" style="border:0"
+                aria-label="Close"
+                onclick="document.getElementById('create-project-modal').close()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round"
+                 aria-hidden="true">
+                <path d="M18 6L6 18M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+
+    <form asp-controller="Project" asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+
+        <div class="modal-body">
+            <div class="form-group">
+                <label asp-for="Name">Title</label>
+                <input asp-for="Name" class="input"
+                       placeholder="e.g. Website Redesign"
+                       autocomplete="off"/>
+                <span asp-validation-for="Name"></span>
+            </div>
+
+            <div class="form-group">
+                <div class="row" style="justify-content:space-between">
+                    <label asp-for="Description">Description</label>
+                    <span class="muted" style="font-size:12px">Optional</span>
+                </div>
+                <textarea asp-for="Description" class="input"
+                          placeholder="What is this project about?"></textarea>
+                <span asp-validation-for="Description"></span>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px">
+                <div class="form-group">
+                    <label asp-for="DueDate">Due date</label>
+                    <input asp-for="DueDate" type="date" class="input"/>
+                    <span asp-validation-for="DueDate"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Status"></label>
+                    <select asp-for="Status"
+                            asp-items="Html.GetEnumSelectList<ProjectStatus>()"
+                            class="input"></select>
+                    <span asp-validation-for="Status"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <span style="flex:1"></span>
+            <button type="button" class="btn"
+                    onclick="document.getElementById('create-project-modal').close()">
+                Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">Create project</button>
+        </div>
+    </form>
+</dialog>

@@ -51,10 +51,10 @@ public class TaskController(TaskService taskService, ProjectService projectServi
             return NotFound();
 
         ViewData["ProjectName"] = projectItem.Name;
-        
+
         if (!ModelState.IsValid)
             return View(taskItemModel);
-        
+
         await taskService.AddTaskAsync(taskItemModel);
         return RedirectToAction(nameof(Index), new { projectId = taskItemModel.ProjectId });
     }
@@ -91,7 +91,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
         TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetTaskWithProjectAsync(taskItemModel.Id), t => t.Project);
         if (taskItem is null)
             return NotFound();
-        
+
         if (!ModelState.IsValid)
             return View(taskItemModel);
 
@@ -131,6 +131,28 @@ public class TaskController(TaskService taskService, ProjectService projectServi
 
         await taskService.DeleteTaskAsync(taskItem, deletedByUserId);
         return RedirectToAction(nameof(Index), new { projectId = taskItem.ProjectId });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ToggleCompletion(int? taskId)
+    {
+        if (taskId is not { } id)
+            return NotFound();
+
+        TaskItem? taskItem = await LoadAuthorizedAsync(
+            taskService.GetTaskWithProjectAsync(id),
+            t => t.Project);
+
+        if (taskItem is null)
+            return NotFound();
+
+        await taskService.ToggleCompletionAsync(taskItem);
+
+        return RedirectToAction(
+            "Detail",
+            "Project",
+            new { projectId = taskItem.ProjectId });
     }
 
     [HttpGet]

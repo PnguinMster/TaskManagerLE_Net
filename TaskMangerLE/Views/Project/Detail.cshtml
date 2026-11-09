@@ -1,0 +1,344 @@
+﻿@model ProjectDetailViewModel
+
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<div class="project-detail-page">
+    <nav aria-label="Breadcrumb">
+        <a asp-action="Index">← All Projects</a>
+        <span aria-hidden="true"> / </span>
+        <span aria-current="page">@Model.Name</span>
+    </nav>
+
+    @{
+        var (statusLabel, badgeClass, progressClass) = Model.Status switch
+        {
+            ProjectStatus.Active => ("In Progress", "badge-blue", ""),
+            ProjectStatus.Planning => ("Planning", "badge-purple", ""),
+            ProjectStatus.OnHold => ("On Hold", "badge-amber", "is-amber"),
+            ProjectStatus.Completed => ("Completed", "badge-green", "is-green"),
+            ProjectStatus.Cancelled => ("Cancelled", "badge-rose", ""),
+            ProjectStatus.Archived => ("Archived", "badge-muted", ""),
+            _ => (Model.Status.ToString(), "badge-muted", "")
+        };
+    }
+
+    <section class="card"
+             aria-labelledby="project-title"
+             style="padding:28px;display:flex;flex-direction:column;gap:24px">
+
+        <div class="row"
+             style="justify-content:space-between;flex-wrap:wrap;align-items:flex-start;gap:20px">
+            <div style="flex:1 1 420px">
+                <div class="row" style="flex-wrap:wrap;align-items:center;gap:12px">
+                    <h1 id="project-title"
+                        style="font-size:36px;font-weight:700;line-height:1.15;margin:0">
+                        @Model.Name
+                    </h1>
+                    <span class="badge @badgeClass">@statusLabel</span>
+                </div>
+
+                <p class="muted" style="font-size:16px;margin-top:10px;max-width:720px">
+                    @(string.IsNullOrWhiteSpace(Model.Description)
+                        ? "No project description."
+                        : Model.Description)
+                </p>
+            </div>
+
+            <div class="row" style="flex-wrap:wrap">
+                <button type="button" class="btn" onclick="document.getElementById('edit-project-modal').showModal()">
+                    Edit Project
+                </button>
+
+                <a asp-controller="Task"
+                   asp-action="Create"
+                   asp-route-projectId="@Model.Id"
+                   class="btn btn-primary">+ Add Task</a>
+
+                <form asp-action="Delete"
+                      asp-route-projectId="@Model.Id"
+                      method="post"
+                      onsubmit="return confirm('Move this project to trash?');">
+                    @Html.AntiForgeryToken()
+                    <button type="submit"
+                            class="btn"
+                            style="color:var(--rt)">
+                        Delete Project
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+            <article style="background:color-mix(in srgb,var(--text) 3.5%,var(--card));border:1px solid var(--divider);border-radius:12px;padding:14px 16px">
+                <p class="muted" style="font-size:12px;font-weight:600">DUE DATE</p>
+                <p style="font-size:18px;font-weight:600;margin-top:2px">
+                    @(Model.DueDate?.ToString("MMM d, yyyy") ?? "No due date")
+                </p>
+                <p class="muted" style="font-size:13px">
+                    @if (Model.DueDate is { } dueDate) {
+                        var daysRemaining = dueDate.DayNumber -
+                                                DateOnly.FromDateTime(DateTime.Today).DayNumber;
+
+                        if (daysRemaining > 0) {
+                            @($"{daysRemaining} days left")
+                        }
+                        else if (daysRemaining == 0) {
+                            @:Due today
+                        }
+                        else {
+                            @($"{Math.Abs(daysRemaining)} days overdue")
+                        }
+                    }
+                    else {
+                        @:No upcoming task due
+                    }
+                </p>
+            </article>
+
+            <article style="background:color-mix(in srgb,var(--text) 3.5%,var(--card));border:1px solid var(--divider);border-radius:12px;padding:14px 16px">
+                <p class="muted" style="font-size:12px;font-weight:600">CREATED</p>
+                <p style="font-size:18px;font-weight:600;margin-top:2px">
+                    @Model.CreatedAtUtc.ToLocalTime().ToString("MMM d, yyyy")
+                </p>
+                <p class="muted" style="font-size:13px">by @Model.OwnerName</p>
+            </article>
+
+            <article style="background:color-mix(in srgb,var(--text) 3.5%,var(--card));border:1px solid var(--divider);border-radius:12px;padding:14px 16px">
+                <p class="muted" style="font-size:12px;font-weight:600">OWNER</p>
+                <p style="font-size:18px;font-weight:600;margin-top:2px">@Model.OwnerName</p>
+                <p class="muted" style="font-size:13px">Project lead</p>
+            </article>
+
+            <article style="background:color-mix(in srgb,var(--text) 3.5%,var(--card));border:1px solid var(--divider);border-radius:12px;padding:14px 16px">
+                <p class="muted" style="font-size:12px;font-weight:600">TASKS</p>
+                <p style="font-size:18px;font-weight:600;margin-top:2px">
+                    @Model.CompletedTaskCount of @Model.TotalTaskCount done
+                </p>
+                <p class="muted" style="font-size:13px">
+                    @Model.RemainingTaskCount remaining
+                </p>
+            </article>
+        </div>
+
+        <div>
+            <div class="row"
+                 style="justify-content:space-between;margin-bottom:8px">
+                <span style="font-weight:600">Progress</span>
+                <span class="muted">
+                @Model.CompletedTaskCount/@Model.TotalTaskCount tasks
+                    (@Model.ProgressPercent%)
+            </span>
+            </div>
+
+            <div class="progress"
+                 role="progressbar"
+                 aria-label="Project progress"
+                 aria-valuemin="0"
+                 aria-valuemax="100"
+                 aria-valuenow="@Model.ProgressPercent"
+                 style="height:12px">
+                <div class="progress-bar @progressClass"
+                     style="width:@(Model.ProgressPercent)%;transition:width .6s ease">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="row" style="justify-content:space-between;align-items:center;margin:24px 0 12px">
+        <h2 style="margin:0">Task board</h2>
+        <span class="muted">@Model.Tasks.Count tasks</span>
+    </div>
+
+    @{
+        var columns = new[]
+        {
+            (Title: "To Do", Status: "ToDo", DotClass: ""),
+            (Title: "In Progress", Status: "InProgress", DotClass: "is-progress"),
+            (Title: "Done", Status: "Done", DotClass: "is-done"),
+            (Title: "Review", Status: "Review", DotClass: "is-review")
+        };
+    }
+
+    <div style="overflow-x:auto">
+        <div class="board" style="grid-template-columns:repeat(4,minmax(250px,1fr));min-width:1064px">
+            @foreach (var column in columns) {
+                var columnTasks = Model.Tasks
+                    .Where(task => task.Status.ToString() == column.Status)
+                    .ToList();
+
+                <section class="lane" aria-label="@column.Title tasks">
+                    <div class="lane-header">
+                        <span class="lane-dot @column.DotClass" aria-hidden="true"></span>
+                        <h3>@column.Title</h3>
+                        <span class="badge badge-muted">@columnTasks.Count</span>
+                    </div>
+
+                    @foreach (var task in columnTasks) {
+                        var priorityClass = task.Priority.ToString() switch
+                        {
+                            "Low" => "badge-blue",
+                            "Medium" => "badge-amber",
+                            "High" or "Critical" => "badge-rose",
+                            _ => "badge-muted"
+                        };
+
+                        bool isDueToday =
+                            task.DueDate == DateOnly.FromDateTime(DateTime.Today);
+
+                        <article class="card task-card">
+                            <div class="row" style="align-items:flex-start">
+                                @{
+                                    bool isDone = task.Status == TaskStatus.Done;
+                                }
+
+                                <form asp-controller="Task"
+                                      asp-action="ToggleCompletion"
+                                      asp-route-taskId="@task.Id"
+                                      method="post">
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="checkbox"
+                                           class="checkbox"
+                                           checked="@isDone"
+                                           aria-label="@(isDone ? $"Mark {task.Name} as to do" : $"Mark {task.Name} as done")"
+                                           onchange="this.form.submit()"/>
+                                </form>
+
+                                <a asp-controller="Task"
+                                   asp-action="Update"
+                                   asp-route-taskId="@task.Id"
+                                   class="project-title-link @(isDone ? "is-done" : "")"
+                                   style="flex:1;font-weight:600">
+                                    @task.Name
+                                </a>
+                            </div>
+
+                            @if (!string.IsNullOrWhiteSpace(task.Description)) {
+                                <p class="muted small" style="margin:4px 0 0">
+                                    @task.Description
+                                </p>
+                            }
+
+                            <button type="button" class="btn btn-primary"
+                                    onclick="document.getElementById('create-project-modal').showModal()">
+                                + New Project
+                            </button>
+
+                            <partial name="_CreateProjectModal" model="new ProjectItemCreateViewModel()" />
+                        </article>
+                    }
+
+                    <a asp-controller="Task"
+                       asp-action="Create"
+                       asp-route-projectId="@Model.Id"
+                       class="btn card-dashed">
+                        + Add task
+                    </a>
+                </section>
+            }
+        </div>
+    </div>
+
+    <dialog id="edit-project-modal"
+            class="modal"
+            aria-labelledby="edit-project-title">
+        <div class="modal-header">
+            <h2 id="edit-project-title">Edit project</h2>
+            <button type="button"
+                    class="icon-btn"
+                    style="border:0"
+                    aria-label="Close"
+                    onclick="document.getElementById('edit-project-modal').close()">
+                <svg width="20" height="20" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round"
+                     aria-hidden="true">
+                    <path d="M18 6L6 18M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <form asp-action="Update" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Id" value="@Model.Id"/>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="edit-project-name">Name</label>
+                    <input id="edit-project-name"
+                           name="Name"
+                           class="input"
+                           value="@Model.Name"
+                           maxlength="@ItemConstraints.NameMaxLength"
+                           autocomplete="off"
+                           required/>
+                </div>
+
+                <div class="form-group">
+                    <div class="row" style="justify-content:space-between">
+                        <label for="edit-project-description">Description</label>
+                        <span class="muted" style="font-size:12px">Optional</span>
+                    </div>
+                    <textarea id="edit-project-description"
+                              name="Description"
+                              class="input"
+                              style="height:103px"
+                              maxlength="@ItemConstraints.DescriptionMaxLength">@Model.Description</textarea>
+                </div>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px">
+                    <div class="form-group">
+                        <label asp-for="DueDate">Due date</label>
+                        <input asp-for="DueDate" type="date" class="input"/>
+                        <span asp-validation-for="DueDate"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Status"></label>
+                        <select asp-for="Status"
+                                asp-items="Html.GetEnumSelectList<ProjectStatus>()"
+                                class="input"></select>
+                        <span asp-validation-for="Status"></span>
+                    </div>
+                </div>
+
+                <p class="muted" style="font-size:13px;margin:0">
+                    Created @Model.CreatedAtUtc.ToLocalTime().ToString("MMM d, yyyy")
+                    by @Model.OwnerName
+                </p>
+            </div>
+
+            <form id="edit-project-form" asp-action="Update" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" value="@Model.Id"/>
+
+                <div class="modal-body">
+                    @* Name, Description, DueDate, and Status fields go here. *@
+                </div>
+            </form>
+
+            <div class="modal-footer">
+                <form asp-action="Delete"
+                      asp-route-projectId="@Model.Id"
+                      method="post"
+                      onsubmit="return confirm('Move this project to trash?');">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn" style="color:var(--rt)">
+                        Delete project
+                    </button>
+                </form>
+
+                <span style="flex:1"></span>
+                <button type="button" class="btn"
+                        onclick="document.getElementById('edit-project-modal').close()">
+                    Cancel
+                </button>
+                <button type="submit" form="edit-project-form" class="btn btn-primary">
+                    Save changes
+                </button>
+            </div>
+        </form>
+    </dialog>
+</div>

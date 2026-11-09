@@ -11,6 +11,7 @@ public abstract class ProjectItemViewModelBase
     [DataType(DataType.MultilineText)]
     [MaxLength(ItemConstraints.DescriptionMaxLength)]
     public string Description { get; set; } = string.Empty;
+    public DateOnly DueDate { get; set; }
     [EnumDataType(typeof(ProjectStatus))] public ProjectStatus Status { get; set; }
 }
 

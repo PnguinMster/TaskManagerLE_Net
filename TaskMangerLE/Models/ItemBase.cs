@@ -17,6 +17,7 @@ public abstract class ItemBase
     public string Name { get; set; } = string.Empty;
     [MaxLength(ItemConstraints.DescriptionMaxLength)]
     public string Description { get; set; } = string.Empty;
+    public DateOnly DueDate { get; set; }
     public DateTime UpdatedAtUtc { get; set; }
     public DateTime CreatedAtUtc { get; set; }
 

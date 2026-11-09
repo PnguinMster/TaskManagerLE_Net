@@ -44,6 +44,15 @@ public class TaskService(ApplicationDbContext context)
         await context.SaveChangesAsync();
     }
 
+    public async Task ToggleCompletionAsync(TaskItem taskItem)
+    {
+        taskItem.Status = taskItem.Status == TaskStatus.Done
+            ? TaskStatus.ToDo
+            : TaskStatus.Done;
+
+        await context.SaveChangesAsync();
+    }
+
     // Project included for authorization
     public Task<TaskItem?> GetTaskWithProjectAsync(int taskId) =>
         context.TaskItems.Include(t => t.Project).FirstOrDefaultAsync(t => t.Id == taskId);

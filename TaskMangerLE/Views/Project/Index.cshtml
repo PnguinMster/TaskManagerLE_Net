@@ -46,7 +46,12 @@
                 </button>
             </div>
         }
-        <a asp-action="Create" class="btn btn-primary">+ New Project</a>
+        <button type="button" class="btn btn-primary"
+                onclick="document.getElementById('create-project-modal').showModal()">
+            + New Project
+        </button>
+
+        <partial name="_CreateProjectModal" model="new ProjectItemCreateViewModel()"/>
     </div>
 </header>
 
@@ -66,7 +71,12 @@
             Projects hold your tasks and track progress for you. Start with one and add tasks as you go.
         </p>
 
-        <a asp-action="Create" class="btn btn-primary btn-lg">+ New Project</a>
+        <button type="button" class="btn btn-primary"
+                onclick="document.getElementById('create-project-modal').showModal()">
+            + New Project
+        </button>
+
+        <partial name="_CreateProjectModal" model="new ProjectItemCreateViewModel()"/>
     </section>
 }
 else {
@@ -134,8 +144,8 @@ else {
                             @:No upcoming due date
                         }
                     </span>
-                    <a asp-controller="Task"
-                       asp-action="Index"
+                    <a asp-controller="Project"
+                       asp-action="Detail"
                        asp-route-projectId="@project.Id"
                        class="btn">Details</a>
 
@@ -187,7 +197,7 @@ else {
                     <div class="data-row cols-projects">
                         <span class="stack">
                             <strong class="truncate">
-                                <a asp-action="Details" asp-route-id="@project.Id" class="project-title-link">@project.Name</a>
+                                <a asp-action="Detail" asp-route-id="@project.Id" class="project-title-link">@project.Name</a>
                             </strong>
                             <span class="muted small truncate">
                                 <p class="muted">
@@ -225,8 +235,8 @@ else {
                         </span>
 
                         <div class="project-actions">
-                            <a asp-controller="Task"
-                               asp-action="Index"
+                            <a asp-controller="Project"
+                               asp-action="Detail"
                                asp-route-projectId="@project.Id"
                                class="btn">Details</a>
 

@@ -42,12 +42,49 @@ public class ProjectService(ApplicationDbContext context)
         }).ToList();
     }
 
+    public async Task<ProjectDetailViewModel?> GetProjectDetailAsync(int projectId)
+    {
+        return await context.ProjectItems
+            .AsNoTracking()
+            .Where(p => p.Id == projectId)
+            .Select(p => new ProjectDetailViewModel
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                Status = p.Status,
+                CreatedAtUtc = p.CreatedAtUtc,
+                OwnerName = p.Owner.UserName ?? p.Owner.Email ?? "Unknown",
+                CompletedTaskCount = p.Tasks.Count(t => t.Status == TaskStatus.Done),
+                TotalTaskCount = p.Tasks.Count(),
+                DueDate = p.Tasks
+                    .Where(t => t.Status != TaskStatus.Done &&
+                                t.Status != TaskStatus.Cancelled)
+                    .Select(t => (DateOnly?)t.DueDate)
+                    .Min(),
+                Tasks = p.Tasks
+                    .OrderBy(t => t.DueDate)
+                    .Select(t => new ProjectDetailTaskViewModel
+                    {
+                        Id = t.Id,
+                        Name = t.Name,
+                        Description = t.Description,
+                        Status = t.Status,
+                        Priority = t.Priority,
+                        DueDate = t.DueDate
+                    })
+                    .ToList()
+            })
+            .FirstOrDefaultAsync();
+    }
+
     public async Task AddProjectAsync(ProjectItemCreateViewModel projectItemModel, string userId)
     {
         ProjectItem projectItem = new ProjectItem
         {
             Name = projectItemModel.Name,
             Description = projectItemModel.Description,
+            DueDate = projectItemModel.DueDate,
             Status = projectItemModel.Status,
             OwnerId = userId,
         };
