@@ -51,10 +51,10 @@
                     Edit Project
                 </button>
 
-                <a asp-controller="Task"
-                   asp-action="Create"
-                   asp-route-projectId="@Model.Id"
-                   class="btn btn-primary">+ Add Task</a>
+                <button type="button" class="btn btn-primary"
+                        onclick="document.getElementById('create-task-modal').showModal()">
+                    + Add Task
+                </button>
 
                 <form asp-action="Delete"
                       asp-route-projectId="@Model.Id"
@@ -237,12 +237,10 @@
                         </article>
                     }
 
-                    <a asp-controller="Task"
-                       asp-action="Create"
-                       asp-route-projectId="@Model.Id"
-                       class="btn card-dashed">
+                    <button type="button" class="btn card-dashed"
+                            onclick="document.getElementById('create-task-modal').showModal()">
                         + Add task
-                    </a>
+                    </button>
                 </section>
             }
         </div>
@@ -348,4 +346,6 @@
             </div>
         </form>
     </dialog>
+    <partial name="~/Views/Task/_CreateTaskModal.cshtml"
+             model="new TaskItemCreateViewModel { ProjectId = Model.Id, DueDate = DateOnly.FromDateTime(DateTime.UtcNow) }"/>
 </div>

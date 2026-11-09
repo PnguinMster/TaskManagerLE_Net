@@ -18,13 +18,11 @@
 
     <form asp-controller="Task" asp-action="Create" method="post">
         @Html.AntiForgeryToken()
-        <input asp-for="ProjectId" type="hidden"/>
-
         <div class="modal-body">
             <div asp-validation-summary="ModelOnly" class="field-error"></div>
 
             <div class="form-group">
-                <label asp-for="Name">Task name</label>
+                <label asp-for="Name">Title</label>
                 <input asp-for="Name" class="input"
                        placeholder="e.g. Draft the project brief"
                        autocomplete="off"/>
@@ -32,13 +30,31 @@
             </div>
 
             <div class="form-group">
-                <label asp-for="Description">Description</label>
+                <div class="row" style="justify-content:space-between">
+                    <label asp-for="Description">Description</label>
+                    <span class="muted" style="font-size:12px">Optional</span>
+                </div>
                 <textarea asp-for="Description" class="input"
                           placeholder="Add details for this task"></textarea>
                 <span asp-validation-for="Description"></span>
             </div>
 
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px">
+            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+                <div class="form-group">
+                    <label asp-for="ProjectId">Project</label>
+                    <select asp-for="ProjectId" class="input">
+                        @foreach (ProjectCardViewModel project in
+                                      (IReadOnlyList<ProjectCardViewModel>)ViewData["AvailableProjects"]!) {
+                            if (project.Id == Model.ProjectId) {
+                                <option value="@project.Id" selected>@project.Name</option>
+                            }
+                            else {
+                                <option value="@project.Id">@project.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+
                 <div class="form-group">
                     <label asp-for="Status"></label>
                     <select asp-for="Status"
@@ -46,7 +62,9 @@
                             class="input"></select>
                     <span asp-validation-for="Status"></span>
                 </div>
+            </div>
 
+            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
                 <div class="form-group">
                     <label asp-for="Priority"></label>
                     <select asp-for="Priority"

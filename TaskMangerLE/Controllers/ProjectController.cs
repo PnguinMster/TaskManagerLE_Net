@@ -38,6 +38,14 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         if (project is null)
             return NotFound();
 
+        string? userId = userManager.GetUserId(User);
+        if (userId is null)
+            return Challenge();
+
+        ViewData["AvailableProjects"] = User.IsInRole(Roles.Admin)
+            ? await services.GetProjectCardsAsync()
+            : await services.GetProjectCardsAsync(userId);
+
         return View(project);
     }
 
