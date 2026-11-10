@@ -15,6 +15,7 @@ public class TaskListItemViewModel
 {
     public int Id { get; init; }
     public string Name { get; init; } = string.Empty;
+    public string Description { get; init; } = string.Empty;
     public string ProjectName { get; init; } = string.Empty;
     public int ProjectId { get; init; }
     public TaskStatus Status { get; init; }

@@ -176,6 +176,17 @@
                     </div>
 
                     @foreach (var task in columnTasks) {
+                        <partial name="~/Views/Task/_UpdateTaskModal.cshtml"
+                                 model="new TaskItemUpdateViewModel
+                                 {
+                                     Id = task.Id,
+                                     ProjectId = Model.Id,
+                                     Name = task.Name,
+                                     Description = task.Description,
+                                     Status = task.Status,
+                                     Priority = task.Priority,
+                                     DueDate = task.DueDate
+                                 }"/>
                         var priorityClass = task.Priority.ToString() switch
                         {
                             "Low" => "badge-blue",
@@ -205,6 +216,33 @@
                                            aria-label="@(isDone ? $"Mark {task.Name} as to do" : $"Mark {task.Name} as done")"
                                            onchange="this.form.submit()"/>
                                 </form>
+
+                                <details class="task-card-menu">
+                                    <summary aria-label="Task actions for @task.Name">
+                                        <svg width="18" height="18" viewBox="0 0 24 24"
+                                             fill="currentColor" aria-hidden="true">
+                                            <circle cx="5" cy="12" r="1.5"></circle>
+                                            <circle cx="12" cy="12" r="1.5"></circle>
+                                            <circle cx="19" cy="12" r="1.5"></circle>
+                                        </svg>
+                                    </summary>
+
+                                    <div class="task-card-menu-panel">
+                                        <button type="button"
+                                                onclick="document.getElementById('update-task-modal-@task.Id').showModal()">
+                                            Edit
+                                        </button>
+
+                                        <form asp-controller="Task"
+                                              asp-action="Delete"
+                                              asp-route-taskId="@task.Id"
+                                              method="post"
+                                              onsubmit="return confirm('Move this task to trash?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit">Move to trash</button>
+                                        </form>
+                                    </div>
+                                </details>
 
                                 <a asp-controller="Task"
                                    asp-action="Update"

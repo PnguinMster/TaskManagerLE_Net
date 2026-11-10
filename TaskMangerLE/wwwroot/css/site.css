@@ -1645,3 +1645,78 @@ dialog.modal {
 main.container:has(.filters-row) {
     max-width: 1440px;
 }
+
+.task-card {
+    position: relative;
+}
+
+.task-card-menu {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+}
+
+.task-card-menu summary {
+    display: grid;
+    width: 32px;
+    height: 32px;
+    place-items: center;
+    border-radius: 8px;
+    color: var(--muted);
+    cursor: pointer;
+    list-style: none;
+}
+
+.task-card-menu summary::-webkit-details-marker {
+    display: none;
+}
+
+.task-card-menu summary:hover,
+.task-card-menu[open] summary {
+    background: var(--card-hover);
+    color: var(--text);
+}
+
+.task-card-menu-panel {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    width: 160px;
+    padding: 6px;
+    background: var(--card);
+    border: 1px solid var(--divider);
+    border-radius: 10px;
+    box-shadow: var(--shadow-pop);
+}
+
+.task-card-menu-panel a,
+.task-card-menu-panel button {
+    display: block;
+    width: 100%;
+    padding: 9px 10px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.task-card-menu-panel a:hover,
+.task-card-menu-panel button:hover {
+    background: var(--card-hover);
+}
+
+.task-card-menu-panel button {
+    color: var(--rt);
+}
+
+.task-row-menu {
+    position: relative;
+    top: auto;
+    right: auto;
+    justify-self: end;
+}

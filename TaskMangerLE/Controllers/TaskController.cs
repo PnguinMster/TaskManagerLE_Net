@@ -105,7 +105,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
             return View(taskItemModel);
 
         await taskService.UpdateTaskAsync(taskItem, taskItemModel);
-        return RedirectToAction(nameof(Index), new { projectId = taskItem.ProjectId });
+        return RedirectToAction("Detail", "Project", new { projectId = taskItem.ProjectId });
     }
 
     [HttpPost]

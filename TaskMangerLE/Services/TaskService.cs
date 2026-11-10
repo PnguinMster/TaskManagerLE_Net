@@ -65,6 +65,7 @@ public class TaskService(ApplicationDbContext context)
                 Id = t.Id,
                 Name = t.Name,
                 ProjectId = t.ProjectId,
+                Description = t.Description,
                 ProjectName = t.Project.Name,
                 Status = t.Status,
                 Priority = t.Priority,
