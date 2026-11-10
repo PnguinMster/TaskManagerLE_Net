@@ -85,6 +85,7 @@
     </div>
 </div>
 
+
 @{
     var today = DateOnly.FromDateTime(DateTime.Today);
     var weekEnd = today.AddDays(7);
@@ -149,112 +150,141 @@
                 : dueDate.ToString("MMM d");
 }
 
-<div class="data-scroll">
-    <div class="card" style="padding:0">
-        <div class="data-table cols-tasks">
-            <div class="data-row data-head">
-                <span></span>
-                <span>Task</span>
-                <span>Project</span>
-                <span>Priority</span>
-                <span>Due</span>
-                <span></span>
-            </div>
+@if (Model.Tasks.Count == 0) {
+    <div class="card card-dashed empty-state">
+        <div
+            style="width:64px;height:64px;border-radius:18px;display:grid;place-items:center;color:var(--bt);background:color-mix(in srgb,var(--bt) 14%,transparent)">
+            <svg width="28" height="28" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="7"></circle>
+                <path d="m21 21-4.3-4.3"></path>
+            </svg>
+        </div>
 
-            @foreach (var group in groups) {
-                if (group.Tasks.Count == 0) {
-                    continue;
-                }
+        <h2 style="font-size:20px;font-weight:700">
+            No tasks match your filters
+        </h2>
 
-                <div class="group-header">
-                    <span style="color:@group.Color">@group.Title</span>
-                    <span class="badge badge-muted">@group.Tasks.Count</span>
+        <p class="muted">
+            Try removing a filter or searching for something else.
+        </p>
+
+        <div class="row wrap" style="justify-content:center;margin-top:6px">
+            <button type="button" class="btn btn-lg" data-clear-filters>
+                Clear filters
+            </button>
+        </div>
+    </div>
+}
+else {
+    <div class="data-scroll">
+        <div class="card" style="padding:0">
+            <div class="data-table cols-tasks">
+                <div class="data-row data-head">
+                    <span></span>
+                    <span>Task</span>
+                    <span>Project</span>
+                    <span>Priority</span>
+                    <span>Due</span>
+                    <span></span>
                 </div>
 
-                @foreach (var task in group.Tasks) {
-                    var isDone = task.Status == TaskMangerLE.Models.Enums.TaskStatus.Done;
-                    var priorityColor = PriorityColor(task.Priority);
+                @foreach (var group in groups) {
+                    if (group.Tasks.Count == 0) {
+                        continue;
+                    }
 
-                    <div class="data-row">
-                        <form asp-action="ToggleCompletion"
-                              asp-route-taskId="@task.Id"
-                              method="post"
-                              class="dashboard-complete-form">
-                            @Html.AntiForgeryToken()
-                            <input type="checkbox"
-                                   class="checkbox"
-                                   checked="@isDone"
-                                   aria-label="@(isDone ? $"Mark {task.Name} as to do" : $"Complete {task.Name}")"
-                                   onchange="this.form.submit()"/>
-                        </form>
+                    <div class="group-header">
+                        <span style="color:@group.Color">@group.Title</span>
+                        <span class="badge badge-muted">@group.Tasks.Count</span>
+                    </div>
 
-                        <div style="min-width:0">
-                            <div class="@(isDone ? "is-done" : "")" style="font-weight:600">
-                                @task.Name
-                            </div>
-                            @if (!string.IsNullOrWhiteSpace(task.Description)) {
-                                <div class="muted small"
-                                     style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-                                    @task.Description
+                    @foreach (var task in group.Tasks) {
+                        var isDone = task.Status == TaskMangerLE.Models.Enums.TaskStatus.Done;
+                        var priorityColor = PriorityColor(task.Priority);
+
+                        <div class="data-row">
+                            <form asp-action="ToggleCompletion"
+                                  asp-route-taskId="@task.Id"
+                                  method="post"
+                                  class="dashboard-complete-form">
+                                @Html.AntiForgeryToken()
+                                <input type="checkbox"
+                                       class="checkbox"
+                                       checked="@isDone"
+                                       aria-label="@(isDone ? $"Mark {task.Name} as to do" : $"Complete {task.Name}")"
+                                       onchange="this.form.submit()"/>
+                            </form>
+
+                            <div style="min-width:0">
+                                <div class="@(isDone ? "is-done" : "")" style="font-weight:600">
+                                    @task.Name
                                 </div>
+                                @if (!string.IsNullOrWhiteSpace(task.Description)) {
+                                    <div class="muted small"
+                                         style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                                        @task.Description
+                                    </div>
+                                }
+                            </div>
+
+                            <a asp-controller="Project"
+                               asp-action="Detail"
+                               asp-route-projectId="@task.ProjectId"
+                               style="color:var(--bt);text-decoration:none;font-weight:500">
+                                @task.ProjectName
+                            </a>
+
+                            @{
+                                var priorityClass = task.Priority.ToString() switch
+                                {
+                                    "Low" => "badge-blue",
+                                    "Medium" => "badge-amber",
+                                    "High" or "Critical" => "badge-rose",
+                                    _ => "badge-muted"
+                                };
                             }
-                        </div>
 
-                        <a asp-controller="Project"
-                           asp-action="Detail"
-                           asp-route-projectId="@task.ProjectId"
-                           style="color:var(--bt);text-decoration:none;font-weight:500">
-                            @task.ProjectName
-                        </a>
+                            <span class="badge @priorityClass">@task.Priority</span>
 
-                        @{
-                            var priorityClass = task.Priority.ToString() switch
-                            {
-                                "Low" => "badge-blue",
-                                "Medium" => "badge-amber",
-                                "High" or "Critical" => "badge-rose",
-                                _ => "badge-muted"
-                            };
-                        }
-
-                        <span class="badge @priorityClass">@task.Priority</span>
-
-                        <span style="display:flex;align-items:center;gap:6px;font-size:13px;color:@(group.Title == "Overdue" ? "var(--rt)" : "var(--muted)")">
+                            <span
+                                style="display:flex;align-items:center;gap:6px;font-size:13px;color:@(group.Title == "Overdue" ? "var(--rt)" : "var(--muted)")">
                             @DueDateLabel(task.DueDate, isDone)
                         </span>
 
-                        <details class="task-card-menu task-row-menu">
-                            <summary aria-label="Task actions for @task.Name">
-                                <svg width="18" height="18" viewBox="0 0 24 24"
-                                     fill="currentColor" aria-hidden="true">
-                                    <circle cx="5" cy="12" r="1.5"></circle>
-                                    <circle cx="12" cy="12" r="1.5"></circle>
-                                    <circle cx="19" cy="12" r="1.5"></circle>
-                                </svg>
-                            </summary>
+                            <details class="task-card-menu task-row-menu">
+                                <summary aria-label="Task actions for @task.Name">
+                                    <svg width="18" height="18" viewBox="0 0 24 24"
+                                         fill="currentColor" aria-hidden="true">
+                                        <circle cx="5" cy="12" r="1.5"></circle>
+                                        <circle cx="12" cy="12" r="1.5"></circle>
+                                        <circle cx="19" cy="12" r="1.5"></circle>
+                                    </svg>
+                                </summary>
 
-                            <div class="task-card-menu-panel">
-                                <a asp-controller="Task"
-                                   asp-action="Update"
-                                   asp-route-taskId="@task.Id">
-                                    Edit
-                                </a>
+                                <div class="task-card-menu-panel">
+                                    <a asp-controller="Task"
+                                       asp-action="Update"
+                                       asp-route-taskId="@task.Id">
+                                        Edit
+                                    </a>
 
-                                <form asp-controller="Task"
-                                      asp-action="Delete"
-                                      asp-route-taskId="@task.Id"
-                                      method="post"
-                                      onsubmit="return confirm('Move this task to trash?');">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit">Delete</button>
-                                </form>
-                            </div>
-                        </details>
-                    </div>
+                                    <form asp-controller="Task"
+                                          asp-action="Delete"
+                                          asp-route-taskId="@task.Id"
+                                          method="post"
+                                          onsubmit="return confirm('Move this task to trash?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit">Delete</button>
+                                    </form>
+                                </div>
+                            </details>
+                        </div>
+                    }
                 }
-            }
+            </div>
         </div>
     </div>
-</div>
-
+}
 <partial name="_CreateTaskModal" model="createTaskModel"/>
