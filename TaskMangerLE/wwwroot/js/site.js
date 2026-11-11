@@ -98,4 +98,41 @@
                         }
                     }
                 });
+                
+                const trashFilters = document.querySelectorAll("[data-trash-filter]");
+                        const trashSearch = document.querySelector("[data-trash-search]");
+                        const trashItems = document.querySelectorAll("[data-trash-item]");
+                
+                        let activeTrashFilter = "all";
+                
+                        function filterTrashItems() {
+                            const searchText = trashSearch.value.trim().toLowerCase();
+                
+                            trashItems.forEach(item => {
+                                const matchesType =
+                                    activeTrashFilter === "all" ||
+                                    item.dataset.trashItem === activeTrashFilter;
+                
+                                const matchesSearch =
+                                    item.textContent.toLowerCase().includes(searchText);
+                
+                                item.hidden = !(matchesType && matchesSearch);
+                            });
+                        }
+                
+                        trashFilters.forEach(button => {
+                            button.addEventListener("click", () => {
+                                activeTrashFilter = button.dataset.trashFilter;
+                
+                                trashFilters.forEach(filterButton => {
+                                    const isActive = filterButton === button;
+                                    filterButton.classList.toggle("is-active", isActive);
+                                    filterButton.setAttribute("aria-pressed", isActive);
+                                });
+                
+                                filterTrashItems();
+                            });
+                        });
+                
+                        trashSearch.addEventListener("input", filterTrashItems);
 })();

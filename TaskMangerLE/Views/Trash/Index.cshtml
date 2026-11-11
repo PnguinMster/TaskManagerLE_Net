@@ -1,12 +1,133 @@
 ﻿@{
-    ViewData["Title"] = "Home";
+    ViewData["Title"] = "Trash";
 }
 
-<head>
-    <title>title</title>
-</head>
-<body>
-<div>
+<header class="page-header">
+    <div>
+        <h1>Trash</h1>
+        <p class="muted">Deleted projects and tasks you can still restore</p>
+    </div>
 
-</div>
-</body>
+    <div class="row">
+        <button type="button" class="btn">Restore all</button>
+        <button type="button" class="btn btn-danger">Empty trash</button>
+    </div>
+</header>
+
+<section class="grid-cards" aria-label="Trash summary">
+    <article class="card">
+        <p class="muted">Deleted Projects</p>
+        <p style="font-size:32px;font-weight:700;color:var(--bt)">0</p>
+    </article>
+
+    <article class="card">
+        <p class="muted">Deleted Tasks</p>
+        <p style="font-size:32px;font-weight:700;color:var(--pt)">0</p>
+    </article>
+
+    <article class="card">
+        <p class="muted">Total in Trash</p>
+        <p style="font-size:32px;font-weight:700;color:var(--text)">0</p>
+    </article>
+</section>
+
+@{
+    var isTrashEmpty = false;
+}
+
+@if (isTrashEmpty) {
+    <section class="card card-dashed empty-state">
+        <div class="icon-tile is-lg"
+             aria-hidden="true"
+             style="color:var(--gt);background:color-mix(in srgb,var(--gt) 14%,transparent)">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"></path>
+            </svg>
+        </div>
+
+        <h2 style="font-size:20px;font-weight:700">Trash is empty</h2>
+
+        <p class="muted" style="max-width:420px">
+            Deleted projects and tasks will show up here so you can restore them.
+        </p>
+    </section>
+}
+else {
+    <div class="row wrap" style="margin-bottom:16px">
+        <div class="pills" role="group" aria-label="Filter trash items">
+            <button type="button"
+                    class="is-active"
+                    data-trash-filter="all"
+                    aria-pressed="true">
+                All items
+            </button>
+            <button type="button"
+                    data-trash-filter="project"
+                    aria-pressed="false">
+                Projects
+            </button>
+            <button type="button"
+                    data-trash-filter="task"
+                    aria-pressed="false">
+                Tasks
+            </button>
+        </div>
+
+        <div class="sp"></div>
+
+        <input class="input input-inline"
+               type="search"
+               placeholder="Search trash…"
+               aria-label="Search trash"
+               data-trash-search/>
+    </div>
+
+    <div class="data-scroll">
+        <div class="card card-flush">
+            <div class="data-table cols-trash">
+                <div class="data-row data-head">
+                    <span>Type</span>
+                    <span>Item</span>
+                    <span>Deleted</span>
+                    <span></span>
+                </div>
+
+                <div class="data-row" data-trash-item="task">
+                    <span class="badge badge-purple">Task</span>
+
+                    <div style="min-width:0">
+                        <div style="font-weight:600">Draft cookie banner copy</div>
+                        <div class="muted small">
+                            in <a href="#" style="color:var(--bt);text-decoration:none;font-weight:500">Website Redesign</a>
+                        </div>
+                    </div>
+
+                    <span class="muted small">Oct 30, 9:41 AM</span>
+
+                    <div class="row" style="justify-content:flex-end">
+                        <button type="button" class="btn btn-outline-success">↶ Restore</button>
+                        <button type="button" class="btn" style="color:var(--rt)">Delete forever</button>
+                    </div>
+                </div>
+
+                <div class="data-row" data-trash-item="project">
+                    <span class="badge badge-blue">Project</span>
+
+                    <div style="min-width:0">
+                        <div style="font-weight:600">Legacy Intranet Cleanup</div>
+                        <div class="muted small">8 tasks inside</div>
+                    </div>
+
+                    <span class="muted small">Oct 29, 4:12 PM</span>
+
+                    <div class="row" style="justify-content:flex-end">
+                        <button type="button" class="btn btn-outline-success">↶ Restore</button>
+                        <button type="button" class="btn" style="color:var(--rt)">Delete forever</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
