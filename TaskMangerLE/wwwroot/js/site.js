@@ -359,7 +359,38 @@ function showServerToast() {
     showToast(toast);
 }
 
+// Instant "this field is required" messages for a <form data-check-required>, without a page reload.
+// asp-for already writes the [Required] message into each input's data-val-required attribute,
+// so the text stays in one place (the view model). The server still validates: this is only a shortcut.
+function setUpRequiredFieldChecks() {
+    for (const form of document.querySelectorAll("form[data-check-required]")) {
+        const inputs = form.querySelectorAll("[data-val-required]");
+
+        function setFieldError(input, message) {
+            input.classList.toggle("input-validation-error", Boolean(message));
+
+            const messageElement = form.querySelector(`[data-valmsg-for="${input.name}"]`);
+            if (!messageElement) return;
+            messageElement.textContent = message;
+            messageElement.classList.toggle("field-validation-error", Boolean(message));
+        }
+
+        form.addEventListener("submit", event => {
+            const emptyInputs = [...inputs].filter(input => input.value.trim() === "");
+            if (emptyInputs.length === 0) return;
+
+            event.preventDefault();
+            emptyInputs.forEach(input => setFieldError(input, input.dataset.valRequired));
+            emptyInputs[0].focus();
+        });
+
+        // Clear a field's message as soon as the user starts fixing it.
+        inputs.forEach(input => input.addEventListener("input", () => setFieldError(input, "")));
+    }
+}
+
 showServerToast();
+setUpRequiredFieldChecks();
 setUpEmptyTrashDialog();
 setUpTrashDialog("confirm-trash", "data-confirm-trash");
 setUpTrashDialog("confirm-task-trash", "data-confirm-task-trash");

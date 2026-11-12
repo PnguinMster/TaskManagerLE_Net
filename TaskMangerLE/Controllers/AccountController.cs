@@ -156,10 +156,8 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
             ? await userManager.FindByEmailAsync(loginModel.UsernameOrEmail)
             : await userManager.FindByNameAsync(loginModel.UsernameOrEmail);
 
-        if (user is null) {
-            ModelState.AddModelError(string.Empty, "Invalid username or password. Please try again");
-            return View(loginModel);
-        }
+        if (user is null)
+            return LoginFailed(loginModel, "Invalid username or password. Please try again.");
 
         var signInResult = await signInManager.PasswordSignInAsync(user.UserName!, loginModel.Password, loginModel.RememberMe, lockoutOnFailure: true);
 
@@ -168,8 +166,9 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
 
 
         // General invalid login
-        ModelState.AddModelError(string.Empty,
-            signInResult.IsLockedOut ? "Account locked. Try again later." : "Invalid username or password. Please try again");
+        var errorMessage = signInResult.IsLockedOut
+            ? "Account locked. Try again later."
+            : "Invalid username or password. Please try again.";
         /*
          // Testing invalid login
         if (result.IsLockedOut)
@@ -182,7 +181,14 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
             ModelState.AddModelError(string.Empty, "Wrong username or password.");
             */
 
-        return View(loginModel);
+        return LoginFailed(loginModel, errorMessage);
+    }
+
+    // string.Empty = an error for the whole form; Login.cshtml shows it above the inputs.
+    private ViewResult LoginFailed(LoginViewModel loginModel, string message)
+    {
+        ModelState.AddModelError(string.Empty, message);
+        return View(nameof(Login), loginModel);
     }
 
     [HttpGet]
