@@ -83,7 +83,7 @@ public class ProjectService(ApplicationDbContext context)
         ProjectItem projectItem = new ProjectItem
         {
             Name = projectItemModel.Name,
-            Description = projectItemModel.Description,
+            Description = projectItemModel.Description ?? string.Empty,
             DueDate = projectItemModel.DueDate,
             Status = projectItemModel.Status,
             OwnerId = userId,
@@ -96,7 +96,7 @@ public class ProjectService(ApplicationDbContext context)
     public async Task UpdateProjectAsync(ProjectItem projectItem, ProjectItemUpdateViewModel projectItemModel)
     {
         projectItem.Name = projectItemModel.Name;
-        projectItem.Description = projectItemModel.Description;
+        projectItem.Description = projectItemModel.Description ?? string.Empty;
         projectItem.Status = projectItemModel.Status;
 
         await context.SaveChangesAsync();

@@ -688,7 +688,8 @@ button {
     min-width: 0;
     height: 44px;
     padding: 0 14px;
-    border: 1px solid var(--border);
+    /* --input-border lets a container (e.g. dialog.modal) brighten the outline without a more specific selector. */
+    border: 1px solid var(--input-border, var(--border));
     border-radius: var(--radius-sm);
     background: var(--pill);
     color: var(--text);
@@ -942,6 +943,11 @@ dialog.modal {
     max-width: 520px;
     padding: 0;
     color: var(--text);
+    /* A dialog still inherits from the element it is written inside (even though it is drawn
+       in the top layer), e.g. text-align: center from .empty-state. Reset so it looks the same everywhere. */
+    text-align: start;
+    /* Inputs sit on a dark fill inside a dark card, so --border is too faint to see; use the brighter divider. */
+    --input-border: var(--divider);
     background: var(--card);
     border: 1px solid var(--divider);
     border-radius: 16px;

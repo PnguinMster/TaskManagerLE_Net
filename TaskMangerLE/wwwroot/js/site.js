@@ -72,6 +72,17 @@
                     submitCreateProject(event.currentTarget);
                 });
 
+            // The server pre-fills its own "today" as a fallback (ProjectItemCreateViewModel). Replace it
+            // with the browser's date, since "today" depends on the user's timezone.
+            // Built from local parts: toISOString() would give the UTC date instead.
+            const createDueDate = document.querySelector("#create-project-form [name='DueDate']");
+            if (createDueDate) {
+                const now = new Date();
+                const month = String(now.getMonth() + 1).padStart(2, "0");
+                const day = String(now.getDate()).padStart(2, "0");
+                createDueDate.value = `${now.getFullYear()}-${month}-${day}`;
+            }
+
             // A named function so the error toast's Retry button can call it again.
             // FormData is read on each call, so a retry sends whatever is in the form now.
             async function submitCreateProject(form) {
