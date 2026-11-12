@@ -1362,6 +1362,13 @@ dialog.modal::backdrop {
     flex-direction: column;
 }
 
+/* Empty "Tasks Due Soon" card: same look as .empty-state, but without the full-page padding/margin.
+   Declared after .card and .empty-state so it wins at equal specificity. */
+.dashboard-tasks-empty {
+    margin: 0;
+    padding: 32px 20px;
+}
+
 .dashboard-complete-form {
     display: flex;
     flex: none;

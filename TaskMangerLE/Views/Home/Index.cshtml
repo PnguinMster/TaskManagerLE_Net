@@ -118,41 +118,54 @@
                     <a asp-controller="Task" asp-action="Index">All Tasks →</a>
                 </div>
 
-                <div class="card dashboard-tasks">
-                    <div class="dashboard-task-list">
-                        @foreach (var task in Model.UpcomingTasks) {
-                            bool isDueToday = task.DueDateUtc?.Date == DateTime.UtcNow.Date;
+                @if (Model.UpcomingTasks.Count == 0) {
+                    <div class="card card-dashed empty-state dashboard-tasks-empty">
+                        <h3>Nothing due soon</h3>
 
-                            var task1 = task;
-                            <div class="row dashboard-task">
-                                <form asp-controller="Task"
-                                      asp-action="Complete"
-                                      asp-route-taskId="@task1.Id"
-                                      method="post"
-                                      class="dashboard-complete-form">
-                                    <input type="checkbox"
-                                           class="checkbox"
-                                           aria-label="Complete @task1.Name"
-                                           onchange="this.form.submit()">
-                                </form>
-                                <span class="dashboard-task-details">
-                                    <span class="dashboard-task-name">@task1.Name</span>
-                                    <span class="small dashboard-task-meta">
-                                        <a class="text-blue"
-                                           asp-controller="Task"
-                                           asp-action="Index"
-                                           asp-route-projectId="@task1.ProjectId">@task1.ProjectName</a>
-                                        <span class="muted"> · Priority: @task1.Priority</span>
-                                    </span>
-                                </span>
+                        <p class="muted">
+                            You have no upcoming tasks. Add a task to one of your projects and it will show up here.
+                        </p>
 
-                                <span class="badge @(isDueToday ? "badge-rose" : "badge-muted")">
-                                    @(isDueToday ? "Today" : task1.DueDateUtc?.ToString("MMM d"))
-                                </span>
-                            </div>
-                        }
+                        <a asp-controller="Task" asp-action="Index" class="btn btn-primary">Go to Tasks</a>
                     </div>
-                </div>
+                }
+                else {
+                    <div class="card dashboard-tasks">
+                        <div class="dashboard-task-list">
+                            @foreach (var task in Model.UpcomingTasks) {
+                                bool isDueToday = task.DueDateUtc?.Date == DateTime.UtcNow.Date;
+
+                                var task1 = task;
+                                <div class="row dashboard-task">
+                                    <form asp-controller="Task"
+                                          asp-action="Complete"
+                                          asp-route-taskId="@task1.Id"
+                                          method="post"
+                                          class="dashboard-complete-form">
+                                        <input type="checkbox"
+                                               class="checkbox"
+                                               aria-label="Complete @task1.Name"
+                                               onchange="this.form.submit()">
+                                    </form>
+                                    <span class="dashboard-task-details">
+                                        <span class="dashboard-task-name">@task1.Name</span>
+                                        <span class="small dashboard-task-meta">
+                                            <a class="text-blue"
+                                               asp-controller="Task"
+                                               asp-action="Index"
+                                               asp-route-projectId="@task1.ProjectId">@task1.ProjectName</a>
+                                            <span class="muted"> · Priority: @task1.Priority</span>
+                                        </span>
+                                    </span>
+
+                                    <span class="badge @(isDueToday ? "badge-rose" : "badge-muted")">
+                                        @(isDueToday ? "Today" : task1.DueDateUtc?.ToString("MMM d"))
+                                    </span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
             </section>
         </section>
     }
