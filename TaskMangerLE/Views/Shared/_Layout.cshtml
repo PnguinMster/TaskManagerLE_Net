@@ -127,6 +127,18 @@
     </div>
 </dialog>
 
+@* Toasts stack here (bottom right). site.js adds and removes them; aria-live makes screen
+   readers announce each new one. *@
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+@* A toast set by a controller before redirecting (this.ShowToast). Reading TempData marks it
+   as used, so it shows once. Html.Raw is safe: the serializer escapes < and >. *@
+@if (TempData[TaskMangerLE.Controllers.ToastExtensions.TempDataKey] is string toastJson) {
+    <script type="application/json" id="server-toast">@Html.Raw(toastJson)</script>
+    @* The toast's action button (Undo) submits this form, so the POST carries the anti-forgery token. *@
+    <form id="server-toast-form" method="post" hidden>@Html.AntiForgeryToken()</form>
+}
+
 <script src="~/js/site.js" asp-append-version="true"></script>
 @await RenderSectionAsync("Scripts", required: false)
 </body>

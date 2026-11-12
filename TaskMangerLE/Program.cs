@@ -12,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<ProjectService>();
 builder.Services.AddScoped<TaskService>();
+builder.Services.AddScoped<TrashService>();
 builder.Services.AddScoped<DashboardServices>();
 
 // Authorization

@@ -1,4 +1,6 @@
-﻿@{
+﻿@model TaskMangerLE.Models.TrashSummaryViewModel
+
+@{
     ViewData["Title"] = "Trash";
 }
 
@@ -10,32 +12,32 @@
 
     <div class="row">
         <button type="button" class="btn">Restore all</button>
-        @* Counts are placeholders until the page is wired to real data. *@
         <button type="button" class="btn btn-danger" id="empty-trash-open"
-                data-projects="2" data-tasks="4">Empty trash</button>
+                data-projects="@Model.ProjectCount" data-tasks="@Model.TaskCount">Empty trash</button>
     </div>
 </header>
 
 <section class="grid-cards" aria-label="Trash summary">
     <article class="card">
         <p class="muted">Deleted Projects</p>
-        <p style="font-size:32px;font-weight:700;color:var(--bt)">0</p>
+        <p style="font-size:32px;font-weight:700;color:var(--bt)">@Model.ProjectCount</p>
     </article>
 
     <article class="card">
         <p class="muted">Deleted Tasks</p>
-        <p style="font-size:32px;font-weight:700;color:var(--pt)">0</p>
+        <p style="font-size:32px;font-weight:700;color:var(--pt)">@Model.TaskCount</p>
     </article>
 
     <article class="card">
         <p class="muted">Total in Trash</p>
-        <p style="font-size:32px;font-weight:700;color:var(--text)">0</p>
+        <p style="font-size:32px;font-weight:700;color:var(--text)">@Model.TotalCount</p>
     </article>
 </section>
 
 @* "Empty trash" confirmation. The button stays disabled until the checkbox is ticked (see site.js). *@
 <dialog id="empty-trash-dialog" class="modal modal-sm" role="alertdialog" aria-labelledby="empty-trash-title">
-    <div class="confirm">
+    @* The form tag helper adds the anti-forgery token for us. *@
+    <form asp-action="EmptyTrash" asp-controller="Trash" method="post" class="confirm">
         <div class="icon-tile is-rose">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -60,14 +62,14 @@
             <span class="muted" style="font-size:13px" id="empty-trash-detail"></span>
         </div>
         <label class="row" style="gap:10px">
-            <input type="checkbox" class="checkbox" id="empty-trash-check"/>
+            <input type="checkbox" class="checkbox" id="empty-trash-check" name="confirmed" value="true"/>
             <span>I understand this cannot be undone</span>
         </label>
         <div class="actions" style="margin-top:4px">
             <button type="button" class="btn" id="empty-trash-cancel">Cancel</button>
-            <button type="button" class="btn btn-danger" id="empty-trash-ok" disabled>Empty Trash</button>
+            <button type="submit" class="btn btn-danger" id="empty-trash-ok" disabled>Empty Trash</button>
         </div>
-    </div>
+    </form>
 </dialog>
 
 @* "Delete forever" confirmation for a single item. site.js opens it for any form with a
@@ -105,10 +107,11 @@
 </dialog>
 
 @{
-    var isTrashEmpty = false;
+    // Restore and Delete forever send the user back here instead of the old Restore pages.
+    var trashUrl = Url.Action("Index", "Trash") ?? "/Trash";
 }
 
-@if (isTrashEmpty) {
+@if (Model.Items.Count == 0) {
     <section class="card card-dashed empty-state">
         <div class="icon-tile is-lg"
              aria-hidden="true"
@@ -167,48 +170,57 @@ else {
                     <span></span>
                 </div>
 
-                <div class="data-row" data-trash-item="task">
-                    <span class="badge badge-purple">Task</span>
+                @foreach (TrashItemViewModel item in Model.Items) {
+                    // Stored in UTC; shown in the server's local time.
+                    DateTime? deletedAt = item.DeletedAtUtc?.ToLocalTime();
+                    string controller = item.IsProject ? "Project" : "Task";
+                    // The two controllers name their id parameter differently (projectId / taskId).
+                    var routeValues = new Dictionary<string, string>
+                    {
+                        [item.IsProject ? "projectId" : "taskId"] = item.Id.ToString(),
+                        ["returnUrl"] = trashUrl
+                    };
 
-                    <div style="min-width:0">
-                        <div style="font-weight:600">Draft cookie banner copy</div>
-                        <div class="muted small">
-                            in <a href="#" style="color:var(--bt);text-decoration:none;font-weight:500">Website Redesign</a>
+                    <div class="data-row" data-trash-item="@(item.IsProject ? "project" : "task")">
+                        @if (item.IsProject) {
+                            <span class="badge badge-blue">Project</span>
+                        }
+                        else {
+                            <span class="badge badge-purple">Task</span>
+                        }
+
+                        <div style="min-width:0">
+                            <div style="font-weight:600">@item.Name</div>
+                            <div class="muted small">
+                                @if (item.IsProject) {
+                                    @(item.TaskCount == 1 ? "1 task inside" : $"{item.TaskCount} tasks inside")
+                                }
+                                else {
+                                    @:in
+                                    <a asp-controller="Project" asp-action="Detail" asp-route-projectId="@item.ProjectId"
+                                       style="color:var(--bt);text-decoration:none;font-weight:500">@item.ProjectName</a>
+                                }
+                            </div>
+                        </div>
+
+                        <span class="muted small">@deletedAt?.ToString("MMM d, h:mm tt")</span>
+
+                        <div class="row" style="justify-content:flex-end">
+                            @* The form tag helper adds the anti-forgery token to both forms. *@
+                            <form method="post" asp-controller="@controller" asp-action="Restore"
+                                  asp-all-route-data="routeValues">
+                                <button type="submit" class="btn btn-outline-success">↶ Restore</button>
+                            </form>
+                            <form method="post" asp-controller="@controller"
+                                  asp-action="@(item.IsProject ? "PurgeProject" : "PurgeTask")"
+                                  asp-all-route-data="routeValues"
+                                  data-confirm-purge="@item.Name"
+                                  data-trash-detail="@(deletedAt is { } d ? $"Deleted {d:MMM d}" : "")">
+                                <button type="submit" class="btn" style="color:var(--rt)">Delete forever</button>
+                            </form>
                         </div>
                     </div>
-
-                    <span class="muted small">Oct 30, 9:41 AM</span>
-
-                    <div class="row" style="justify-content:flex-end">
-                        <button type="button" class="btn btn-outline-success">↶ Restore</button>
-                        @* Placeholder form: once rows come from real data, add asp-action="PurgeTask" and the id. *@
-                        <form method="post" data-confirm-purge="Draft cookie banner copy"
-                              data-trash-detail="Deleted Oct 30">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn" style="color:var(--rt)">Delete forever</button>
-                        </form>
-                    </div>
-                </div>
-
-                <div class="data-row" data-trash-item="project">
-                    <span class="badge badge-blue">Project</span>
-
-                    <div style="min-width:0">
-                        <div style="font-weight:600">Legacy Intranet Cleanup</div>
-                        <div class="muted small">8 tasks inside</div>
-                    </div>
-
-                    <span class="muted small">Oct 29, 4:12 PM</span>
-
-                    <div class="row" style="justify-content:flex-end">
-                        <button type="button" class="btn btn-outline-success">↶ Restore</button>
-                        <form method="post" data-confirm-purge="Legacy Intranet Cleanup"
-                              data-trash-detail="Deleted Oct 29">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn" style="color:var(--rt)">Delete forever</button>
-                        </form>
-                    </div>
-                </div>
+                }
             </div>
         </div>
     </div>

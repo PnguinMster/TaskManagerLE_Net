@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using TaskMangerLE.Models;
+using TaskMangerLE.Models.Enums;
 using TaskMangerLE.Services;
 
 namespace TaskMangerLE.Controllers;
@@ -139,6 +140,10 @@ public class TaskController(TaskService taskService, ProjectService projectServi
             return Challenge();
 
         await taskService.DeleteTaskAsync(taskItem, deletedByUserId);
+        this.ShowToast(new ToastMessage(ToastKind.Info, "Task moved to Trash",
+            $"{taskItem.Name} can be restored from the Trash.",
+            ActionLabel: "Undo",
+            ActionUrl: Url.Action(nameof(Restore), new { taskId = id, returnUrl = Url.Action(nameof(Index)) })));
         return RedirectToAction(nameof(Index), new { projectId = taskItem.ProjectId });
     }
 
@@ -180,7 +185,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
     [HttpPost]
     [ValidateAntiForgeryToken]
     [ActionName("Restore")]
-    public async Task<IActionResult> RestoreConfirmed(int? taskId)
+    public async Task<IActionResult> RestoreConfirmed(int? taskId, string? returnUrl)
     {
         if (taskId is not { } id)
             return NotFound();
@@ -190,12 +195,18 @@ public class TaskController(TaskService taskService, ProjectService projectServi
             return NotFound();
 
         await taskService.RestoreTaskAsync(taskItem);
+        this.ShowToast(new ToastMessage(ToastKind.Success, "Task restored", $"{taskItem.Name} is back."));
+
+        // Same as ProjectController.Restore: only follow local return URLs.
+        if (Url.IsLocalUrl(returnUrl))
+            return LocalRedirect(returnUrl);
+
         return RedirectToAction(nameof(Restore), new { projectId = taskItem.ProjectId });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> PurgeTask(int? taskId)
+    public async Task<IActionResult> PurgeTask(int? taskId, string? returnUrl)
     {
         if (taskId is not { } id)
             return NotFound();
@@ -206,6 +217,11 @@ public class TaskController(TaskService taskService, ProjectService projectServi
 
         int taskProjectId = taskItem.ProjectId;
         await taskService.PurgeTaskAsync(taskItem);
+
+        // The Trash page sends a returnUrl; only local ones are followed (see RestoreConfirmed).
+        if (Url.IsLocalUrl(returnUrl))
+            return LocalRedirect(returnUrl);
+
         return RedirectToAction(nameof(Restore), new { projectId = taskProjectId });
     }
 }

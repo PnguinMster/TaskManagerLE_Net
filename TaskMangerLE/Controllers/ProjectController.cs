@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using TaskMangerLE.Models;
+using TaskMangerLE.Models.Enums;
 using TaskMangerLE.Services;
 using TaskMangerLE.Authorization;
 
@@ -129,6 +130,10 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
             return Challenge();
 
         await services.DeleteProjectAsync(projectItem, deletedByUserId);
+        this.ShowToast(new ToastMessage(ToastKind.Info, "Project moved to Trash",
+            $"{projectItem.Name} and its tasks can be restored from the Trash.",
+            ActionLabel: "Undo",
+            ActionUrl: Url.Action(nameof(Restore), new { projectId = id, returnUrl = Url.Action(nameof(Index)) })));
         return RedirectToAction(nameof(Index));
     }
 
@@ -147,7 +152,7 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Restore(int? projectId)
+    public async Task<IActionResult> Restore(int? projectId, string? returnUrl)
     {
         if (projectId is not { } id)
             return NotFound();
@@ -157,12 +162,20 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
             return NotFound();
 
         await services.RestoreProjectAsync(projectItem);
+        this.ShowToast(new ToastMessage(ToastKind.Success, "Project restored",
+            $"{projectItem.Name} and its tasks are back."));
+
+        // Undo from a toast sends the user back where they were. Only local URLs, so the
+        // parameter can't be abused to redirect someone to another site.
+        if (Url.IsLocalUrl(returnUrl))
+            return LocalRedirect(returnUrl);
+
         return RedirectToAction(nameof(Restore));
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> PurgeProject(int? projectId)
+    public async Task<IActionResult> PurgeProject(int? projectId, string? returnUrl)
     {
         if (projectId is not { } id)
             return NotFound();
@@ -172,6 +185,11 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
             return NotFound();
 
         await services.PurgeProjectAsync(projectItem);
+
+        // The Trash page sends a returnUrl; only local ones are followed (see Restore).
+        if (Url.IsLocalUrl(returnUrl))
+            return LocalRedirect(returnUrl);
+
         return RedirectToAction(nameof(Restore));
     }
 }

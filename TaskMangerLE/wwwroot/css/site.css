@@ -1059,13 +1059,14 @@ dialog.modal::backdrop {
 
 .toast {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 12px;
     padding: 14px 8px 14px 16px;
     background: var(--card);
     border: 1px solid var(--divider);
     border-radius: var(--radius);
     box-shadow: var(--shadow-pop);
+    animation: toast-in .2s ease-out; /* turned off by the prefers-reduced-motion rule below */
 }
 
 .toast-icon {
@@ -1090,11 +1091,32 @@ dialog.modal::backdrop {
 .toast-body {
     flex: 1;
     min-width: 0;
-    padding-top: 4px;
 }
 
 .toast-title {
     font-weight: 600;
+}
+
+.toast-action {
+    height: 36px;
+    color: var(--bt);
+}
+
+.toast-error .toast-action {
+    color: var(--rt);
+}
+
+.toast-close {
+    width: 36px;
+    height: 36px;
+    color: var(--muted);
+}
+
+@keyframes toast-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
 }
 
 /* ---------- Empty states, error pages, auth, hero ---------- */
