@@ -10,7 +10,9 @@
 
     <div class="row">
         <button type="button" class="btn">Restore all</button>
-        <button type="button" class="btn btn-danger">Empty trash</button>
+        @* Counts are placeholders until the page is wired to real data. *@
+        <button type="button" class="btn btn-danger" id="empty-trash-open"
+                data-projects="2" data-tasks="4">Empty trash</button>
     </div>
 </header>
 
@@ -30,6 +32,77 @@
         <p style="font-size:32px;font-weight:700;color:var(--text)">0</p>
     </article>
 </section>
+
+@* "Empty trash" confirmation. The button stays disabled until the checkbox is ticked (see site.js). *@
+<dialog id="empty-trash-dialog" class="modal modal-sm" role="alertdialog" aria-labelledby="empty-trash-title">
+    <div class="confirm">
+        <div class="icon-tile is-rose">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path>
+                <path d="M12 9v4M12 17h.01"></path>
+            </svg>
+        </div>
+        <div class="stack" style="gap:8px">
+            <h2 id="empty-trash-title" style="font-size:20px;font-weight:700">Empty Trash permanently?</h2>
+            <p class="muted">
+                This permanently deletes everything in the Trash. These items cannot be restored afterwards.
+            </p>
+        </div>
+        <div class="summary-panel">
+            <span class="muted" style="display:flex">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"></path>
+                </svg>
+            </span>
+            <span style="font-weight:600;flex:1;min-width:0">Items in Trash</span>
+            <span class="muted" style="font-size:13px" id="empty-trash-detail"></span>
+        </div>
+        <label class="row" style="gap:10px">
+            <input type="checkbox" class="checkbox" id="empty-trash-check"/>
+            <span>I understand this cannot be undone</span>
+        </label>
+        <div class="actions" style="margin-top:4px">
+            <button type="button" class="btn" id="empty-trash-cancel">Cancel</button>
+            <button type="button" class="btn btn-danger" id="empty-trash-ok" disabled>Empty Trash</button>
+        </div>
+    </div>
+</dialog>
+
+@* "Delete forever" confirmation for a single item. site.js opens it for any form with a
+   data-confirm-purge attribute (name) and data-trash-detail (the "Deleted ..." text). *@
+<dialog id="confirm-purge-dialog" class="modal modal-sm" role="alertdialog" aria-labelledby="confirm-purge-title">
+    <div class="confirm">
+        <div class="icon-tile is-rose">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"></path>
+            </svg>
+        </div>
+        <div class="stack" style="gap:8px">
+            <h2 id="confirm-purge-title" style="font-size:20px;font-weight:700">Delete forever?</h2>
+            <p class="muted">
+                <b style="color:var(--text);font-weight:600" data-trash-name></b>
+                will be permanently deleted. This cannot be undone.
+            </p>
+        </div>
+        <div class="summary-panel">
+            <span class="muted" style="display:flex">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                </svg>
+            </span>
+            <span style="font-weight:600;flex:1;min-width:0" data-trash-name></span>
+            <span class="muted" style="font-size:13px" id="confirm-purge-detail"></span>
+        </div>
+        <div class="actions" style="margin-top:4px">
+            <button type="button" class="btn" id="confirm-purge-cancel">Cancel</button>
+            <button type="button" class="btn btn-danger" id="confirm-purge-ok">Delete forever</button>
+        </div>
+    </div>
+</dialog>
 
 @{
     var isTrashEmpty = false;
@@ -108,7 +181,12 @@ else {
 
                     <div class="row" style="justify-content:flex-end">
                         <button type="button" class="btn btn-outline-success">↶ Restore</button>
-                        <button type="button" class="btn" style="color:var(--rt)">Delete forever</button>
+                        @* Placeholder form: once rows come from real data, add asp-action="PurgeTask" and the id. *@
+                        <form method="post" data-confirm-purge="Draft cookie banner copy"
+                              data-trash-detail="Deleted Oct 30">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn" style="color:var(--rt)">Delete forever</button>
+                        </form>
                     </div>
                 </div>
 
@@ -124,7 +202,11 @@ else {
 
                     <div class="row" style="justify-content:flex-end">
                         <button type="button" class="btn btn-outline-success">↶ Restore</button>
-                        <button type="button" class="btn" style="color:var(--rt)">Delete forever</button>
+                        <form method="post" data-confirm-purge="Legacy Intranet Cleanup"
+                              data-trash-detail="Deleted Oct 29">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn" style="color:var(--rt)">Delete forever</button>
+                        </form>
                     </div>
                 </div>
             </div>

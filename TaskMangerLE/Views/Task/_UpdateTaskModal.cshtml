@@ -78,7 +78,8 @@
                   asp-action="Delete"
                   asp-route-taskId="@Model.Id"
                   method="post"
-                  onsubmit="return confirm('Move this task to trash?');">
+                  data-confirm-task-trash="@Model.Name"
+                  data-trash-detail="in @ViewData["ProjectName"]">
                 @Html.AntiForgeryToken()
                 <button type="submit" class="btn" style="color:var(--rt)">
                     Delete task

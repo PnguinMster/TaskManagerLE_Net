@@ -274,7 +274,8 @@ else {
                                           asp-action="Delete"
                                           asp-route-taskId="@task.Id"
                                           method="post"
-                                          onsubmit="return confirm('Move this task to trash?');">
+                                          data-confirm-task-trash="@task.Name"
+                                          data-trash-detail="in @task.ProjectName">
                                         @Html.AntiForgeryToken()
                                         <button type="submit">Delete</button>
                                     </form>

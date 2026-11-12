@@ -60,6 +60,73 @@
     <p class="muted small">&copy; @DateTime.Now.Year TaskMangerLE</p>
 </footer>
 
+@* Shared confirmation popup. site.js opens it for any form with a data-confirm-trash attribute. *@
+<dialog id="confirm-trash-dialog" class="modal modal-sm" role="alertdialog" aria-labelledby="confirm-trash-title">
+    <div class="confirm">
+        <div class="icon-tile is-rose">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"></path>
+            </svg>
+        </div>
+        <div class="stack" style="gap:8px">
+            <h2 id="confirm-trash-title" style="font-size:20px;font-weight:700">Move project to Trash?</h2>
+            <p class="muted">
+                <b style="color:var(--text);font-weight:600" data-trash-name></b>
+                and all of its tasks will move to the Trash. You can restore them from there at any time.
+            </p>
+        </div>
+        <div class="summary-panel">
+            <span class="muted" style="display:flex">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                </svg>
+            </span>
+            <span style="font-weight:600;flex:1;min-width:0" data-trash-name></span>
+            <span class="muted" style="font-size:13px" id="confirm-trash-detail"></span>
+        </div>
+        <div class="actions" style="margin-top:4px">
+            <button type="button" class="btn" id="confirm-trash-cancel">Cancel</button>
+            <button type="button" class="btn btn-soft-danger" id="confirm-trash-ok">Move to Trash</button>
+        </div>
+    </div>
+</dialog>
+
+@* Same idea for tasks: opened for any form with a data-confirm-task-trash attribute. *@
+<dialog id="confirm-task-trash-dialog" class="modal modal-sm" role="alertdialog" aria-labelledby="confirm-task-trash-title">
+    <div class="confirm">
+        <div class="icon-tile is-rose">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"></path>
+            </svg>
+        </div>
+        <div class="stack" style="gap:8px">
+            <h2 id="confirm-task-trash-title" style="font-size:20px;font-weight:700">Move task to Trash?</h2>
+            <p class="muted">
+                <b style="color:var(--text);font-weight:600" data-trash-name></b>
+                will move to the Trash. You can restore it from there at any time.
+            </p>
+        </div>
+        <div class="summary-panel">
+            <span class="muted" style="display:flex">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M8 12l3 3 5-6"></path>
+                </svg>
+            </span>
+            <span style="font-weight:600;flex:1;min-width:0" data-trash-name></span>
+            <span class="muted" style="font-size:13px" id="confirm-task-trash-detail"></span>
+        </div>
+        <div class="actions" style="margin-top:4px">
+            <button type="button" class="btn" id="confirm-task-trash-cancel">Cancel</button>
+            <button type="button" class="btn btn-soft-danger" id="confirm-task-trash-ok">Move to Trash</button>
+        </div>
+    </div>
+</dialog>
+
 <script src="~/js/site.js" asp-append-version="true"></script>
 @await RenderSectionAsync("Scripts", required: false)
 </body>

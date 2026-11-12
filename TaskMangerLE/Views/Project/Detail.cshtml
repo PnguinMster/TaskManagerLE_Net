@@ -59,7 +59,8 @@
                 <form asp-action="Delete"
                       asp-route-projectId="@Model.Id"
                       method="post"
-                      onsubmit="return confirm('Move this project to trash?');">
+                      data-confirm-trash="@Model.Name"
+                      data-trash-detail="@Model.CompletedTaskCount of @Model.TotalTaskCount tasks done">
                     @Html.AntiForgeryToken()
                     <button type="submit"
                             class="btn"
@@ -177,6 +178,7 @@
 
                     @foreach (var task in columnTasks) {
                         <partial name="~/Views/Task/_UpdateTaskModal.cshtml"
+                                 view-data='new ViewDataDictionary(ViewData) { { "ProjectName", Model.Name } }'
                                  model="new TaskItemUpdateViewModel
                                  {
                                      Id = task.Id,
@@ -237,7 +239,8 @@
                                               asp-action="Delete"
                                               asp-route-taskId="@task.Id"
                                               method="post"
-                                              onsubmit="return confirm('Move this task to trash?');">
+                                              data-confirm-task-trash="@task.Name"
+                                              data-trash-detail="in @Model.Name">
                                             @Html.AntiForgeryToken()
                                             <button type="submit">Move to trash</button>
                                         </form>
@@ -366,7 +369,8 @@
                 <form asp-action="Delete"
                       asp-route-projectId="@Model.Id"
                       method="post"
-                      onsubmit="return confirm('Move this project to trash?');">
+                      data-confirm-trash="@Model.Name"
+                      data-trash-detail="@Model.CompletedTaskCount of @Model.TotalTaskCount tasks done">
                     @Html.AntiForgeryToken()
                     <button type="submit" class="btn" style="color:var(--rt)">
                         Delete project

@@ -153,7 +153,8 @@ else {
                           asp-action="Delete"
                           asp-route-projectId="@project.Id"
                           method="post"
-                          onsubmit="return confirm('Move this project to trash?');">
+                          data-confirm-trash="@project.Name"
+                          data-trash-detail="@project.CompletedTaskCount of @project.TotalTaskCount tasks done">
                         @Html.AntiForgeryToken()
                         <button type="submit"
                                 class="icon-btn"
@@ -244,7 +245,8 @@ else {
                                   asp-action="Delete"
                                   asp-route-projectId="@project.Id"
                                   method="post"
-                                  onsubmit="return confirm('Move this project to trash?');">
+                                  data-confirm-trash="@project.Name"
+                          data-trash-detail="@project.CompletedTaskCount of @project.TotalTaskCount tasks done">
                                 @Html.AntiForgeryToken()
                                 <button type="submit" class="icon-btn"
                                         aria-label="Move @project.Name to trash">

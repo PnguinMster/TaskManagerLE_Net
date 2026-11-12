@@ -134,5 +134,90 @@
                             });
                         });
                 
-                        trashSearch.addEventListener("input", filterTrashItems);
+                        // Only the Trash page has a search box; without ?. this throws on every
+                        // other page and stops the rest of this file (including the dialog below).
+                        trashSearch?.addEventListener("input", filterTrashItems);
 })();
+
+// Styled "move to trash" confirmations.
+// A <form data-confirm-trash="Project name"> shows the project dialog from _Layout and a
+// <form data-confirm-task-trash="Task name"> shows the task dialog, instead of submitting
+// right away. Either form can add data-trash-detail="..." for the grey text in the summary row.
+// Kept in its own function so an early `return` above doesn't skip it (an uncaught
+// error above would still stop it, though).
+//
+// idPrefix:      the dialog's element ids are "<idPrefix>-dialog", "-detail", "-ok", "-cancel".
+// formAttribute: the data attribute (as written in HTML) that marks forms for this dialog.
+function setUpTrashDialog(idPrefix, formAttribute) {
+    const dialog = document.getElementById(`${idPrefix}-dialog`);
+    if (!dialog) return;
+
+    // "data-confirm-task-trash" -> "confirmTaskTrash", the name dataset uses.
+    const datasetKey = formAttribute.slice("data-".length)
+        .replace(/-./g, match => match[1].toUpperCase());
+    const nameElements = dialog.querySelectorAll("[data-trash-name]");
+    const detailElement = document.getElementById(`${idPrefix}-detail`);
+    let pendingForm = null;
+
+    // One delegated listener covers every matching form on the page.
+    document.addEventListener("submit", (event) => {
+        const form = event.target.closest?.(`form[${formAttribute}]`);
+        if (!form) return;
+
+        event.preventDefault();
+        pendingForm = form;
+        // textContent (not innerHTML) so an item name can never inject markup.
+        nameElements.forEach(element => element.textContent = form.dataset[datasetKey]);
+        detailElement.textContent = form.dataset.trashDetail ?? "";
+        dialog.showModal();
+    });
+
+    document.getElementById(`${idPrefix}-ok`).addEventListener("click", () => {
+        const form = pendingForm;
+        pendingForm = null;
+        dialog.close();
+        // form.submit() skips the submit event, so this doesn't re-trigger the dialog.
+        form?.submit();
+    });
+
+    document.getElementById(`${idPrefix}-cancel`).addEventListener("click", () => dialog.close());
+    // Escape and clicking Cancel both end up here; forget the form either way.
+    dialog.addEventListener("close", () => { pendingForm = null; });
+}
+
+// "Empty trash" confirmation (Trash page only). The confirm button is disabled until the
+// checkbox is ticked, so a stray click can't hard delete everything.
+function setUpEmptyTrashDialog() {
+    const openButton = document.getElementById("empty-trash-open");
+    const dialog = document.getElementById("empty-trash-dialog");
+    if (!openButton || !dialog) return;
+
+    const check = document.getElementById("empty-trash-check");
+    const okButton = document.getElementById("empty-trash-ok");
+    const detail = document.getElementById("empty-trash-detail");
+    const plural = (count, word) => `${count} ${word}${count === 1 ? "" : "s"}`;
+
+    openButton.addEventListener("click", () => {
+        detail.textContent =
+            `${plural(openButton.dataset.projects, "project")}, ${plural(openButton.dataset.tasks, "task")}`;
+        dialog.showModal();
+    });
+
+    check.addEventListener("change", () => { okButton.disabled = !check.checked; });
+
+    // Reset on every close (Cancel, Escape, or confirm) so it always reopens locked.
+    dialog.addEventListener("close", () => {
+        check.checked = false;
+        okButton.disabled = true;
+    });
+
+    document.getElementById("empty-trash-cancel").addEventListener("click", () => dialog.close());
+
+    // TODO: submit a POST to the purge-all action once the backend exists.
+    okButton.addEventListener("click", () => dialog.close());
+}
+
+setUpEmptyTrashDialog();
+setUpTrashDialog("confirm-trash", "data-confirm-trash");
+setUpTrashDialog("confirm-task-trash", "data-confirm-task-trash");
+setUpTrashDialog("confirm-purge", "data-confirm-purge");
