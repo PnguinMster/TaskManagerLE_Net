@@ -231,9 +231,14 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Logout()
+    public async Task<IActionResult> Logout(string? returnUrl = null)
     {
         await signInManager.SignOutAsync();
+
+        // Only follow local URLs, so a crafted link can't bounce users to another site (open redirect).
+        if (Url.IsLocalUrl(returnUrl))
+            return LocalRedirect(returnUrl);
+
         return RedirectToAction(nameof(Index), "Home");
     }
 
@@ -257,5 +262,12 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
     public IActionResult ResetPassword() => View();
 
     [HttpGet]
-    public IActionResult AccessDenied() => View();
+    public IActionResult AccessDenied(string? returnUrl = null)
+    {
+        Response.StatusCode = StatusCodes.Status403Forbidden;
+
+        // The cookie handler redirects here with ?ReturnUrl=<the page that was blocked>.
+        ViewData["BlockedPath"] = returnUrl;
+        return View();
+    }
 }

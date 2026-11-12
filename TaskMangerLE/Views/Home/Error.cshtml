@@ -1,0 +1,45 @@
+@{
+    ViewData["Title"] = "Something went wrong";
+    var reference = ViewData["Reference"] as string;
+    var failedPath = ViewData["FailedPath"] as string;
+    var failedOnPost = ViewData["FailedOnPost"] as bool? ?? false;
+}
+
+<div class="error-page">
+    <div class="icon-tile is-lg is-rose">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path>
+            <path d="M12 9v4M12 17h.01"></path>
+        </svg>
+    </div>
+
+    <span class="badge badge-rose">Error 500</span>
+
+    <h1>Something went wrong</h1>
+
+    <p class="muted">
+        An unexpected error occurred on our side. Please try again in a moment.
+    </p>
+
+    @if (!string.IsNullOrEmpty(reference))
+    {
+        <div class="code-box">Reference: @reference</div>
+    }
+
+    <div class="row wrap" style="justify-content: center; margin-top: 8px;">
+        @if (failedOnPost)
+        {
+            @* Back to the form: browsers usually restore what was typed, and nothing is resubmitted automatically. *@
+            <button type="button" class="btn btn-primary btn-lg" onclick="history.back()">Go back</button>
+        }
+        else
+        {
+            @* A link (GET) rather than a reload, so nothing is ever resubmitted. *@
+            <a href="@(string.IsNullOrEmpty(failedPath) ? Url.Action("Index", "Home") : failedPath)"
+               class="btn btn-primary btn-lg">Try again</a>
+        }
+
+        <a asp-controller="Home" asp-action="Index" class="btn btn-lg">Go to Home</a>
+    </div>
+</div>

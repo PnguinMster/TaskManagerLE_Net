@@ -1,7 +1,44 @@
 ﻿@{
-    ViewData["Title"] = "Access Denied";
+    ViewData["Title"] = "Access denied";
+    var blockedPath = ViewData["BlockedPath"] as string;
 }
 
-<h1>Access Denied</h1>
-<p> You don't have permission to view this page.</p>
-<a asp-controller="Home" asp-action="Index" class="btn btn-primary"> Back to Home</a>
+<div class="error-page">
+    <div class="icon-tile is-lg is-amber">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="4" y="11" width="16" height="10" rx="2"></rect>
+            <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
+        </svg>
+    </div>
+
+    <span class="badge badge-amber">Error 403</span>
+
+    <h1>Access denied</h1>
+
+    <p class="muted">
+        You do not have permission to view this page. It may belong to another account.
+    </p>
+
+    @if (!string.IsNullOrEmpty(blockedPath))
+    {
+        <div class="code-box">@blockedPath</div>
+    }
+
+    <div class="row wrap" style="justify-content: center; margin-top: 8px;">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary btn-lg">Go to Home</a>
+
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            @* Logout is a POST with an anti-forgery token, so this has to be a form, not a link. *@
+            <form asp-controller="Account" asp-action="Logout" method="post">
+                <input type="hidden" name="returnUrl" value="@Url.Action("Login", "Account")" />
+                <button type="submit" class="btn btn-lg">Log in with another account</button>
+            </form>
+        }
+        else
+        {
+            <a asp-controller="Account" asp-action="Login" class="btn btn-lg">Log in</a>
+        }
+    </div>
+</div>

@@ -1,18 +1,36 @@
 ﻿@{
     ViewData["Title"] = "Page not found";
+    var originalPath = ViewData["OriginalPath"] as string;
 }
 
-<h1>Page not found</h1>
-<p>
-    We couldn't find the page you requested. It may have been deleted, or you may not have access to it.
-</p>
+<div class="error-page">
+    <div class="icon-tile is-lg">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="M21 21l-4.3-4.3M9 9l4 4M13 9l-4 4"></path>
+        </svg>
+    </div>
 
-<p>
-    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Go to Home</a>
+    <span class="badge badge-blue">Error 404</span>
 
-    @if (User.Identity?.IsAuthenticated == true) {
-        <a asp-controller="Project" asp-action="Index" class="btn btn-primary">Go to My Projects</a>
+    <h1>Page not found</h1>
+
+    <p class="muted">
+        We could not find the page you were looking for. It may have been moved, or the link might be wrong.
+    </p>
+
+    @if (!string.IsNullOrEmpty(originalPath))
+    {
+        <div class="code-box">@originalPath</div>
     }
 
-    <button type="button" class="btn btn-link" onclick="history.back()">Go Back</button>
-</p>
+    <div class="row wrap" style="justify-content: center; margin-top: 8px;">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary btn-lg">Go to Home</a>
+
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a asp-controller="Project" asp-action="Index" class="btn btn-lg">View Projects</a>
+        }
+    </div>
+</div>
