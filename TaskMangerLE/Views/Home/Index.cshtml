@@ -49,12 +49,7 @@
                 Projects hold your tasks and track progress for you. Start with one and add tasks as you go.
             </p>
 
-            <button type="button" class="btn btn-primary btn-lg"
-                    onclick="document.getElementById('create-project-modal').showModal()">
-                + New Project
-            </button>
-
-            <partial name="~/Views/Project/_CreateProjectModal.cshtml" model="new ProjectItemCreateViewModel()"/>
+            <a asp-controller="Project" asp-action="Index" class="btn btn-primary btn-lg">Go to Projects</a>
         </section>
     }
     else {

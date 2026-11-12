@@ -64,6 +64,19 @@ body {
     color: var(--text);
     font: 14px/1.5 var(--font);
     min-height: 100vh;
+    /* Sticky footer: stack header/main/footer vertically; main grows to fill the leftover space. */
+    display: flex;
+    flex-direction: column;
+}
+
+body > main {
+    flex: 1;
+}
+
+/* In a flex column, auto side margins shrink items to their content, so restore full width. */
+body > main.container,
+body > footer.container {
+    width: 100%;
 }
 
 h1, h2, h3, p {
