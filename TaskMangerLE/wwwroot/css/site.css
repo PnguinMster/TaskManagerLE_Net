@@ -209,7 +209,8 @@ button {
     justify-content: space-between;
 }
 
-.section-head a {
+.section-head a,
+.section-head .section-link {
     font-size: 13px;
     font-weight: 600;
 }
