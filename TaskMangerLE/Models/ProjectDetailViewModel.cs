@@ -33,4 +33,5 @@ public class ProjectDetailTaskViewModel
     public TaskStatus Status { get; init; }
     public TaskPriority Priority { get; init; }
     public DateOnly DueDate { get; init; }
+    public DateTime CreatedAtUtc { get; init; }
 }

@@ -18,7 +18,8 @@ public class ProjectService(ApplicationDbContext context)
 
         return projects.Select(project =>
         {
-            var tasks = project.Tasks.ToList();
+            // Cancelled tasks will never be done, so they don't count toward progress.
+            var tasks = project.Tasks.Where(t => t.Status != TaskStatus.Cancelled).ToList();
             var completedCount = tasks.Count(t => t.Status == TaskStatus.Done);
 
             return new ProjectCardViewModel
@@ -51,7 +52,7 @@ public class ProjectService(ApplicationDbContext context)
                 CreatedAtUtc = p.CreatedAtUtc,
                 OwnerName = p.Owner.UserName ?? p.Owner.Email ?? "Unknown",
                 CompletedTaskCount = p.Tasks.Count(t => t.Status == TaskStatus.Done),
-                TotalTaskCount = p.Tasks.Count(),
+                TotalTaskCount = p.Tasks.Count(t => t.Status != TaskStatus.Cancelled),
                 DueDate = p.DueDate,
                 Tasks = p.Tasks
                     .OrderBy(t => t.DueDate)
@@ -62,7 +63,8 @@ public class ProjectService(ApplicationDbContext context)
                         Description = t.Description,
                         Status = t.Status,
                         Priority = t.Priority,
-                        DueDate = t.DueDate
+                        DueDate = t.DueDate,
+                        CreatedAtUtc = t.CreatedAtUtc
                     })
                     .ToList()
             })

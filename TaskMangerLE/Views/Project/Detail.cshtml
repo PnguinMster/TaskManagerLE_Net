@@ -147,16 +147,24 @@
 
     <div class="row" style="justify-content:space-between;align-items:center;margin:24px 0 12px">
         <h2 style="margin:0">Task board</h2>
-        <span class="muted">@Model.Tasks.Count tasks</span>
+        @{
+            // Same rule as the progress numbers above: cancelled tasks aren't counted as tasks.
+            int cancelledTotal = Model.Tasks.Count(task => task.Status == TaskStatus.Cancelled);
+        }
+        <span class="muted">
+            @(Model.Tasks.Count - cancelledTotal) tasks@(cancelledTotal > 0 ? $" · {cancelledTotal} cancelled" : "")
+        </span>
     </div>
 
     @{
+        // Columns follow the workflow order. Cancelled tasks sit in Done (with a badge) so they
+        // stay visible; they're left out of the progress numbers in ProjectService.
         var columns = new[]
         {
-            (Title: "To Do", Status: "ToDo", DotClass: ""),
-            (Title: "In Progress", Status: "InProgress", DotClass: "is-progress"),
-            (Title: "Done", Status: "Done", DotClass: "is-done"),
-            (Title: "Review", Status: "Review", DotClass: "is-review")
+            (Title: "To Do", Statuses: new[] { TaskStatus.ToDo }, DotClass: ""),
+            (Title: "In Progress", Statuses: new[] { TaskStatus.InProgress }, DotClass: "is-progress"),
+            (Title: "Review", Statuses: new[] { TaskStatus.Review }, DotClass: "is-review"),
+            (Title: "Done", Statuses: new[] { TaskStatus.Done, TaskStatus.Cancelled }, DotClass: "is-done")
         };
     }
 
@@ -164,19 +172,26 @@
         <div class="board" style="grid-template-columns:repeat(4,minmax(250px,1fr));min-width:1064px">
             @foreach (var column in columns) {
                 var columnTasks = Model.Tasks
-                    .Where(task => task.Status.ToString() == column.Status)
+                    .Where(task => column.Statuses.Contains(task.Status))
+                    // false sorts before true, so cancelled tasks go last. OrderBy is stable,
+                    // so every other task keeps its existing order.
+                    .OrderBy(task => task.Status == TaskStatus.Cancelled)
                     .ToList();
+                int laneCancelled = columnTasks.Count(task => task.Status == TaskStatus.Cancelled);
 
                 <section class="lane" aria-label="@column.Title tasks">
                     <div class="lane-header">
                         <span class="lane-dot @column.DotClass" aria-hidden="true"></span>
                         <h3>@column.Title</h3>
-                        <span class="badge badge-muted">@columnTasks.Count</span>
+                        <span class="badge badge-muted">@(columnTasks.Count - laneCancelled)</span>
+                        @if (laneCancelled > 0) {
+                            <span class="muted" style="font-size:12px">+ @laneCancelled cancelled</span>
+                        }
                     </div>
 
                     @foreach (var task in columnTasks) {
                         <partial name="~/Views/Task/_UpdateTaskModal.cshtml"
-                                 view-data='new ViewDataDictionary(ViewData) { { "ProjectName", Model.Name } }'
+                                 view-data='new ViewDataDictionary(ViewData) { { "ProjectName", Model.Name }, { "CreatedAtUtc", task.CreatedAtUtc } }'
                                  model="new TaskItemUpdateViewModel
                                  {
                                      Id = task.Id,
@@ -202,6 +217,7 @@
                             <div class="row" style="align-items:flex-start">
                                 @{
                                     bool isDone = task.Status == TaskStatus.Done;
+                                    bool isCancelled = task.Status == TaskStatus.Cancelled;
                                 }
 
                                 <form asp-controller="Task"
@@ -248,7 +264,7 @@
                                 <a asp-controller="Task"
                                    asp-action="Update"
                                    asp-route-taskId="@task.Id"
-                                   class="project-title-link @(isDone ? "is-done" : "")"
+                                   class="project-title-link @(isDone || isCancelled ? "is-done" : "")"
                                    style="flex:1;font-weight:600">
                                     @task.Name
                                 </a>
@@ -261,6 +277,9 @@
                             }
 
                             <div class="task-meta">
+                                @if (isCancelled) {
+                                    <span class="badge badge-muted">Cancelled</span>
+                                }
                                 <span class="badge @priorityClass">@task.Priority</span>
                                 <span class="due @(isDueToday ? "is-today" : "")">
                                     <svg width="14" height="14" viewBox="0 0 24 24"
