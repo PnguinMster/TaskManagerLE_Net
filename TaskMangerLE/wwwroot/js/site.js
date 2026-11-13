@@ -341,22 +341,23 @@ document.addEventListener("close", () => {
     if (container && container.parentElement !== document.body) document.body.append(container);
 }, true);
 
-// A toast the server set before redirecting (see ToastExtensions and _Layout).
-function showServerToast() {
-    const data = document.getElementById("server-toast");
+// The toasts (a list) the server set before redirecting (see ToastExtensions and _Layout).
+function showServerToasts() {
+    const data = document.getElementById("server-toasts");
     if (!data) return;
 
-    const { actionUrl, ...toast } = JSON.parse(data.textContent);
-    if (actionUrl) {
-        // A POST, not a link, because the action changes data (e.g. Undo restores an item).
-        const form = document.getElementById("server-toast-form");
-        toast.onAction = () => {
-            form.action = actionUrl;
-            form.submit();
-        };
-    }
+    for (const { actionUrl, ...toast } of JSON.parse(data.textContent)) {
+        if (actionUrl) {
+            // A POST, not a link, because the action changes data (e.g. Undo restores an item).
+            const form = document.getElementById("server-toast-form");
+            toast.onAction = () => {
+                form.action = actionUrl;
+                form.submit();
+            };
+        }
 
-    showToast(toast);
+        showToast(toast);
+    }
 }
 
 // Instant "this field is required" messages for a <form data-check-required>, without a page reload.
@@ -389,7 +390,7 @@ function setUpRequiredFieldChecks() {
     }
 }
 
-showServerToast();
+showServerToasts();
 setUpRequiredFieldChecks();
 setUpEmptyTrashDialog();
 setUpTrashDialog("confirm-trash", "data-confirm-trash");

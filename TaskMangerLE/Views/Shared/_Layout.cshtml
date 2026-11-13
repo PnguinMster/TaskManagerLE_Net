@@ -131,10 +131,10 @@
    readers announce each new one. *@
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
-@* A toast set by a controller before redirecting (this.ShowToast). Reading TempData marks it
-   as used, so it shows once. Html.Raw is safe: the serializer escapes < and >. *@
+@* The toasts (a JSON list, up to 3) a controller set before redirecting (this.ShowToast). Reading
+   TempData marks them as used, so they show once. Html.Raw is safe: the serializer escapes < and >. *@
 @if (TempData[TaskMangerLE.Controllers.ToastExtensions.TempDataKey] is string toastJson) {
-    <script type="application/json" id="server-toast">@Html.Raw(toastJson)</script>
+    <script type="application/json" id="server-toasts">@Html.Raw(toastJson)</script>
     @* The toast's action button (Undo) submits this form, so the POST carries the anti-forgery token. *@
     <form id="server-toast-form" method="post" hidden>@Html.AntiForgeryToken()</form>
 }

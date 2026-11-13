@@ -30,7 +30,7 @@
     <div class="card stack">
         <div class="row">
             <span class="avatar avatar-lg">@avatarText</span>
-            <div class="stack">
+            <div class="stack profile-identity">
                 <h2>@Model.UserName</h2>
                 <p class="muted">
                     Member since @Model.MemberSinceUtc.ToLocalTime().ToString("MMM d, yyyy")
@@ -78,22 +78,25 @@
             <div asp-validation-summary="ModelOnly" class="field-error"></div>
 
             <div class="field">
-                <label asp-for="CurrentPassword"></label>
-                <input asp-for="CurrentPassword" class="input" autocomplete="current-password" placeholder="Enter current password"/>
-                <span asp-validation-for="CurrentPassword" class="field-error"></span>
+                <label asp-for="ChangePassword.CurrentPassword"></label>
+                <input asp-for="ChangePassword.CurrentPassword" class="input" autocomplete="current-password" placeholder="Enter current password"/>
+                <span asp-validation-for="ChangePassword.CurrentPassword" class="field-error"></span>
             </div>
 
             <div class="grid-kpi">
                 <div class="field">
-                    <label asp-for="NewPassword"></label>
-                    <input asp-for="NewPassword" class="input" autocomplete="new-password" placeholder="New Password"/>
-                    <span asp-validation-for="NewPassword" class="field-error"></span>
+                    <label asp-for="ChangePassword.NewPassword"></label>
+                    <input asp-for="ChangePassword.NewPassword" class="input" autocomplete="new-password" placeholder="Create a new password"/>
+                    <span asp-validation-for="ChangePassword.NewPassword" class="field-error"></span>
+                    <small class="muted">
+                        At least 8 characters, with an uppercase letter, a lowercase letter and a number.
+                    </small>
                 </div>
 
                 <div class="field">
-                    <label asp-for="ConfirmNewPassword"></label>
-                    <input asp-for="ConfirmNewPassword" class="input" autocomplete="new-password" placeholder="Repeat New Password"/>
-                    <span asp-validation-for="ConfirmNewPassword" class="field-error"></span>
+                    <label asp-for="ChangePassword.ConfirmNewPassword"></label>
+                    <input asp-for="ChangePassword.ConfirmNewPassword" class="input" autocomplete="new-password" placeholder="Enter your new password again"/>
+                    <span asp-validation-for="ChangePassword.ConfirmNewPassword" class="field-error"></span>
                 </div>
             </div>
 

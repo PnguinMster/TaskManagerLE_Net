@@ -17,7 +17,21 @@ public static class ToastExtensions
         Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
     };
 
-    // TempData only stores simple values (strings, numbers), so the toast goes in as JSON.
-    public static void ShowToast(this Controller controller, ToastMessage toast) =>
-        controller.TempData[TempDataKey] = JsonSerializer.Serialize(toast, JsonOptions);
+    // Same limit as MAX_TOASTS in site.js.
+    private const int MaxToasts = 3;
+
+    // TempData only stores simple values (strings, numbers), so the toasts go in as one JSON list.
+    // Calling this more than once before redirecting queues several toasts; past 3, the oldest is dropped.
+    public static void ShowToast(this Controller controller, ToastMessage toast)
+    {
+        var toasts = controller.TempData[TempDataKey] is string json
+            ? JsonSerializer.Deserialize<List<ToastMessage>>(json, JsonOptions) ?? []
+            : [];
+
+        toasts.Add(toast);
+        if (toasts.Count > MaxToasts)
+            toasts.RemoveAt(0);
+
+        controller.TempData[TempDataKey] = JsonSerializer.Serialize(toasts, JsonOptions);
+    }
 }

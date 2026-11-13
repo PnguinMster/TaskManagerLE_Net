@@ -1607,6 +1607,13 @@ dialog.modal::backdrop {
     margin-inline: auto;
 }
 
+/* Username + "Member since" sit close together beside the avatar. */
+.profile-identity {
+    gap: 2px;
+    line-height: 1.2;
+    padding-top: 2px; /* optical nudge: the last line's empty space below makes the block look high */
+}
+
 .profile-page > .page-header,
 .profile-page > .card {
     width: 100%;

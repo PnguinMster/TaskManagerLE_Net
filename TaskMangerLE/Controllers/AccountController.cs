@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using TaskMangerLE.Authorization;
 using TaskMangerLE.Models;
+using TaskMangerLE.Models.Enums;
 
 namespace TaskMangerLE.Controllers;
 
@@ -55,7 +56,22 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
         var newUserName = model.NewUserName.Trim();
         var newEmail = model.NewEmail.Trim();
 
-        if (!string.Equals(user.UserName, newUserName, StringComparison.Ordinal)) {
+        var userNameChanged = !string.Equals(user.UserName, newUserName, StringComparison.Ordinal);
+        var emailChanged = !string.Equals(user.Email, newEmail, StringComparison.OrdinalIgnoreCase);
+
+        // Check the email is free before changing anything, so a rejected email doesn't leave
+        // the username half-saved. (Identity would only catch this later, when the link is clicked.)
+        if (emailChanged) {
+            var emailOwner = await userManager.FindByEmailAsync(newEmail);
+            if (emailOwner is not null && emailOwner.Id != user.Id) {
+                ModelState.AddModelError(nameof(model.NewEmail), "That email address is already in use.");
+                model.UserName = user.UserName ?? string.Empty;
+                model.Email = user.Email ?? string.Empty;
+                return View(model);
+            }
+        }
+
+        if (userNameChanged) {
             var result = await userManager.SetUserNameAsync(user, newUserName);
             if (!result.Succeeded) {
                 AddIdentityErrors(result);
@@ -65,7 +81,7 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
             }
         }
 
-        if (!string.Equals(user.Email, newEmail, StringComparison.OrdinalIgnoreCase)) {
+        if (emailChanged) {
             var code = await userManager.GenerateChangeEmailTokenAsync(user, newEmail);
             var encodedCode = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
@@ -78,16 +94,96 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
             await emailSender.SendEmailAsync(
                 newEmail,
                 "Confirm your new email address",
-                $"Confirm your new email address by <a href='{callbackUrl}'>clicking here</a>.");
+                $"Confirm your new email address by <a href='{HtmlEncoder.Default.Encode(callbackUrl!)}'>clicking here</a>.");
 
-            TempData["StatusMessage"] = "Username saved. Check your new email address to confirm the email change.";
+            // The email stays the old one until the link is opened, so say which address is waiting.
+            var checkEmail = $"We sent a confirmation link to {newEmail}. Your email changes once you open it.";
+            TempData["StatusMessage"] = userNameChanged ? $"Username saved. {checkEmail}" : checkEmail;
+
+            if (userNameChanged)
+                this.ShowToast(new ToastMessage(ToastKind.Success, "Username saved"));
+
+            this.ShowToast(new ToastMessage(ToastKind.Info, "Confirmation link sent",
+                $"Check {newEmail} to confirm your new email."));
         }
         else {
-            TempData["StatusMessage"] = "Profile changes saved.";
+            this.ShowToast(new ToastMessage(ToastKind.Success, "Profile saved"));
         }
 
         await signInManager.RefreshSignInAsync(user);
         return RedirectToAction(nameof(Profile));
+    }
+
+    // The password card's fields are named "ChangePassword.NewPassword" etc. (it is nested inside
+    // ProfileViewModel on the page). Bind(Prefix) tells the model binder to read them under that name.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ChangePassword(
+        [Bind(Prefix = nameof(ProfileViewModel.ChangePassword))] ChangePasswordViewModel model)
+    {
+        var user = await userManager.GetUserAsync(User);
+        if (user is null)
+            return Challenge();
+
+        // Same idea as Register/ResetPassword: check the rules before the IsValid test so every
+        // problem shows together instead of one hiding the other.
+        if (!string.IsNullOrEmpty(model.NewPassword)) {
+            foreach (var validator in userManager.PasswordValidators)
+                AddChangePasswordErrors(await validator.ValidateAsync(userManager, user, model.NewPassword));
+        }
+
+        if (!string.IsNullOrEmpty(model.CurrentPassword)
+            && !await userManager.CheckPasswordAsync(user, model.CurrentPassword)) {
+            AddChangePasswordError(nameof(ChangePasswordViewModel.CurrentPassword), "The current password is incorrect.");
+        }
+
+        if (!ModelState.IsValid)
+            return ChangePasswordFailed(user, model);
+
+        var result = await userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+        if (!result.Succeeded) {
+            AddChangePasswordErrors(result);
+            return ChangePasswordFailed(user, model);
+        }
+
+        // Changing the password rotates the security stamp; refreshing keeps this user signed in.
+        await signInManager.RefreshSignInAsync(user);
+        this.ShowToast(new ToastMessage(ToastKind.Success, "Password changed"));
+        return RedirectToAction(nameof(Profile));
+    }
+
+    // Re-show the Profile page with the errors. The password fields are never sent back to the browser.
+    private ViewResult ChangePasswordFailed(ApplicationUser user, ChangePasswordViewModel model)
+    {
+        return View(nameof(Profile), new ProfileViewModel
+        {
+            UserName = user.UserName ?? string.Empty,
+            Email = user.Email ?? string.Empty,
+            NewUserName = user.UserName ?? string.Empty,
+            NewEmail = user.Email ?? string.Empty,
+            MemberSinceUtc = user.CreatedAtUtc,
+            ChangePassword = model
+        });
+    }
+
+    // Attach each Identity error to the field the user can fix, using the form's prefixed field key.
+    private void AddChangePasswordErrors(IdentityResult result)
+    {
+        foreach (var error in result.Errors) {
+            var field = error.Code switch
+            {
+                nameof(IdentityErrorDescriber.PasswordMismatch) => nameof(ChangePasswordViewModel.CurrentPassword),
+                var code when code.StartsWith("Password") => nameof(ChangePasswordViewModel.NewPassword),
+                _ => string.Empty // unknown errors fall back to the summary at the top of the card
+            };
+            AddChangePasswordError(field, error.Description);
+        }
+    }
+
+    private void AddChangePasswordError(string field, string message)
+    {
+        var key = field == string.Empty ? string.Empty : $"{nameof(ProfileViewModel.ChangePassword)}.{field}";
+        ModelState.AddModelError(key, message);
     }
 
     private void AddIdentityErrors(IdentityResult result)
@@ -125,15 +221,12 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
             return RedirectToAction(nameof(Profile));
         }
 
-        // Keep the username used for email sign-in aligned with the confirmed email, if that's your policy.
-        if (string.Equals(user.UserName, user.Email, StringComparison.OrdinalIgnoreCase)) {
-            var usernameResult = await userManager.SetUserNameAsync(user, email);
-            if (!usernameResult.Succeeded)
-                AddIdentityErrors(usernameResult);
-        }
+        // ChangeEmailAsync rotates the security stamp, which would sign this user out. Refresh only if
+        // the person opening the link is that same signed-in user, so the link can't sign anyone in.
+        if (userManager.GetUserId(User) == user.Id)
+            await signInManager.RefreshSignInAsync(user);
 
-        await signInManager.RefreshSignInAsync(user);
-        TempData["StatusMessage"] = "Your email address has been confirmed.";
+        this.ShowToast(new ToastMessage(ToastKind.Success, "Email confirmed", $"Your email is now {email}."));
         return RedirectToAction(nameof(Profile));
     }
 
