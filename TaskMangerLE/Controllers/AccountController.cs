@@ -153,9 +153,12 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
             return View(loginModel);
 
         // Determine if logging using Email or Username
-        ApplicationUser? user = loginModel.UsernameOrEmail.Contains('@')
-            ? await userManager.FindByEmailAsync(loginModel.UsernameOrEmail)
-            : await userManager.FindByNameAsync(loginModel.UsernameOrEmail);
+        // Trim so a pasted value with stray spaces still matches.
+        var usernameOrEmail = loginModel.UsernameOrEmail.Trim();
+
+        ApplicationUser? user = usernameOrEmail.Contains('@')
+            ? await userManager.FindByEmailAsync(usernameOrEmail)
+            : await userManager.FindByNameAsync(usernameOrEmail);
 
         if (user is null)
             return LoginFailed(loginModel, "Invalid username or password. Please try again.");
