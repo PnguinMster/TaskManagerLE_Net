@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using TaskMangerLE.Authorization;
@@ -204,10 +205,7 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterViewModel registerModel)
     {
-        if (!ModelState.IsValid)
-            return View(registerModel);
-
-        // User 
+        // User
         ApplicationUser user = new ApplicationUser
         {
             UserName = registerModel.UserName,
@@ -215,12 +213,18 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
             CreatedAtUtc = DateTime.UtcNow,
         };
 
+        // Run Identity's checks before the IsValid test so every problem shows at once,
+        // not just the ones the form's own attributes caught.
+        await AddIdentityValidationErrorsAsync(user, registerModel.Password);
+
+        if (!ModelState.IsValid)
+            return View(registerModel);
+
+        // CreateAsync validates again, which still covers two people picking the same name at once.
         var registerResult = await userManager.CreateAsync(user, registerModel.Password);
 
         if (!registerResult.Succeeded) {
-            foreach (IdentityError error in registerResult.Errors)
-                ModelState.AddModelError(string.Empty, error.Description);
-
+            AddRegisterErrors(registerResult);
             return View(registerModel);
         }
 
@@ -233,6 +237,44 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
 
         await signInManager.SignInAsync(user, isPersistent: false);
         return RedirectToAction(nameof(Index), "Home");
+    }
+
+    // UserManager exposes the same validators CreateAsync uses, so we can run them without saving anything.
+    private async Task AddIdentityValidationErrorsAsync(ApplicationUser user, string password)
+    {
+        foreach (var validator in userManager.UserValidators)
+            AddRegisterErrors(await validator.ValidateAsync(userManager, user));
+
+        // An empty password is already reported by [Required]; don't pile rule errors on top.
+        if (!string.IsNullOrEmpty(password))
+        {
+            foreach (var validator in userManager.PasswordValidators)
+                AddRegisterErrors(await validator.ValidateAsync(userManager, user, password));
+        }
+    }
+
+    // Identity reports problems as error codes (e.g. "PasswordTooShort"). Attaching each one to the
+    // matching field key lets the asp-validation-for span under that field display it.
+    private void AddRegisterErrors(IdentityResult result)
+    {
+        foreach (var error in result.Errors)
+        {
+            var field = error.Code switch
+            {
+                var code when code.StartsWith("Password") => nameof(RegisterViewModel.Password),
+                "DuplicateUserName" or "InvalidUserName" => nameof(RegisterViewModel.UserName),
+                "DuplicateEmail" or "InvalidEmail" => nameof(RegisterViewModel.Email),
+                _ => string.Empty // unknown errors fall back to the summary at the top
+            };
+
+            // The form's attributes already reported this field (e.g. blank or bad format);
+            // skip Identity's duplicate of that. Password is exempt: it can have several rule errors.
+            if (field != nameof(RegisterViewModel.Password) && field != string.Empty
+                && ModelState.GetFieldValidationState(field) == ModelValidationState.Invalid)
+                continue;
+
+            ModelState.AddModelError(field, error.Description);
+        }
     }
 
     [HttpPost]
