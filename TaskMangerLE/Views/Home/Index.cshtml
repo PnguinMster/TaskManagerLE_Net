@@ -4,10 +4,18 @@
 }
 
 @if (User.Identity?.IsAuthenticated == true) {
+    // RecentProjects holds the user's projects of any status (soft-deleted ones are filtered out),
+    // so an empty list means no projects at all. Computed once so the subtitle and empty-state card agree.
+    bool hasNoProjects = Model.RecentProjects.Count == 0;
+
     <div class="page-header">
         <div>
             <h1>Welcome back, @User.Identity?.Name</h1>
-            <p class="muted">Here is where your projects stand today.</p>
+            <p class="muted">
+                @(hasNoProjects
+                    ? "Let us set up your first project."
+                    : "Here is where your projects stand today.")
+            </p>
         </div>
     </div>
 
@@ -33,7 +41,7 @@
         </article>
     </section>
 
-    @if (Model is { ActiveProjectsCount: 0, CompletedProjectsCount: 0 }) {
+    @if (hasNoProjects) {
         <section class="card card-dashed empty-state">
             <div class="icon-tile is-lg" aria-hidden="true">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
@@ -146,8 +154,8 @@
                                         <span class="dashboard-task-name">@task1.Name</span>
                                         <span class="small dashboard-task-meta">
                                             <a class="text-blue"
-                                               asp-controller="Task"
-                                               asp-action="Index"
+                                               asp-controller="Project"
+                                               asp-action="Detail"
                                                asp-route-projectId="@task1.ProjectId">@task1.ProjectName</a>
                                             <span class="muted"> · Priority: @task1.Priority</span>
                                         </span>

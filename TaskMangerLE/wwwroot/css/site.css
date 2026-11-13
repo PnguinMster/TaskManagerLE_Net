@@ -1363,6 +1363,7 @@ dialog.modal::backdrop {
 
 .dashboard-project-description {
     margin-bottom: 14px;
+    font-size: 13px;
 }
 
 .dashboard-project-card .progress-meta {
