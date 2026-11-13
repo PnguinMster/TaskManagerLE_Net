@@ -304,6 +304,44 @@ function setUpClickOutsideToClose() {
     });
 }
 
+// Tasks page: each row's "..." menu. The table scrolls sideways on small screens (.data-scroll has
+// overflow-x: auto), and a scroll container clips in both directions, so the menu of the last rows was
+// cut off at the bottom of the table. While open, the panel is position: fixed, placed from the
+// button's position on screen, which takes it out of the table's clipping. A fixed panel wouldn't move
+// with the page, so scrolling or resizing closes the menu instead.
+function setUpRowMenus() {
+    const menus = document.querySelectorAll("details.task-row-menu");
+    if (menus.length === 0) return;
+
+    const GAP = 4; // px between the button and the panel, same as the CSS (top: calc(100% + 4px))
+
+    function place(menu, panel) {
+        const button = menu.querySelector("summary").getBoundingClientRect();
+        panel.style.position = "fixed";
+        // clientWidth (not innerWidth) leaves out the scrollbar, which is what `right` is measured from.
+        panel.style.right = `${document.documentElement.clientWidth - button.right}px`;
+
+        // Below the button, or above it when there isn't room below (e.g. the last row on screen).
+        const fitsBelow = button.bottom + GAP + panel.offsetHeight <= window.innerHeight;
+        panel.style.top = fitsBelow
+            ? `${button.bottom + GAP}px`
+            : `${button.top - GAP - panel.offsetHeight}px`;
+    }
+
+    menus.forEach(menu => {
+        const panel = menu.querySelector(".task-card-menu-panel");
+        menu.addEventListener("toggle", () => {
+            if (menu.open) place(menu, panel);
+            else panel.removeAttribute("style"); // back to the CSS position for next time
+        });
+    });
+
+    // Capture (the `true`) so scrolling inside the table, which doesn't bubble, also counts.
+    const closeAll = () => menus.forEach(menu => { menu.open = false; });
+    window.addEventListener("scroll", closeAll, true);
+    window.addEventListener("resize", closeAll);
+}
+
 // ---------- Toasts ----------
 // showToast({ kind, title, message, actionLabel, onAction })
 //   kind:        "success" (green), "info" (blue) or "error" (rose)
@@ -801,6 +839,7 @@ function setUpTaskFilters() {
 
 showServerToasts();
 setUpClickOutsideToClose();
+setUpRowMenus();
 setUpRequiredFieldChecks();
 setUpAddTaskButtons();
 setUpProjectFilters();
