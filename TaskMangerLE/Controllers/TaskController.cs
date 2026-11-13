@@ -110,7 +110,7 @@ public class TaskController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Update(TaskItemUpdateViewModel taskItemModel)
+    public async Task<IActionResult> Update(TaskItemUpdateViewModel taskItemModel, string? returnUrl)
     {
         TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetTaskWithProjectAsync(taskItemModel.Id), t => t.Project);
         if (taskItem is null)
@@ -120,6 +120,11 @@ public class TaskController(
             return View(taskItemModel);
 
         await taskService.UpdateTaskAsync(taskItem, taskItemModel);
+
+        // Only follow local URLs, so a crafted link can't send users to another site (see Create).
+        if (Url.IsLocalUrl(returnUrl))
+            return LocalRedirect(returnUrl);
+
         return RedirectToAction("Detail", "Project", new { projectId = taskItem.ProjectId });
     }
 

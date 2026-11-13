@@ -298,11 +298,11 @@ else {
                                 </summary>
 
                                 <div class="task-card-menu-panel">
-                                    <a asp-controller="Task"
-                                       asp-action="Update"
-                                       asp-route-taskId="@task.Id">
+                                    @* Opens the edit modal rendered below the table (same as Project/Detail). *@
+                                    <button type="button"
+                                            onclick="document.getElementById('update-task-modal-@task.Id').showModal()">
                                         Edit
-                                    </a>
+                                    </button>
 
                                     <form asp-controller="Task"
                                           asp-action="Delete"
@@ -321,6 +321,23 @@ else {
             </div>
         </div>
     </div>
+
+    @* One edit modal per task. Kept outside the table: site.js hides filtered rows, and a dialog
+       inside a hidden row couldn't be shown. *@
+    @foreach (var task in Model.Tasks) {
+        <partial name="_UpdateTaskModal"
+                 view-data='new ViewDataDictionary(ViewData) { { "ProjectName", task.ProjectName } }'
+                 model="new TaskItemUpdateViewModel
+                 {
+                     Id = task.Id,
+                     ProjectId = task.ProjectId,
+                     Name = task.Name,
+                     Description = task.Description,
+                     Status = task.Status,
+                     Priority = task.Priority,
+                     DueDate = task.DueDate
+                 }"/>
+    }
 
     @* Shown by site.js (setUpTaskFilters) when the search/filters match nothing. *@
     <section id="task-no-results" class="card card-dashed empty-state" role="status" hidden>

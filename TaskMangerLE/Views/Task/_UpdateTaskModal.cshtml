@@ -16,6 +16,8 @@
         @Html.AntiForgeryToken()
         <input asp-for="Id" type="hidden"/>
         <input asp-for="ProjectId" type="hidden"/>
+        @* Where to go after saving: the page this modal is on (Tasks or a project's Detail page). Same as _CreateTaskModal. *@
+        <input type="hidden" name="returnUrl" value="@($"{Context.Request.Path}{Context.Request.QueryString}")"/>
 
         <div class="modal-body">
             <div asp-validation-summary="ModelOnly" class="field-error"></div>
@@ -81,17 +83,12 @@
         </div>
 
         <div class="modal-footer">
-            <form asp-controller="Task"
-                  asp-action="Delete"
-                  asp-route-taskId="@Model.Id"
-                  method="post"
-                  data-confirm-task-trash="@Model.Name"
-                  data-trash-detail="in @ViewData["ProjectName"]">
-                @Html.AntiForgeryToken()
-                <button type="submit" class="btn" style="color:var(--rt)">
-                    Delete task
-                </button>
-            </form>
+            @* form="..." ties this button to the delete form below. HTML doesn't allow a form inside
+               another form, so the delete form can't sit here in the footer. *@
+            <button type="submit" class="btn" style="color:var(--rt)"
+                    form="delete-task-form-@Model.Id">
+                Delete task
+            </button>
 
             <span style="flex:1"></span>
 
@@ -101,5 +98,16 @@
             </button>
             <button type="submit" class="btn btn-primary">Save changes</button>
         </div>
+    </form>
+
+    @* Outside the edit form on purpose (see the Delete task button). *@
+    <form id="delete-task-form-@Model.Id"
+          asp-controller="Task"
+          asp-action="Delete"
+          asp-route-taskId="@Model.Id"
+          method="post"
+          data-confirm-task-trash="@Model.Name"
+          data-trash-detail="in @ViewData["ProjectName"]">
+        @Html.AntiForgeryToken()
     </form>
 </dialog>
