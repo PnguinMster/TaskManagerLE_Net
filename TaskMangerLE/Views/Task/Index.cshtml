@@ -243,6 +243,8 @@ else {
                                   method="post"
                                   class="dashboard-complete-form">
                                 @Html.AntiForgeryToken()
+                                @* Come back to this page (filters in the query string included) instead of the project page. *@
+                                <input type="hidden" name="returnUrl" value="@($"{Context.Request.Path}{Context.Request.QueryString}")"/>
                                 <input type="checkbox"
                                        class="checkbox"
                                        checked="@isDone"

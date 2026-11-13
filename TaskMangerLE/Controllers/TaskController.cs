@@ -168,7 +168,7 @@ public class TaskController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ToggleCompletion(int? taskId)
+    public async Task<IActionResult> ToggleCompletion(int? taskId, string? returnUrl)
     {
         if (taskId is not { } id)
             return NotFound();
@@ -181,6 +181,10 @@ public class TaskController(
             return NotFound();
 
         await taskService.ToggleCompletionAsync(taskItem);
+
+        // Same as Update: only follow local URLs.
+        if (Url.IsLocalUrl(returnUrl))
+            return LocalRedirect(returnUrl);
 
         return RedirectToAction(
             "Detail",
