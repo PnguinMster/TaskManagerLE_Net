@@ -90,6 +90,9 @@ else {
             <button class="is-active" type="button" data-project-status-pill="all" aria-pressed="true">
                 All (@Model.Count)
             </button>
+            <button type="button" data-project-status-pill="planning" aria-pressed="false">
+                Planning (@Model.Count(p => p.Status == ProjectStatus.Planning))
+            </button>
             <button type="button" data-project-status-pill="active" aria-pressed="false">
                 In Progress (@Model.Count(p => p.Status == ProjectStatus.Active))
             </button>
