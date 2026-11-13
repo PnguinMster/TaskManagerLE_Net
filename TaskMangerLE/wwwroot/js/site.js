@@ -484,6 +484,35 @@ function setUpAddTaskButtons() {
     });
 }
 
+// ---------- Remembered filters ----------
+// The Projects and Tasks filters run in the browser, so a reload (e.g. after ticking a task's checkbox)
+// would reset them. Each page saves its filter values here and puts them back on load.
+// sessionStorage (not localStorage): kept through reloads and Back in this tab, gone when the tab closes,
+// so a fresh visit starts unfiltered. Storage can throw (blocked, private mode), so it never breaks the filters.
+function loadSavedFilters(key) {
+    try {
+        return JSON.parse(sessionStorage.getItem(key)) ?? {};
+    } catch {
+        return {};
+    }
+}
+
+function saveFilters(key, values) {
+    try {
+        sessionStorage.setItem(key, JSON.stringify(values));
+    } catch {
+        // Not saving is fine: the filters just reset on the next reload.
+    }
+}
+
+// Only restore values the control still offers (e.g. a project that was since deleted is skipped),
+// otherwise a <select> would end up blank.
+function restoreControl(control, value) {
+    if (typeof value !== "string") return;
+    if (control instanceof HTMLSelectElement && ![...control.options].some(option => option.value === value)) return;
+    control.value = value;
+}
+
 // Projects page: status pills, Status and Due date dropdowns, search box, "Clear filters" and sorting.
 // Both the grid cards and the list rows carry
 //   data-project-item="<status>"   lowercase ProjectStatus: the pills and the Status dropdown match it
@@ -501,6 +530,14 @@ function setUpProjectFilters() {
     const items = document.querySelectorAll("[data-project-item]");
     const noResults = document.getElementById("project-no-results");
     if (!statusSelect || !dueSelect || !sortSelect || !searchBox || !noResults) return;
+
+    const FILTERS_KEY = "projectFilters";
+    const saveProjectFilters = () => saveFilters(FILTERS_KEY, {
+        status: statusSelect.value,
+        due: dueSelect.value,
+        sort: sortSelect.value,
+        search: searchBox.value
+    });
 
     const byName = (a, b) =>
         a.dataset.projectName.localeCompare(b.dataset.projectName, undefined, { sensitivity: "base" });
@@ -527,6 +564,8 @@ function setUpProjectFilters() {
             const sorted = [...parent.querySelectorAll(":scope > [data-project-item]")].sort(sorter);
             parent.append(...sorted);
         }
+
+        saveProjectFilters();
     }
 
     // The controls themselves hold the state, so a browser that restores form values after a reload
@@ -555,6 +594,7 @@ function setUpProjectFilters() {
         });
 
         noResults.hidden = [...items].some(item => !item.hidden);
+        saveProjectFilters();
     }
 
     pills.forEach(pill => {
@@ -578,9 +618,16 @@ function setUpProjectFilters() {
         });
     });
 
+    // Put back what was chosen before a reload (see loadSavedFilters).
+    const saved = loadSavedFilters(FILTERS_KEY);
+    restoreControl(statusSelect, saved.status);
+    restoreControl(dueSelect, saved.due);
+    restoreControl(sortSelect, saved.sort);
+    restoreControl(searchBox, saved.search);
+
     applyFilters();
-    // The server already sent the default (due date) order; this only matters when the browser
-    // restored a different Sort by choice after a reload or Back.
+    // The server already sent the default (due date) order; this only matters when a different
+    // Sort by choice was restored above.
     applySort();
 }
 
@@ -612,6 +659,7 @@ function setUpTaskFilters() {
 
     // Unlike the dropdowns, pills aren't form fields, so the chosen one is kept here.
     let status = "all";
+    const FILTERS_KEY = "taskFilters";
 
     // For each "Group by" option: how to order rows, and which header a row goes under
     // (label: null means no headers). Array.sort is stable, and we always start from the
@@ -703,6 +751,15 @@ function setUpTaskFilters() {
         const anyVisible = rows.some(row => !row.hidden);
         table.hidden = !anyVisible;
         noResults.hidden = anyVisible;
+
+        saveFilters(FILTERS_KEY, {
+            status,
+            project: projectSelect.value,
+            priority: prioritySelect.value,
+            due: dueSelect.value,
+            group: groupSelect.value,
+            search: searchBox.value
+        });
     }
 
     pills.forEach(pill => {
@@ -730,7 +787,15 @@ function setUpTaskFilters() {
         });
     });
 
-    // Picks up dropdown/search values a browser restored after a reload or Back.
+    // Put back what was chosen before a reload (see loadSavedFilters).
+    const saved = loadSavedFilters(FILTERS_KEY);
+    if ([...pills].some(pill => pill.dataset.statusFilter === saved.status)) status = saved.status;
+    restoreControl(projectSelect, saved.project);
+    restoreControl(prioritySelect, saved.priority);
+    restoreControl(dueSelect, saved.due);
+    restoreControl(groupSelect, saved.group);
+    restoreControl(searchBox, saved.search);
+
     applyFilters();
 }
 
