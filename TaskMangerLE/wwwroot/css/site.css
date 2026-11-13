@@ -1820,3 +1820,177 @@ main.container:has(.filters-row) {
     right: auto;
     justify-self: end;
 }
+
+/* ---------- Tasks page: Filters panel and chips ---------- */
+/* A <details> like .task-card-menu: the summary is the button, the body pops up under it. */
+.filter-panel {
+    position: relative;
+}
+
+.filter-panel > summary {
+    height: 40px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.filter-panel > summary::-webkit-details-marker {
+    display: none;
+}
+
+.filter-panel[open] > summary {
+    border-color: var(--bt);
+}
+
+.filter-count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 99px;
+    background: var(--blue);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.filter-panel-body {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 20;
+    /* Never wider than a phone screen minus the page gutters. */
+    width: min(440px, calc(100vw - 32px));
+    background: var(--card);
+    border: 1px solid var(--divider);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-pop);
+}
+
+.filter-panel-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 18px;
+}
+
+.filter-group {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.filter-group legend {
+    padding: 0 0 8px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.filter-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* A real checkbox/radio, visually hidden inside a pill-shaped label: clicking the pill ticks it,
+   and keyboards and screen readers still see an ordinary checkbox. */
+.filter-option {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--divider);
+    border-radius: 99px;
+    background: var(--pill);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.filter-option input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.filter-option:has(input:checked) {
+    border-color: var(--bt);
+    background: color-mix(in srgb, var(--blue) 22%, transparent);
+    color: var(--text);
+}
+
+.filter-option:has(input:focus-visible) {
+    outline: 2px solid var(--blue);
+    outline-offset: 2px;
+}
+
+.filter-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 36px;
+    cursor: pointer;
+}
+
+.filter-archived {
+    padding-top: 10px;
+    border-top: 1px solid var(--divider);
+}
+
+.filter-panel-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 12px 18px;
+    border-top: 1px solid var(--divider);
+}
+
+/* The chips' wrapper steps out of the layout, so the chips line up in the filter row directly. */
+.filter-chips {
+    display: contents;
+}
+
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 32px;
+    padding: 0 4px 0 12px;
+    border: 1px solid color-mix(in srgb, var(--bt) 40%, transparent);
+    border-radius: 99px;
+    background: color-mix(in srgb, var(--bt) 12%, transparent);
+    color: var(--text);
+    font-size: 13px;
+}
+
+a.filter-chip:hover {
+    text-decoration: none;
+}
+
+.filter-chip-remove {
+    display: inline-grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border: 0;
+    border-radius: 99px;
+    background: transparent;
+    color: inherit;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.filter-chip-remove:hover,
+a.filter-chip:hover .filter-chip-remove {
+    background: color-mix(in srgb, var(--bt) 20%, transparent);
+}

@@ -7,9 +7,9 @@
         ViewData["CreateTaskModel"] as TaskItemCreateViewModel
         ?? new TaskItemCreateViewModel();
 
-    // Every status, for the Status dropdown. Labels and order match the board columns on Project/Detail.
-    // The option values (see StatusKey) are what each row's data-task-item holds, so site.js can
-    // compare them directly.
+    // Every status, for the Status checkboxes in the Filters panel. Labels and order match the board
+    // columns on Project/Detail. The checkbox values (see StatusKey) are what each row's data-task-item
+    // holds, so site.js can compare them directly.
     var statuses = new[]
     {
         (Status: TaskStatus.ToDo, Label: "To Do"),
@@ -19,11 +19,45 @@
         (Status: TaskStatus.Cancelled, Label: "Cancelled")
     };
 
-    // The pills are shortcuts for the dropdown, kept short on purpose: the two statuses that need attention.
-    var statusPills = statuses.Where(s => s.Status is TaskStatus.ToDo or TaskStatus.Review).ToList();
-
     // "ToDo" -> "todo". The same rule the Projects page uses for data-project-item.
     string StatusKey(TaskStatus status) => status.ToString().ToLowerInvariant();
+
+    var today = TimeProvider.Today();
+    var weekEnd = today.AddDays(7);
+
+    // "Open" = still needs doing. Only these go into the due-date groups (a done or cancelled task
+    // can't be "overdue"), and they are what the page shows by default.
+    bool IsOpen(TaskStatus status) => status is not (TaskStatus.Done or TaskStatus.Cancelled);
+    var openTasks = Model.Tasks.Where(t => IsOpen(t.Status)).ToList();
+    var openStatusKeys = string.Join(",", statuses.Where(s => IsOpen(s.Status)).Select(s => StatusKey(s.Status)));
+
+    // Quick views are presets for the Filters panel: clicking one ticks these statuses, picks this
+    // due range and clears Priority and Project. site.js highlights the view that matches the panel.
+    // The due values match the Due radio buttons below.
+    var quickViews = new[]
+    {
+        (Label: "Open", Statuses: openStatusKeys, Due: "any", Count: openTasks.Count),
+        (Label: "Overdue", Statuses: openStatusKeys, Due: "overdue", Count: openTasks.Count(t => t.DueDate < today)),
+        (Label: "Due soon", Statuses: openStatusKeys, Due: "week", Count: openTasks.Count(t => t.DueDate >= today && t.DueDate <= weekEnd)),
+        (Label: "In review", Statuses: StatusKey(TaskStatus.Review), Due: "any", Count: Model.Tasks.Count(t => t.Status == TaskStatus.Review)),
+        (Label: "Done", Statuses: StatusKey(TaskStatus.Done), Due: "any", Count: Model.Tasks.Count(t => t.Status == TaskStatus.Done))
+    };
+
+    var dueOptions = new[]
+    {
+        (Value: "any", Label: "Any time"),
+        (Value: "overdue", Label: "Overdue"),
+        (Value: "today", Label: "Today"),
+        (Value: "week", Label: "Next 7 days"),
+        (Value: "month", Label: "Next 30 days")
+    };
+
+    // Only projects that have tasks on this page: picking any other one could never match a row.
+    var projects = Model.Tasks
+        .Select(t => (t.ProjectId, t.ProjectName))
+        .Distinct()
+        .OrderBy(p => p.ProjectName)
+        .ToList();
 }
 
 <header class="page-header">
@@ -41,18 +75,19 @@
     </button>
 </header>
 
+@* Filters run in the browser: see setUpTaskFilters in site.js and the data-task-* attributes on each row.
+   Row 1: quick views (everyday shortcuts) and search. Row 2: the Filters panel, a chip for each filter
+   that is on, and Group by (a view choice, not a filter, so Clear all leaves it alone). *@
 <div class="stack">
     <div class="row wrap">
-        @* Filters run in the browser: see setUpTaskFilters in site.js and the data-task-* attributes on each row.
-           The pills are shortcuts for the Status dropdown below (same values), like on the Projects page. *@
-        <div class="pills" role="group" aria-label="Filter tasks by status">
-            @* "All" leaves Cancelled out, like "All except archived" on the Projects page. *@
-            <button type="button" class="is-active" data-status-filter="all" aria-pressed="true">
-                All (@Model.Tasks.Count(t => t.Status != TaskStatus.Cancelled))
-            </button>
-            @foreach (var pill in statusPills) {
-                <button type="button" data-status-filter="@StatusKey(pill.Status)" aria-pressed="false">
-                    @pill.Label (@Model.Tasks.Count(t => t.Status == pill.Status))
+        <div class="pills" role="group" aria-label="Quick views">
+            @foreach (var view in quickViews) {
+                <button type="button"
+                        data-task-view
+                        data-view-statuses="@view.Statuses"
+                        data-view-due="@view.Due"
+                        aria-pressed="false">
+                    @view.Label (@view.Count)
                 </button>
             }
         </div>
@@ -65,22 +100,126 @@
                data-task-search/>
     </div>
 
-    @* Left: the dropdowns together, then the archived checkbox. Right: Clear filters.
-       (Clear filters resets Status, Priority and search; Group by is a view choice, so it stays.) *@
     <div class="row wrap">
-        <select class="input input-inline" aria-label="Priority" data-priority-filter>
-            <option value="">All priorities</option>
-            @foreach (var priority in Model.Tasks.Select(t => t.Priority).Distinct().OrderBy(p => p)) {
-                <option value="@priority">@priority</option>
-            }
-        </select>
+        @* A <details> like the row menus (task-card-menu): it opens and closes by itself, and
+           setUpClickOutsideToClose closes it on an outside click or Escape. *@
+        <details class="filter-panel">
+            <summary class="btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M4 6h16"></path>
+                    <path d="M7 12h10"></path>
+                    <path d="M10 18h4"></path>
+                </svg>
+                Filters
+                @* How many filters are on (filled in by site.js). *@
+                <span class="filter-count" data-filter-count hidden></span>
+            </summary>
 
-        <select class="input input-inline" aria-label="Status" data-status-select>
-            <option value="all">All except cancelled</option>
-            @foreach (var status in statuses) {
-                <option value="@StatusKey(status.Status)">@status.Label</option>
-            }
-        </select>
+            <div class="filter-panel-body">
+                <div class="filter-panel-groups">
+                    @* Open statuses start ticked: that is the default view, and what "Clear all" goes back to. *@
+                    <fieldset class="filter-group">
+                        <legend>Status</legend>
+                        <div class="filter-options">
+                            @foreach (var status in statuses) {
+                                <label class="filter-option">
+                                    <input type="checkbox"
+                                           value="@StatusKey(status.Status)"
+                                           checked="@IsOpen(status.Status)"
+                                           data-status-option/>
+                                    <span>@status.Label</span>
+                                </label>
+                            }
+                        </div>
+                    </fieldset>
+
+                    @* None ticked = any priority. *@
+                    <fieldset class="filter-group">
+                        <legend>Priority</legend>
+                        <div class="filter-options">
+                            @foreach (var priority in Enum.GetValues<TaskPriority>()) {
+                                <label class="filter-option">
+                                    <input type="checkbox" value="@priority" data-priority-option/>
+                                    <span>@priority</span>
+                                </label>
+                            }
+                        </div>
+                    </fieldset>
+
+                    @* Radio buttons: only one due range at a time. *@
+                    <fieldset class="filter-group">
+                        <legend>Due</legend>
+                        <div class="filter-options">
+                            @foreach (var due in dueOptions) {
+                                <label class="filter-option">
+                                    <input type="radio"
+                                           name="task-due"
+                                           value="@due.Value"
+                                           checked="@(due.Value == "any")"
+                                           data-due-option/>
+                                    <span>@due.Label</span>
+                                </label>
+                            }
+                        </div>
+                    </fieldset>
+
+                    @* None ticked = every project. *@
+                    <fieldset class="filter-group">
+                        <legend>Project</legend>
+                        @foreach (var project in projects) {
+                            <label class="filter-check">
+                                <input type="checkbox" class="checkbox" value="@project.ProjectId" data-project-option/>
+                                <span>@project.ProjectName</span>
+                            </label>
+                        }
+                    </fieldset>
+
+                    @* GET form: ticking or unticking reloads the page with the opposite setting, because the
+                       server leaves archived projects' tasks out. The hidden input carries the value to switch
+                       to, because an unticked checkbox sends nothing at all. *@
+                    <form asp-action="Index" method="get" class="filter-archived">
+                        <input type="hidden" name="showArchived" value="@(Model.ShowArchived ? "false" : "true")"/>
+                        <label class="filter-check">
+                            <input type="checkbox"
+                                   class="checkbox"
+                                   checked="@Model.ShowArchived"
+                                   onchange="this.form.submit()"/>
+                            <span>Include archived projects</span>
+                        </label>
+                    </form>
+                </div>
+
+                <div class="filter-panel-footer">
+                    <button type="button" class="btn btn-text" style="color:var(--bt)" data-clear-filters>Reset</button>
+                    @* site.js writes the live count here ("Show 6 tasks"). *@
+                    <button type="button" class="btn btn-primary" data-close-filters>Show tasks</button>
+                </div>
+            </div>
+        </details>
+
+        @* One removable chip per active filter, built by site.js. "display: contents" lets the chips
+           sit in this row as if they were its own children. *@
+        <div class="filter-chips" data-filter-chips></div>
+
+        @* The archived setting lives on the server, so its chip is a plain link that reloads without it. *@
+        @if (Model.ShowArchived) {
+            <a class="filter-chip"
+               asp-action="Index"
+               asp-route-showArchived="false"
+               aria-label="Remove Include archived projects filter"
+               data-archived-chip>
+                <span class="muted">Include:</span> archived projects
+                <span class="filter-chip-remove" aria-hidden="true">×</span>
+            </a>
+        }
+
+        <button type="button" class="btn btn-text" style="color:var(--bt);height:32px" data-clear-filters data-clear-all hidden>
+            Clear all
+        </button>
+
+        <div class="sp"></div>
 
         <select class="input input-inline" aria-label="Group by" data-group-by>
             <option value="due">Group by: Due date</option>
@@ -88,39 +227,14 @@
             <option value="priority">Group by: Priority</option>
             <option value="none">No grouping</option>
         </select>
-
-        @* GET form: ticking or unticking reloads the page with the opposite setting. The hidden input
-           carries the value to switch to, because an unticked checkbox sends nothing at all.
-           Worded "Show" (not "Hide") so ticked = on = showArchived=true, with no double negative. *@
-        <form asp-action="Index" method="get">
-            <input type="hidden" name="showArchived" value="@(Model.ShowArchived ? "false" : "true")"/>
-            <label class="row" style="gap:8px;cursor:pointer">
-                <input type="checkbox"
-                       class="checkbox"
-                       checked="@Model.ShowArchived"
-                       onchange="this.form.submit()"/>
-                <span>Show archived projects</span>
-            </label>
-        </form>
-
-        <div class="sp"></div>
-
-        <button type="button" class="btn btn-text" style="color:var(--bt)" data-clear-filters>
-            Clear filters
-        </button>
     </div>
+
+    @* "Showing 6 of 10 tasks", so it's always clear the filters are hiding something. *@
+    <p class="muted small" role="status" data-shown-summary></p>
 </div>
 
 
 @{
-    var today = TimeProvider.Today();
-    var weekEnd = today.AddDays(7);
-
-    // Only open tasks go into the due-date groups: a done or cancelled task can't be "overdue".
-    var openTasks = Model.Tasks
-        .Where(t => t.Status is not (TaskStatus.Done or TaskStatus.Cancelled))
-        .ToList();
-
     var groups = new[]
     {
         new
@@ -251,6 +365,8 @@ else {
                              data-task-due-color="@group.Color"
                              data-task-due-order="@Array.IndexOf(groups, group)"
                              data-task-project-name="@task.ProjectName"
+                             data-task-project-id="@task.ProjectId"
+                             data-task-days-left="@(task.DueDate.DayNumber - today.DayNumber)"
                              data-task-priority-rank="@((int)task.Priority)"
                              data-task-date="@task.DueDate.ToString("yyyy-MM-dd")">
                             <form asp-action="ToggleCompletion"

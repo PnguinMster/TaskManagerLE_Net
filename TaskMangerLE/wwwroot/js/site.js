@@ -267,7 +267,8 @@ function setUpEmptyTrashDialog() {
 // - Modals (<dialog class="modal">): a click on the dark backdrop closes it, the same as Cancel or Esc.
 //   Every modal already cleans up on "close" (form reset, pending form cleared), so nothing else changes.
 function setUpClickOutsideToClose() {
-    const openMenus = () => document.querySelectorAll("details.user-menu[open], details.task-card-menu[open]");
+    const openMenus = () => document.querySelectorAll(
+        "details.user-menu[open], details.task-card-menu[open], details.filter-panel[open]");
 
     document.addEventListener("click", event => {
         openMenus().forEach(menu => {
@@ -669,33 +670,138 @@ function setUpProjectFilters() {
     applySort();
 }
 
-// Tasks page: status pills, Status / Priority dropdowns, search box, "Clear filters"
-// and "Group by". Same idea as setUpProjectFilters: the pills are shortcuts for the Status dropdown,
-// and every task row carries
+// Tasks page: quick views, search box, the Filters panel (Status / Priority / Due / Project),
+// the removable chips, "Clear all" and "Group by". Every task row carries
 //   data-task-item="<status>"            lowercase TaskStatus (todo/inprogress/review/done/cancelled):
-//                                        what the Status dropdown (and so the pills) match
-//   data-task-priority="<TaskPriority>"  what the Priority dropdown matches
+//                                        what the Status checkboxes match
+//   data-task-priority="<TaskPriority>"  what the Priority checkboxes match
+//   data-task-project-id="<id>"          what the Project checkboxes match
+//   data-task-days-left="<n>"            days until due (negative = past): what the Due options match
 //   data-task-text="<name> <description>"   what the search box looks at
 //   data-task-due-label / -due-color / -due-order, -project-name, -priority-rank, -date
 //                                        what "Group by" sorts and labels on
-// One pass hides the rows that don't match, then the rows are re-sorted and the group headers
-// rebuilt (with counts of the rows still shown).
-// ("Show archived projects" is not handled here: it reloads the page, because the server leaves those tasks out.)
+// The panel's checkboxes and radio buttons ARE the filter state. Quick views just tick a preset set
+// of them, so a quick view and the panel can never disagree.
+// One pass hides the rows that don't match, then the rows are re-sorted, the group headers rebuilt
+// (with counts of the rows still shown) and the chips redrawn.
+// ("Include archived projects" is not handled here: it reloads the page, because the server leaves those tasks out.)
 function setUpTaskFilters() {
-    const pills = document.querySelectorAll("[data-status-filter]");
-    const statusSelect = document.querySelector("[data-status-select]");
-    const prioritySelect = document.querySelector("[data-priority-filter]");
+    const panel = document.querySelector("details.filter-panel");
+    const viewButtons = [...document.querySelectorAll("[data-task-view]")];
+    const statusBoxes = [...document.querySelectorAll("[data-status-option]")];
+    const priorityBoxes = [...document.querySelectorAll("[data-priority-option]")];
+    const projectBoxes = [...document.querySelectorAll("[data-project-option]")];
+    const dueRadios = [...document.querySelectorAll("[data-due-option]")];
     const groupSelect = document.querySelector("[data-group-by]");
     const searchBox = document.querySelector("[data-task-search]");
     const clearButtons = document.querySelectorAll("[data-clear-filters]");
+    const clearAllButton = document.querySelector("[data-clear-all]");
+    const closeButton = document.querySelector("[data-close-filters]");
+    const chipList = document.querySelector("[data-filter-chips]");
+    const filterCount = document.querySelector("[data-filter-count]");
+    const archivedChip = document.querySelector("[data-archived-chip]");
+    const shownSummary = document.querySelector("[data-shown-summary]");
     const rows = [...document.querySelectorAll("[data-task-item]")];
     const table = document.getElementById("task-table");
     const tableBody = table?.querySelector(".data-table");
     const noResults = document.getElementById("task-no-results");
     // Not on the Tasks page, or it has no tasks at all (the server shows its own empty state then).
-    if (!statusSelect || !prioritySelect || !groupSelect || !searchBox || !tableBody || !noResults) return;
+    if (!panel || !groupSelect || !searchBox || !tableBody || !noResults || !chipList) return;
 
     const FILTERS_KEY = "taskFilters";
+
+    // The statuses the server ticked (the open ones): the default view, and what Clear all goes back to.
+    // Read from the markup so the list lives in one place (Task/Index.cshtml).
+    const defaultStatuses = statusBoxes.filter(box => box.defaultChecked).map(box => box.value);
+
+    const checkedValues = boxes => boxes.filter(box => box.checked).map(box => box.value);
+    const checkedLabels = boxes => boxes.filter(box => box.checked).map(box => box.closest("label").textContent.trim());
+    const setChecked = (boxes, values) => boxes.forEach(box => { box.checked = values.includes(box.value); });
+    const sameValues = (a, b) => a.length === b.length && a.every(value => b.includes(value));
+    const dueValue = () => dueRadios.find(radio => radio.checked)?.value ?? "any";
+    const setDue = value => dueRadios.forEach(radio => { radio.checked = radio.value === value; });
+    const isOpen = row => row.dataset.taskItem !== "done" && row.dataset.taskItem !== "cancelled";
+
+    function matchesDue(row, due) {
+        const daysLeft = Number(row.dataset.taskDaysLeft);
+        switch (due) {
+            // Same rule as the server's "Overdue" group: a done or cancelled task can't be overdue.
+            case "overdue": return daysLeft < 0 && isOpen(row);
+            case "today": return daysLeft === 0;
+            case "week": return daysLeft >= 0 && daysLeft <= 7;
+            case "month": return daysLeft >= 0 && daysLeft <= 30;
+            default: return true;
+        }
+    }
+
+    // A chip for every filter that differs from the default, each knowing how to undo itself.
+    function activeFilters() {
+        const filters = [];
+        if (!sameValues(checkedValues(statusBoxes), defaultStatuses)) {
+            filters.push({
+                name: "Status",
+                value: checkedLabels(statusBoxes).join(", ") || "None",
+                reset: () => setChecked(statusBoxes, defaultStatuses)
+            });
+        }
+        if (checkedValues(priorityBoxes).length > 0) {
+            filters.push({ name: "Priority", value: checkedLabels(priorityBoxes).join(", "), reset: () => setChecked(priorityBoxes, []) });
+        }
+        if (dueValue() !== "any") {
+            filters.push({ name: "Due", value: checkedLabels(dueRadios).join(""), reset: () => setDue("any") });
+        }
+        if (checkedValues(projectBoxes).length > 0) {
+            filters.push({ name: "Project", value: checkedLabels(projectBoxes).join(", "), reset: () => setChecked(projectBoxes, []) });
+        }
+        return filters;
+    }
+
+    function renderChips(filters) {
+        // createElement + textContent (not innerHTML), so a project name can never be read as HTML.
+        const chips = filters.map(filter => {
+            const chip = document.createElement("span");
+            chip.className = "filter-chip";
+
+            const name = document.createElement("span");
+            name.className = "muted";
+            name.textContent = `${filter.name}:`;
+
+            const remove = document.createElement("button");
+            remove.type = "button";
+            remove.className = "filter-chip-remove";
+            remove.setAttribute("aria-label", `Remove ${filter.name} filter`);
+            remove.textContent = "×";
+            remove.addEventListener("click", () => {
+                filter.reset();
+                applyFilters();
+                // The chip (and the focused button) is gone now, so put focus somewhere sensible.
+                panel.querySelector("summary").focus();
+            });
+
+            chip.append(name, ` ${filter.value}`, remove);
+            return chip;
+        });
+        chipList.replaceChildren(...chips);
+
+        clearAllButton.hidden = filters.length === 0;
+        // The archived chip is drawn by the server, but it is still a filter that is on.
+        const total = filters.length + (archivedChip ? 1 : 0);
+        filterCount.textContent = String(total);
+        filterCount.hidden = total === 0;
+    }
+
+    // A quick view is highlighted only when the panel holds exactly its preset.
+    function highlightQuickView() {
+        const statuses = checkedValues(statusBoxes);
+        const noExtraFilters = checkedValues(priorityBoxes).length === 0 && checkedValues(projectBoxes).length === 0;
+        viewButtons.forEach(button => {
+            const isActive = noExtraFilters &&
+                dueValue() === button.dataset.viewDue &&
+                sameValues(statuses, button.dataset.viewStatuses.split(","));
+            button.classList.toggle("is-active", isActive);
+            button.setAttribute("aria-pressed", String(isActive));
+        });
+    }
 
     // For each "Group by" option: how to order rows, and which header a row goes under
     // (label: null means no headers). Array.sort is stable, and we always start from the
@@ -763,72 +869,85 @@ function setUpTaskFilters() {
         }
     }
 
-    // The controls themselves hold the state (no separate variable), so the pills and the
-    // dropdown can never disagree.
     function applyFilters() {
-        const status = statusSelect.value;   // "all" or a status
+        const statuses = checkedValues(statusBoxes);
+        const priorities = checkedValues(priorityBoxes);   // none ticked = any
+        const projectIds = checkedValues(projectBoxes);    // none ticked = any
+        const due = dueValue();
         const searchText = searchBox.value.trim().toLowerCase();
 
-        // Highlight the pill that matches the dropdown (none, if it's on a status with no pill, like Done).
-        pills.forEach(pill => {
-            const isActive = pill.dataset.statusFilter === status;
-            pill.classList.toggle("is-active", isActive);
-            pill.setAttribute("aria-pressed", String(isActive));
-        });
-
         rows.forEach(row => {
-            // "All" means everything still in play: cancelled tasks only show when picked directly
-            // (same rule as archived projects in setUpProjectFilters).
-            const matchesStatus = status === "all"
-                ? row.dataset.taskItem !== "cancelled"
-                : row.dataset.taskItem === status;
             const matches =
-                matchesStatus &&
-                (prioritySelect.value === "" || row.dataset.taskPriority === prioritySelect.value) &&
+                statuses.includes(row.dataset.taskItem) &&
+                (priorities.length === 0 || priorities.includes(row.dataset.taskPriority)) &&
+                (projectIds.length === 0 || projectIds.includes(row.dataset.taskProjectId)) &&
+                matchesDue(row, due) &&
                 row.dataset.taskText.toLowerCase().includes(searchText);
             row.hidden = !matches;
         });
 
         renderGroups();
+        highlightQuickView();
+        renderChips(activeFilters());
 
-        const anyVisible = rows.some(row => !row.hidden);
-        table.hidden = !anyVisible;
-        noResults.hidden = anyVisible;
+        const shown = rows.filter(row => !row.hidden).length;
+        table.hidden = shown === 0;
+        noResults.hidden = shown > 0;
+        shownSummary.textContent = `Showing ${shown} of ${rows.length} tasks`;
+        closeButton.textContent = shown === 1 ? "Show 1 task" : `Show ${shown} tasks`;
 
         saveFilters(FILTERS_KEY, {
-            status,
-            priority: prioritySelect.value,
+            statuses,
+            priorities,
+            projectIds,
+            due,
             group: groupSelect.value,
             search: searchBox.value
         });
     }
 
-    pills.forEach(pill => {
-        pill.addEventListener("click", () => {
-            statusSelect.value = pill.dataset.statusFilter;
+    viewButtons.forEach(button => {
+        button.addEventListener("click", () => {
+            setChecked(statusBoxes, button.dataset.viewStatuses.split(","));
+            setChecked(priorityBoxes, []);
+            setChecked(projectBoxes, []);
+            setDue(button.dataset.viewDue);
             applyFilters();
         });
     });
 
-    statusSelect.addEventListener("change", applyFilters);
-    prioritySelect.addEventListener("change", applyFilters);
+    // One listener for every checkbox and radio button in the panel ("change" bubbles up).
+    // The archived checkbox also lands here, but it reloads the page right after, so that's harmless.
+    panel.addEventListener("change", applyFilters);
     groupSelect.addEventListener("change", applyFilters);
     searchBox.addEventListener("input", applyFilters);
 
-    // "Group by" is a view choice, not a filter, so Clear filters leaves it alone.
+    closeButton.addEventListener("click", () => {
+        panel.open = false;
+        panel.querySelector("summary").focus();
+    });
+
+    // Back to the default view. "Group by" is a view choice, not a filter, so it stays.
+    // (Archived projects aren't touched either: that one reloads the page and has its own chip.)
     clearButtons.forEach(button => {
         button.addEventListener("click", () => {
-            statusSelect.value = "all";
-            prioritySelect.value = "";
+            setChecked(statusBoxes, defaultStatuses);
+            setChecked(priorityBoxes, []);
+            setChecked(projectBoxes, []);
+            setDue("any");
             searchBox.value = "";
             applyFilters();
         });
     });
 
-    // Put back what was chosen before a reload (see loadSavedFilters).
+    // Put back what was chosen before a reload (see loadSavedFilters). The Array checks skip values
+    // saved by the old filter bar, which stored single strings. Ids of since-deleted projects
+    // simply match no checkbox.
     const saved = loadSavedFilters(FILTERS_KEY);
-    restoreControl(statusSelect, saved.status);
-    restoreControl(prioritySelect, saved.priority);
+    if (Array.isArray(saved.statuses)) setChecked(statusBoxes, saved.statuses);
+    if (Array.isArray(saved.priorities)) setChecked(priorityBoxes, saved.priorities);
+    if (Array.isArray(saved.projectIds)) setChecked(projectBoxes, saved.projectIds);
+    if (dueRadios.some(radio => radio.value === saved.due)) setDue(saved.due);
     restoreControl(groupSelect, saved.group);
     restoreControl(searchBox, saved.search);
 
