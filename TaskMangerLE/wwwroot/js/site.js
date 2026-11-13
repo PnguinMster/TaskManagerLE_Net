@@ -418,8 +418,106 @@ function setUpRequiredFieldChecks() {
     }
 }
 
+// Projects page: status pills, Status and Due date dropdowns, search box, "Clear filters" and sorting.
+// Both the grid cards and the list rows carry
+//   data-project-item="<status>"   lowercase ProjectStatus: the pills and the Status dropdown match it
+//   data-project-due="<group>"     lowercase ProjectDueGroup: the Due date dropdown matches it
+//   data-project-text="<name> <description>"   what the search box looks at
+//   data-project-name / -date (yyyy-MM-dd) / -progress (0-100)   what "Sort by" orders on
+// so one pass hides, shows or reorders both views and they always agree.
+function setUpProjectFilters() {
+    const pills = document.querySelectorAll("[data-project-status-pill]");
+    const statusSelect = document.querySelector("[data-project-status]");
+    const dueSelect = document.querySelector("[data-project-due-filter]");
+    const sortSelect = document.querySelector("[data-project-sort]");
+    const clearButtons = document.querySelectorAll("[data-project-clear-filters]");
+    const searchBox = document.getElementById("project-search");
+    const items = document.querySelectorAll("[data-project-item]");
+    const noResults = document.getElementById("project-no-results");
+    if (!statusSelect || !dueSelect || !sortSelect || !searchBox || !noResults) return;
+
+    const byName = (a, b) =>
+        a.dataset.projectName.localeCompare(b.dataset.projectName, undefined, { sensitivity: "base" });
+
+    // Each sorter is a compare function. A yyyy-MM-dd string sorts correctly as plain text.
+    const sorters = {
+        // Finished projects last (same rule as the server's default order), then soonest due first.
+        due: (a, b) =>
+            (a.dataset.projectDue === "finished") - (b.dataset.projectDue === "finished") ||
+            a.dataset.projectDate.localeCompare(b.dataset.projectDate) ||
+            byName(a, b),
+        name: byName,
+        // Most complete first.
+        progress: (a, b) =>
+            Number(b.dataset.projectProgress) - Number(a.dataset.projectProgress) || byName(a, b)
+    };
+
+    function applySort() {
+        const sorter = sorters[sortSelect.value] ?? sorters.due;
+
+        // The grid cards and the list rows have different parents, so sort each parent's items on
+        // its own. append() moves existing elements, so the list's header row stays first.
+        for (const parent of new Set([...items].map(item => item.parentElement))) {
+            const sorted = [...parent.querySelectorAll(":scope > [data-project-item]")].sort(sorter);
+            parent.append(...sorted);
+        }
+    }
+
+    // The controls themselves hold the state, so a browser that restores form values after a reload
+    // or Back (and the page's own initial call below) stays in sync with what is shown.
+    function applyFilters() {
+        const status = statusSelect.value;   // "all" or a status
+        const due = dueSelect.value;         // "" (any) or a due group
+        const searchText = searchBox.value.trim().toLowerCase();
+
+        // The pills are shortcuts for the Status dropdown: highlight the one that matches it
+        // (none, if the dropdown is on a status that has no pill, like Planning).
+        pills.forEach(pill => {
+            const isActive = pill.dataset.projectStatusPill === status;
+            pill.classList.toggle("is-active", isActive);
+            pill.setAttribute("aria-pressed", String(isActive));
+        });
+
+        items.forEach(item => {
+            const matchesStatus = status === "all" || item.dataset.projectItem === status;
+            const matchesDue = due === "" || item.dataset.projectDue === due;
+            const matchesSearch = item.dataset.projectText.toLowerCase().includes(searchText);
+            item.hidden = !(matchesStatus && matchesDue && matchesSearch);
+        });
+
+        noResults.hidden = [...items].some(item => !item.hidden);
+    }
+
+    pills.forEach(pill => {
+        pill.addEventListener("click", () => {
+            statusSelect.value = pill.dataset.projectStatusPill;
+            applyFilters();
+        });
+    });
+
+    statusSelect.addEventListener("change", applyFilters);
+    dueSelect.addEventListener("change", applyFilters);
+    searchBox.addEventListener("input", applyFilters);
+    sortSelect.addEventListener("change", applySort);
+
+    clearButtons.forEach(button => {
+        button.addEventListener("click", () => {
+            statusSelect.value = "all";
+            dueSelect.value = "";
+            searchBox.value = "";
+            applyFilters();
+        });
+    });
+
+    applyFilters();
+    // The server already sent the default (due date) order; this only matters when the browser
+    // restored a different Sort by choice after a reload or Back.
+    applySort();
+}
+
 showServerToasts();
 setUpRequiredFieldChecks();
+setUpProjectFilters();
 setUpEmptyTrashDialog();
 setUpTrashDialog("confirm-trash", "data-confirm-trash");
 setUpTrashDialog("confirm-task-trash", "data-confirm-task-trash");

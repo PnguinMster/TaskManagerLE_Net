@@ -2,6 +2,11 @@
 
 @{
     ViewData["Title"] = "Projects";
+    DateOnly today = TimeProvider.Today();
+
+    // Same order as the "Sort by: Due date" option (the default): finished projects last, then soonest first.
+    // Doing it here means the page loads already in the default order, so nothing jumps around.
+    var projects = Model.OrderBy(p => p.IsFinished).ThenBy(p => p.DueDate).ThenBy(p => p.Name).ToList();
 }
 
 <header class="page-header">
@@ -79,10 +84,18 @@
 }
 else {
     <div class="row wrap">
-        <div class="pills" role="group" aria-label="Filter projects">
-            <button class="is-active" type="button" data-filer="all" aria-pressed="true">All</button>
-            <button type="button" aria-pressed="false">In Progress</button>
-            <button type="button" aria-pressed="false">Completed</button>
+        @* The pills are shortcuts for the Status dropdown below; both use the card's data-project-item
+           value (the lowercase ProjectStatus). See setUpProjectFilters in site.js. *@
+        <div class="pills" role="group" aria-label="Filter projects by status">
+            <button class="is-active" type="button" data-project-status-pill="all" aria-pressed="true">
+                All (@Model.Count)
+            </button>
+            <button type="button" data-project-status-pill="active" aria-pressed="false">
+                In Progress (@Model.Count(p => p.Status == ProjectStatus.Active))
+            </button>
+            <button type="button" data-project-status-pill="completed" aria-pressed="false">
+                Completed (@Model.Count(p => p.Status == ProjectStatus.Completed))
+            </button>
         </div>
 
         <div class="sp"></div>
@@ -94,8 +107,41 @@ else {
                aria-label="Search projects"/>
     </div>
 
+    <div class="row wrap">
+        <select class="input input-inline" aria-label="Status" data-project-status>
+            <option value="all">All statuses</option>
+            <option value="planning">Planning</option>
+            <option value="active">In Progress</option>
+            <option value="onhold">On Hold</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="archived">Archived</option>
+        </select>
+
+        @* Finished projects (Completed, Cancelled, Archived) never match a due-date option. *@
+        <select class="input input-inline" aria-label="Due date" data-project-due-filter>
+            <option value="">Any due date</option>
+            <option value="overdue">Overdue</option>
+            <option value="today">Today</option>
+            <option value="thisweek">This week</option>
+            <option value="later">Later</option>
+        </select>
+
+        @* Reorders the cards and list rows (site.js, setUpProjectFilters). "Clear filters" leaves it alone. *@
+        <select class="input input-inline" aria-label="Sort by" data-project-sort>
+            <option value="due">Sort by: Due date</option>
+            <option value="name">Sort by: Name</option>
+            <option value="progress">Sort by: Progress</option>
+        </select>
+
+        <div class="sp"></div>
+        <button type="button" class="btn btn-text" style="color:var(--bt)" data-project-clear-filters>
+            Clear filters
+        </button>
+    </div>
+
     <div id="project-grid" class="grid-cards">
-        @foreach (var project in Model) {
+        @foreach (var project in projects) {
             var (statusLabel, badgeClass, progressClass, textClass) = project.Status switch
             {
                 ProjectStatus.Active => ("In Progress", "badge-blue", "", "text-blue"),
@@ -107,6 +153,12 @@ else {
                 _ => (project.Status.ToString(), "badge-muted", "", "muted")
             };
             <div class="card card-outline"
+                 data-project-item="@project.Status.ToString().ToLowerInvariant()"
+                 data-project-due="@project.GetDueGroup(today).ToString().ToLowerInvariant()"
+                 data-project-text="@project.Name @project.Description"
+                 data-project-name="@project.Name"
+                 data-project-date="@project.DueDate.ToString("yyyy-MM-dd")"
+                 data-project-progress="@project.ProgressPercent"
                  style="display:flex;flex-direction:column;gap:14px">
 
                 <div class="row" style="justify-content:space-between;align-items:flex-start">
@@ -176,7 +228,7 @@ else {
                     <span></span>
                 </div>
 
-                @foreach (var project in Model) {
+                @foreach (var project in projects) {
                     var (statusLabel, badgeClass, progressClass, textClass) = project.Status switch
                     {
                         ProjectStatus.Active => ("In Progress", "badge-blue", "is-blue", "text-blue"),
@@ -188,7 +240,13 @@ else {
                         _ => (project.Status.ToString(), "badge-muted", "is-muted", "muted")
                     };
 
-                    <div class="data-row cols-projects">
+                    <div class="data-row cols-projects"
+                         data-project-item="@project.Status.ToString().ToLowerInvariant()"
+                         data-project-due="@project.GetDueGroup(today).ToString().ToLowerInvariant()"
+                         data-project-text="@project.Name @project.Description"
+                         data-project-name="@project.Name"
+                         data-project-date="@project.DueDate.ToString("yyyy-MM-dd")"
+                         data-project-progress="@project.ProgressPercent">
                         <span class="stack">
                             <strong class="truncate">
                                 <a asp-action="Detail" asp-route-id="@project.Id" class="project-title-link">@project.Name</a>
@@ -252,6 +310,13 @@ else {
             </div>
         </div>
     </div>
+
+    @* Shown by site.js (setUpProjectFilters) when the search/filter matches nothing. *@
+    <section id="project-no-results" class="card card-dashed empty-state" role="status" hidden>
+        <h2 style="font-size:20px;font-weight:700">No projects found</h2>
+        <p class="muted">Try a different search or filter.</p>
+        <button type="button" class="btn btn-text" style="color:var(--bt)" data-project-clear-filters>Clear filters</button>
+    </section>
 
     @* Applies the saved grid/list choice before the first paint. site.js loads at the end of <body> and
        waits for DOMContentLoaded, which would briefly show the default (grid) first. Grid is already the
