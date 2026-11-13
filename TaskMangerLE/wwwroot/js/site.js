@@ -671,7 +671,7 @@ function setUpProjectFilters() {
 
 // Tasks page: status pills, Project / Priority / Due date dropdowns, search box, "Clear filters"
 // and "Group by". Same idea as setUpProjectFilters: every task row carries
-//   data-task-item="pending|completed"   what the pills match
+//   data-task-item="<status>"            lowercase TaskStatus (todo/inprogress/review/done/cancelled): what the pills match
 //   data-task-group="<key>"              its Due date group (overdue/today/week/later/completed)
 //   data-task-project="<project id>"     data-task-priority="<TaskPriority>"
 //   data-task-text="<name> <description>"   what the search box looks at
@@ -679,7 +679,7 @@ function setUpProjectFilters() {
 //                                        what "Group by" sorts and labels on
 // One pass hides the rows that don't match, then the rows are re-sorted and the group headers
 // rebuilt (with counts of the rows still shown).
-// ("Hide archived" is not handled here: it reloads the page, because the server leaves those tasks out.)
+// ("Show archived projects" is not handled here: it reloads the page, because the server leaves those tasks out.)
 function setUpTaskFilters() {
     const pills = document.querySelectorAll("[data-status-filter]");
     const projectSelect = document.querySelector("[data-project-filter]");
@@ -775,8 +775,13 @@ function setUpTaskFilters() {
         });
 
         rows.forEach(row => {
+            // "All" means everything still in play: cancelled tasks only show when picked directly
+            // (same rule as archived projects in setUpProjectFilters).
+            const matchesStatus = status === "all"
+                ? row.dataset.taskItem !== "cancelled"
+                : row.dataset.taskItem === status;
             const matches =
-                (status === "all" || row.dataset.taskItem === status) &&
+                matchesStatus &&
                 (projectSelect.value === "" || row.dataset.taskProject === projectSelect.value) &&
                 (prioritySelect.value === "" || row.dataset.taskPriority === prioritySelect.value) &&
                 (dueSelect.value === "" || row.dataset.taskGroup === dueSelect.value) &&

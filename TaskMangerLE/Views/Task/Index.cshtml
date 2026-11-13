@@ -6,6 +6,20 @@
     var createTaskModel =
         ViewData["CreateTaskModel"] as TaskItemCreateViewModel
         ?? new TaskItemCreateViewModel();
+
+    // The status pills: same names and order as the board columns on Project/Detail, plus Cancelled.
+    // Key is what each row's data-task-item holds (see StatusKey), so site.js can compare them directly.
+    var statusPills = new[]
+    {
+        (Status: TaskStatus.ToDo, Label: "To Do"),
+        (Status: TaskStatus.InProgress, Label: "In Progress"),
+        (Status: TaskStatus.Review, Label: "Review"),
+        (Status: TaskStatus.Done, Label: "Done"),
+        (Status: TaskStatus.Cancelled, Label: "Cancelled")
+    };
+
+    // "ToDo" -> "todo". The same rule the Projects page uses for data-project-item.
+    string StatusKey(TaskStatus status) => status.ToString().ToLowerInvariant();
 }
 
 <header class="page-header">
@@ -27,15 +41,15 @@
     <div class="row wrap">
         @* Filters run in the browser: see setUpTaskFilters in site.js and the data-task-* attributes on each row. *@
         <div class="pills" role="group" aria-label="Filter tasks by status">
+            @* "All" leaves Cancelled out, like "All except archived" on the Projects page. *@
             <button type="button" class="is-active" data-status-filter="all" aria-pressed="true">
-                All (@Model.Tasks.Count)
+                All (@Model.Tasks.Count(t => t.Status != TaskStatus.Cancelled))
             </button>
-            <button type="button" data-status-filter="pending" aria-pressed="false">
-                Pending (@Model.Tasks.Count(t => t.Status != TaskMangerLE.Models.Enums.TaskStatus.Done))
-            </button>
-            <button type="button" data-status-filter="completed" aria-pressed="false">
-                Completed (@Model.Tasks.Count(t => t.Status == TaskMangerLE.Models.Enums.TaskStatus.Done))
-            </button>
+            @foreach (var pill in statusPills) {
+                <button type="button" data-status-filter="@StatusKey(pill.Status)" aria-pressed="false">
+                    @pill.Label (@Model.Tasks.Count(t => t.Status == pill.Status))
+                </button>
+            }
         </div>
 
         <div class="sp"></div>
@@ -46,6 +60,8 @@
                data-task-search/>
     </div>
 
+    @* Left: filters (what is shown), with Clear filters right next to the things it clears.
+       Right: view settings (how it is shown), which Clear filters leaves alone. *@
     <div class="row wrap">
         <select class="input input-inline" aria-label="Project" data-project-filter>
             <option value="">All projects</option>
@@ -59,19 +75,25 @@
         </select>
 
         <select class="input input-inline" aria-label="Priority" data-priority-filter>
-            <option value="">Any priority</option>
+            <option value="">All priorities</option>
             @foreach (var priority in Model.Tasks.Select(t => t.Priority).Distinct().OrderBy(p => p)) {
                 <option value="@priority">@priority</option>
             }
         </select>
 
         <select class="input input-inline" aria-label="Due date" data-due-filter>
-            <option value="">Any due date</option>
+            <option value="">All due dates</option>
             <option value="overdue">Overdue</option>
             <option value="today">Today</option>
             <option value="week">This week</option>
             <option value="later">Later</option>
         </select>
+
+        <button type="button" class="btn btn-text" style="color:var(--bt)" data-clear-filters>
+            Clear filters
+        </button>
+
+        <div class="sp"></div>
 
         <select class="input input-inline" aria-label="Group by" data-group-by>
             <option value="due">Group by: Due date</option>
@@ -81,22 +103,18 @@
         </select>
 
         @* GET form: ticking or unticking reloads the page with the opposite setting. The hidden input
-           carries the value to switch to, because an unticked checkbox sends nothing at all. *@
+           carries the value to switch to, because an unticked checkbox sends nothing at all.
+           Worded "Show" (not "Hide") so ticked = on = showArchived=true, with no double negative. *@
         <form asp-action="Index" method="get">
             <input type="hidden" name="showArchived" value="@(Model.ShowArchived ? "false" : "true")"/>
             <label class="row" style="gap:8px;cursor:pointer">
                 <input type="checkbox"
                        class="checkbox"
-                       checked="@(!Model.ShowArchived)"
+                       checked="@Model.ShowArchived"
                        onchange="this.form.submit()"/>
-                <span>Hide archived</span>
+                <span>Show archived projects</span>
             </label>
         </form>
-
-        <div class="sp"></div>
-        <button type="button" class="btn btn-text" style="color:var(--bt)" data-clear-filters>
-            Clear filters
-        </button>
     </div>
 </div>
 
@@ -105,53 +123,57 @@
     var today = TimeProvider.Today();
     var weekEnd = today.AddDays(7);
 
+    // Only open tasks go into the due-date groups: a done or cancelled task can't be "overdue".
+    var openTasks = Model.Tasks
+        .Where(t => t.Status is not (TaskStatus.Done or TaskStatus.Cancelled))
+        .ToList();
+
     var groups = new[]
     {
         // Key matches the Due date dropdown's option values, so the filter can compare them directly.
+        // Done and Cancelled have no matching option, so they never match a due-date filter
+        // (same as finished projects on the Projects page).
         new
         {
             Key = "overdue",
             Title = "Overdue",
-            Tasks = Model.Tasks
-                .Where(t => t.Status != TaskMangerLE.Models.Enums.TaskStatus.Done && t.DueDate < today)
-                .ToList(),
+            Tasks = openTasks.Where(t => t.DueDate < today).ToList(),
             Color = "var(--rt)"
         },
         new
         {
             Key = "today",
             Title = "Today",
-            Tasks = Model.Tasks
-                .Where(t => t.Status != TaskMangerLE.Models.Enums.TaskStatus.Done && t.DueDate == today)
-                .ToList(),
+            Tasks = openTasks.Where(t => t.DueDate == today).ToList(),
             Color = "var(--at)"
         },
         new
         {
             Key = "week",
             Title = "This week",
-            Tasks = Model.Tasks
-                .Where(t => t.Status != TaskMangerLE.Models.Enums.TaskStatus.Done && t.DueDate > today && t.DueDate <= weekEnd)
-                .ToList(),
+            Tasks = openTasks.Where(t => t.DueDate > today && t.DueDate <= weekEnd).ToList(),
             Color = "var(--text)"
         },
         new
         {
             Key = "later",
             Title = "Later",
-            Tasks = Model.Tasks
-                .Where(t => t.Status != TaskMangerLE.Models.Enums.TaskStatus.Done && t.DueDate > weekEnd)
-                .ToList(),
+            Tasks = openTasks.Where(t => t.DueDate > weekEnd).ToList(),
             Color = "var(--text)"
         },
         new
         {
-            Key = "completed",
-            Title = "Completed",
-            Tasks = Model.Tasks
-                .Where(t => t.Status == TaskMangerLE.Models.Enums.TaskStatus.Done)
-                .ToList(),
+            Key = "done",
+            Title = "Done",
+            Tasks = Model.Tasks.Where(t => t.Status == TaskStatus.Done).ToList(),
             Color = "var(--gt)"
+        },
+        new
+        {
+            Key = "cancelled",
+            Title = "Cancelled",
+            Tasks = Model.Tasks.Where(t => t.Status == TaskStatus.Cancelled).ToList(),
+            Color = "var(--muted)"
         }
     };
 
@@ -233,11 +255,12 @@ else {
                     </div>
 
                     @foreach (var task in group.Tasks) {
-                        var isDone = task.Status == TaskMangerLE.Models.Enums.TaskStatus.Done;
+                        var isDone = task.Status == TaskStatus.Done;
+                        var isCancelled = task.Status == TaskStatus.Cancelled;
                         var priorityColor = PriorityColor(task.Priority);
 
                         <div class="data-row"
-                             data-task-item="@(isDone ? "completed" : "pending")"
+                             data-task-item="@StatusKey(task.Status)"
                              data-task-group="@group.Key"
                              data-task-project="@task.ProjectId"
                              data-task-priority="@task.Priority"
@@ -263,7 +286,8 @@ else {
                             </form>
 
                             <div style="min-width:0">
-                                <div class="@(isDone ? "is-done" : "")" style="font-weight:600">
+                                @* Struck through when done or cancelled, like the board on Project/Detail. *@
+                                <div class="@(isDone || isCancelled ? "is-done" : "")" style="font-weight:600">
                                     @task.Name
                                 </div>
                                 @if (!string.IsNullOrWhiteSpace(task.Description)) {
