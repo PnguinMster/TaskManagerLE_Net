@@ -817,16 +817,19 @@ strong {
     border-color: var(--green);
 }
 
+/* Centered with 50% + translate rather than fixed pixel offsets, so it stays centered whatever the
+   box's border width. The -60% (not -50%) lifts it a little: once rotated, the tick's two strokes sit
+   at the bottom of its box, so a truly centered box looks low. */
 .checkbox:checked::after {
     content: "";
     position: absolute;
-    left: 5px;
-    top: 1px;
+    left: 50%;
+    top: 50%;
     width: 5px;
     height: 10px;
     border: solid #052e22;
     border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
+    transform: translate(-50%, -60%) rotate(45deg);
 }
 
 .is-done {
