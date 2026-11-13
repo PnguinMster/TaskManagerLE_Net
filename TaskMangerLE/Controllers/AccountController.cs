@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -298,11 +299,29 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult ForgotPassword(ForgotPasswordViewModel model)
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
     {
         if (!ModelState.IsValid)
             return View(model);
 
+        var user = await userManager.FindByEmailAsync(model.Email.Trim());
+        if (user is not null) {
+            var code = await userManager.GeneratePasswordResetTokenAsync(user);
+            var encodedCode = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+            var callbackUrl = Url.Action(
+                nameof(ResetPassword),
+                "Account",
+                new { email = user.Email, code = encodedCode },
+                protocol: Request.Scheme);
+
+            await emailSender.SendEmailAsync(
+                user.Email!,
+                "Reset your password",
+                $"Reset your password by <a href='{HtmlEncoder.Default.Encode(callbackUrl!)}'>clicking here</a>.");
+        }
+
+        // Same page whether or not the email exists, so nobody can use this form to find out who has an account.
         return View(nameof(CheckEmail), model.Email);
     }
 
@@ -310,7 +329,51 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
     public IActionResult CheckEmail(string email) => View(email);
 
     [HttpGet]
-    public IActionResult ResetPassword() => View();
+    public IActionResult ResetPassword(string? email, string? code)
+    {
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(code))
+            return BadRequest();
+
+        try {
+            code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+        }
+        catch (FormatException) {
+            return BadRequest();
+        }
+
+        return View(new ResetPasswordViewModel { Email = email, Code = code });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return View(model);
+
+        var user = await userManager.FindByEmailAsync(model.Email);
+        if (user is null)
+            return ResetPasswordDone(); // don't reveal that the email doesn't exist
+
+        var result = await userManager.ResetPasswordAsync(user, model.Code, model.Password);
+        if (result.Succeeded)
+            return ResetPasswordDone();
+
+        foreach (var error in result.Errors) {
+            // An old or already-used link gives the same code either way; one friendly message covers both.
+            var message = error.Code == nameof(IdentityErrorDescriber.InvalidToken)
+                ? "This reset link is invalid or has expired. Please request a new one."
+                : error.Description;
+            ModelState.AddModelError(string.Empty, message);
+        }
+        return View(model);
+    }
+
+    private RedirectToActionResult ResetPasswordDone()
+    {
+        TempData["StatusMessage"] = "Your password has been reset. You can log in now.";
+        return RedirectToAction(nameof(Login));
+    }
 
     [HttpGet]
     public IActionResult AccessDenied(string? returnUrl = null)

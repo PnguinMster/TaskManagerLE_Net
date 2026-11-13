@@ -2,17 +2,16 @@
 
 namespace TaskMangerLE.Models;
 
-// not final, logic needs to be implemented
-// this is temporary
 public class ResetPasswordViewModel
 {
-    public string Email { get; set; } = string.Empty;
-    public string Code { get; set; } = string.Empty;
+    // Email and Code come from the link in the email and travel through the form as hidden fields.
+    [Required] public string Email { get; set; } = string.Empty;
+    [Required] public string Code { get; set; } = string.Empty;
 
-    [Required]
+    [Required(ErrorMessage = "Enter a new password.")]
     [DataType(DataType.Password)]
     public string Password { get; set; } = string.Empty;
-    [Required]
+    [Required(ErrorMessage = "Enter your new password again.")]
     [Display(Name = "Confirm password")]
     [DataType(DataType.Password)]
     [Compare(nameof(Password), ErrorMessage = "Passwords do not match.")]

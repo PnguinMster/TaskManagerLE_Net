@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using TaskMangerLE.Data;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using TaskMangerLE.Models;
 using TaskMangerLE.Services;
 using TaskMangerLE.Authorization;
@@ -14,6 +15,9 @@ builder.Services.AddScoped<ProjectService>();
 builder.Services.AddScoped<TaskService>();
 builder.Services.AddScoped<TrashService>();
 builder.Services.AddScoped<DashboardServices>();
+
+// Email: logs to the console for now. Registered before AddIdentity so Identity's no-op default doesn't win.
+builder.Services.AddTransient<IEmailSender, LoggingEmailSender>();
 
 // Authorization
 builder.Services.AddAuthorizationBuilder()
