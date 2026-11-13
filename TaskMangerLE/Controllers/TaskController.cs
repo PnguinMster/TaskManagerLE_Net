@@ -17,13 +17,15 @@ public class TaskController(
     : ItemControllerBase(authorizationService)
 {
     [HttpGet]
-    public async Task<IActionResult> Index()
+    // showArchived comes from the query string (?showArchived=true); missing means false, so archived
+    // projects' tasks are hidden by default.
+    public async Task<IActionResult> Index(bool showArchived = false)
     {
         string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId is null)
             return Challenge();
 
-        TaskListViewModel model = await taskService.GetTaskListAsync(userId);
+        TaskListViewModel model = await taskService.GetTaskListAsync(userId, showArchived);
         ViewData["AvailableProjects"] =
             await projectService.GetProjectCardsAsync(userId);
 
@@ -50,7 +52,7 @@ public class TaskController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(TaskItemCreateViewModel taskItemModel)
+    public async Task<IActionResult> Create(TaskItemCreateViewModel taskItemModel, string? returnUrl)
     {
         ProjectItem? projectItem = await LoadAuthorizedAsync(
             projectService.GetProjectAsync(taskItemModel.ProjectId));
@@ -67,10 +69,17 @@ public class TaskController(
                 await projectService.GetProjectCardsAsync(userId);
 
             ViewData["CreateTaskModel"] = taskItemModel;
-            return View(nameof(Index), await taskService.GetTaskListAsync(userId));
+            // Keep the original page, so fixing the errors and saving still goes back there.
+            ViewData["ReturnUrl"] = returnUrl;
+            return View(nameof(Index), await taskService.GetTaskListAsync(userId, showArchived: false));
         }
 
         await taskService.AddTaskAsync(taskItemModel);
+
+        // Only follow local URLs, so a crafted link can't send users to another site (see Restore).
+        if (Url.IsLocalUrl(returnUrl))
+            return LocalRedirect(returnUrl);
+
         return RedirectToAction(nameof(Index));
     }
 

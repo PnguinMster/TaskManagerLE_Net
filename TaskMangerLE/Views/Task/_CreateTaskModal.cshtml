@@ -16,8 +16,12 @@
         </button>
     </div>
 
-    <form asp-controller="Task" asp-action="Create" method="post">
+    <form asp-controller="Task" asp-action="Create" method="post" data-check-required novalidate>
         @Html.AntiForgeryToken()
+        @* Where to go after creating: the page this modal is on (Tasks or a project's Detail page).
+           If the form comes back with errors, the controller passes the original page along in ViewData. *@
+        <input type="hidden" name="returnUrl"
+               value="@(ViewData["ReturnUrl"] as string ?? $"{Context.Request.Path}{Context.Request.QueryString}")"/>
         <div class="modal-body">
             <div asp-validation-summary="ModelOnly" class="field-error"></div>
 
@@ -25,6 +29,7 @@
                 <label asp-for="Name">Title</label>
                 <input asp-for="Name" class="input"
                        placeholder="e.g. Draft the project brief"
+                       maxlength="@ItemConstraints.NameMaxLength"
                        autocomplete="off"/>
                 <span asp-validation-for="Name" class="field-error"></span>
             </div>
@@ -35,6 +40,7 @@
                     <span class="muted" style="font-size:12px">Optional</span>
                 </div>
                 <textarea asp-for="Description" class="input"
+                          maxlength="@ItemConstraints.DescriptionMaxLength"
                           placeholder="Add details for this task"></textarea>
                 <span asp-validation-for="Description"></span>
             </div>

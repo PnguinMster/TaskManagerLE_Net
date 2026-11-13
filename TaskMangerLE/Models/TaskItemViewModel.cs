@@ -7,12 +7,13 @@ namespace TaskMangerLE.Models;
 public abstract class TaskItemViewModelBase
 {
     public int ProjectId { get; set; }
-    [Required]
+    [Required(ErrorMessage = "Task title is required.")]
     [MaxLength(ItemConstraints.NameMaxLength)]
     public string Name { get; set; } = string.Empty;
     [DataType(DataType.MultilineText)]
     [MaxLength(ItemConstraints.DescriptionMaxLength)]
-    public string Description { get; set; } = string.Empty;
+    // string? (not string) so MVC doesn't treat it as implicitly [Required]; the form says "Optional".
+    public string? Description { get; set; }
     [EnumDataType(typeof(TaskPriority))] public TaskPriority Priority { get; set; }
     [EnumDataType(typeof(TaskStatus))] public TaskStatus Status { get; set; }
     [Required]

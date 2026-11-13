@@ -12,7 +12,7 @@
         </button>
     </div>
 
-    <form asp-controller="Task" asp-action="Update" method="post">
+    <form asp-controller="Task" asp-action="Update" method="post" data-check-required novalidate>
         @Html.AntiForgeryToken()
         <input asp-for="Id" type="hidden"/>
         <input asp-for="ProjectId" type="hidden"/>
@@ -71,6 +71,13 @@
                     <span asp-validation-for="DueDate" class="field-error"></span>
                 </div>
             </div>
+
+            @* Passed in through ViewData (not the model) because the model is the form that gets posted back. *@
+            @if (ViewData["CreatedAtUtc"] is DateTime createdAtUtc) {
+                <p class="muted" style="font-size:13px;margin:0">
+                    Created @createdAtUtc.ToLocalTime().ToString("MMM d, yyyy")
+                </p>
+            }
         </div>
 
         <div class="modal-footer">

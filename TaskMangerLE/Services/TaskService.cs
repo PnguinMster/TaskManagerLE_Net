@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TaskMangerLE.Data;
 using TaskMangerLE.Models;
+using TaskMangerLE.Models.Enums;
 using TaskStatus = TaskMangerLE.Models.Enums.TaskStatus;
 
 namespace TaskMangerLE.Services;
@@ -14,7 +15,7 @@ public class TaskService(ApplicationDbContext context)
         TaskItem taskItem = new TaskItem
         {
             Name = taskItemModel.Name,
-            Description = taskItemModel.Description,
+            Description = taskItemModel.Description ?? string.Empty,
             Priority = taskItemModel.Priority,
             Status = taskItemModel.Status,
             DueDate = dueDate,
@@ -30,7 +31,7 @@ public class TaskService(ApplicationDbContext context)
         DateOnly dueDate = taskItemModel.DueDate ?? throw new ArgumentException("A due date is required", nameof(taskItemModel));
 
         taskItem.Name = taskItemModel.Name;
-        taskItem.Description = taskItemModel.Description;
+        taskItem.Description = taskItemModel.Description ?? string.Empty;
         taskItem.Priority = taskItemModel.Priority;
         taskItem.Status = taskItemModel.Status;
         taskItem.DueDate = dueDate;
@@ -53,11 +54,12 @@ public class TaskService(ApplicationDbContext context)
         await context.SaveChangesAsync();
     }
 
-    public async Task<TaskListViewModel> GetTaskListAsync(string userId)
+    public async Task<TaskListViewModel> GetTaskListAsync(string userId, bool showArchived)
     {
         var tasks = await context.TaskItems
             .AsNoTracking()
             .Where(t => t.Project.OwnerId == userId)
+            .Where(t => showArchived || t.Project.Status != ProjectStatus.Archived)
             .OrderBy(t => t.DueDate)
             .ThenBy(t => t.Name)
             .Select(t => new TaskListItemViewModel
@@ -75,12 +77,13 @@ public class TaskService(ApplicationDbContext context)
 
         int projectCount = await context.ProjectItems
             .AsNoTracking()
-            .CountAsync(p => p.OwnerId == userId);
+            .CountAsync(p => p.OwnerId == userId && (showArchived || p.Status != ProjectStatus.Archived));
 
         return new TaskListViewModel
         {
             TotalTaskCount = tasks.Count,
             ProjectCount = projectCount,
+            ShowArchived = showArchived,
             Tasks = tasks
         };
     }

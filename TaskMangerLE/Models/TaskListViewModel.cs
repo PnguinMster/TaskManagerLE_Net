@@ -7,6 +7,7 @@ public class TaskListViewModel
 {
     public int TotalTaskCount { get; init; }
     public int ProjectCount { get; init; }
+    public bool ShowArchived { get; init; }
 
     public IReadOnlyList<TaskListItemViewModel> Tasks { get; init; } = [];
 }

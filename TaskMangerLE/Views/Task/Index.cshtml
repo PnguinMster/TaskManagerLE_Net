@@ -25,14 +25,15 @@
 
 <div class="stack">
     <div class="row wrap">
-        <div class="pills" aria-label="Filter tasks by status">
-            <button type="button" class="is-active" data-status-filter="all">
+        @* Filters run in the browser: see setUpTaskFilters in site.js and the data-task-* attributes on each row. *@
+        <div class="pills" role="group" aria-label="Filter tasks by status">
+            <button type="button" class="is-active" data-status-filter="all" aria-pressed="true">
                 All (@Model.Tasks.Count)
             </button>
-            <button type="button" data-status-filter="pending">
+            <button type="button" data-status-filter="pending" aria-pressed="false">
                 Pending (@Model.Tasks.Count(t => t.Status != TaskMangerLE.Models.Enums.TaskStatus.Done))
             </button>
-            <button type="button" data-status-filter="completed">
+            <button type="button" data-status-filter="completed" aria-pressed="false">
                 Completed (@Model.Tasks.Count(t => t.Status == TaskMangerLE.Models.Enums.TaskStatus.Done))
             </button>
         </div>
@@ -48,11 +49,12 @@
     <div class="row wrap">
         <select class="input input-inline" aria-label="Project" data-project-filter>
             <option value="">All projects</option>
+            @* Value is the project id, not the name: two projects can share a name. *@
             @foreach (var project in Model.Tasks
-                              .Select(t => t.ProjectName)
+                              .Select(t => new { t.ProjectId, t.ProjectName })
                               .Distinct()
-                              .OrderBy(name => name)) {
-                <option value="@project">@project</option>
+                              .OrderBy(p => p.ProjectName)) {
+                <option value="@project.ProjectId">@project.ProjectName</option>
             }
         </select>
 
@@ -78,6 +80,19 @@
             <option value="none">No grouping</option>
         </select>
 
+        @* GET form: ticking or unticking reloads the page with the opposite setting. The hidden input
+           carries the value to switch to, because an unticked checkbox sends nothing at all. *@
+        <form asp-action="Index" method="get">
+            <input type="hidden" name="showArchived" value="@(Model.ShowArchived ? "false" : "true")"/>
+            <label class="row" style="gap:8px;cursor:pointer">
+                <input type="checkbox"
+                       class="checkbox"
+                       checked="@(!Model.ShowArchived)"
+                       onchange="this.form.submit()"/>
+                <span>Hide archived</span>
+            </label>
+        </form>
+
         <div class="sp"></div>
         <button type="button" class="btn-text" style="color:var(--bt)" data-clear-filters>
             Clear filters
@@ -92,8 +107,10 @@
 
     var groups = new[]
     {
+        // Key matches the Due date dropdown's option values, so the filter can compare them directly.
         new
         {
+            Key = "overdue",
             Title = "Overdue",
             Tasks = Model.Tasks
                 .Where(t => t.Status != TaskMangerLE.Models.Enums.TaskStatus.Done && t.DueDate < today)
@@ -102,6 +119,7 @@
         },
         new
         {
+            Key = "today",
             Title = "Today",
             Tasks = Model.Tasks
                 .Where(t => t.Status != TaskMangerLE.Models.Enums.TaskStatus.Done && t.DueDate == today)
@@ -110,6 +128,7 @@
         },
         new
         {
+            Key = "week",
             Title = "This week",
             Tasks = Model.Tasks
                 .Where(t => t.Status != TaskMangerLE.Models.Enums.TaskStatus.Done && t.DueDate > today && t.DueDate <= weekEnd)
@@ -118,6 +137,7 @@
         },
         new
         {
+            Key = "later",
             Title = "Later",
             Tasks = Model.Tasks
                 .Where(t => t.Status != TaskMangerLE.Models.Enums.TaskStatus.Done && t.DueDate > weekEnd)
@@ -126,6 +146,7 @@
         },
         new
         {
+            Key = "completed",
             Title = "Completed",
             Tasks = Model.Tasks
                 .Where(t => t.Status == TaskMangerLE.Models.Enums.TaskStatus.Done)
@@ -178,7 +199,7 @@
     </div>
 }
 else {
-    <div class="data-scroll">
+    <div id="task-table" class="data-scroll">
         <div class="card" style="padding:0">
             <div class="data-table cols-tasks">
                 <div class="data-row data-head">
@@ -195,6 +216,7 @@ else {
                         continue;
                     }
 
+                    @* site.js rebuilds these headers for whatever "Group by" is chosen; these are the default. *@
                     <div class="group-header">
                         <span style="color:@group.Color">@group.Title</span>
                         <span class="badge badge-muted">@group.Tasks.Count</span>
@@ -204,7 +226,18 @@ else {
                         var isDone = task.Status == TaskMangerLE.Models.Enums.TaskStatus.Done;
                         var priorityColor = PriorityColor(task.Priority);
 
-                        <div class="data-row">
+                        <div class="data-row"
+                             data-task-item="@(isDone ? "completed" : "pending")"
+                             data-task-group="@group.Key"
+                             data-task-project="@task.ProjectId"
+                             data-task-priority="@task.Priority"
+                             data-task-text="@task.Name @task.Description"
+                             data-task-due-label="@group.Title"
+                             data-task-due-color="@group.Color"
+                             data-task-due-order="@Array.IndexOf(groups, group)"
+                             data-task-project-name="@task.ProjectName"
+                             data-task-priority-rank="@((int)task.Priority)"
+                             data-task-date="@task.DueDate.ToString("yyyy-MM-dd")">
                             <form asp-action="ToggleCompletion"
                                   asp-route-taskId="@task.Id"
                                   method="post"
@@ -277,7 +310,7 @@ else {
                                           data-confirm-task-trash="@task.Name"
                                           data-trash-detail="in @task.ProjectName">
                                         @Html.AntiForgeryToken()
-                                        <button type="submit">Delete</button>
+                                        <button type="submit">Move to trash</button>
                                     </form>
                                 </div>
                             </details>
@@ -287,5 +320,12 @@ else {
             </div>
         </div>
     </div>
+
+    @* Shown by site.js (setUpTaskFilters) when the search/filters match nothing. *@
+    <section id="task-no-results" class="card card-dashed empty-state" role="status" hidden>
+        <h2 style="font-size:20px;font-weight:700">No tasks match your filters</h2>
+        <p class="muted">Try removing a filter or searching for something else.</p>
+        <button type="button" class="btn btn-text" style="color:var(--bt)" data-clear-filters>Clear filters</button>
+    </section>
 }
 <partial name="_CreateTaskModal" model="createTaskModel"/>

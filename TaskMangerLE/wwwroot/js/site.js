@@ -91,7 +91,9 @@
                 const now = new Date();
                 const month = String(now.getMonth() + 1).padStart(2, "0");
                 const day = String(now.getDate()).padStart(2, "0");
-                createDueDate.value = `${now.getFullYear()}-${month}-${day}`;
+                // defaultValue (not just value) so form.reset() on modal close keeps the browser's date.
+                createDueDate.defaultValue = `${now.getFullYear()}-${month}-${day}`;
+                createDueDate.value = createDueDate.defaultValue;
             }
 
             // A named function so the error toast's Retry button can call it again.
@@ -258,8 +260,6 @@ function setUpEmptyTrashDialog() {
     // so the browser posts to TrashController.EmptyTrash once it is enabled.
 }
 
-// ---------- Toasts ----------
-// showToast({ kind, title, message, actionLabel, onAction })
 // Click outside a popup to close it.
 // - <details> menus (the account menu and each task's "..." menu): a click anywhere outside an open
 //   menu closes it, and so does Esc. Opening a second menu counts as outside the first, so only one
@@ -304,6 +304,8 @@ function setUpClickOutsideToClose() {
     });
 }
 
+// ---------- Toasts ----------
+// showToast({ kind, title, message, actionLabel, onAction })
 //   kind:        "success" (green), "info" (blue) or "error" (rose)
 //   actionLabel: optional button text, e.g. "Undo" or "Retry"; onAction runs when it is clicked.
 // Toasts close after 5 seconds (paused while hovered or focused). At most 3 are shown;
@@ -431,18 +433,55 @@ function setUpRequiredFieldChecks() {
             messageElement.classList.toggle("field-validation-error", Boolean(message));
         }
 
+        // Capture phase (the `true`) so this runs before any other submit listener on the form,
+        // such as the fetch-based one on the create-project form. stopImmediatePropagation then
+        // keeps those from sending a form we already know is incomplete.
         form.addEventListener("submit", event => {
             const emptyInputs = [...inputs].filter(input => input.value.trim() === "");
             if (emptyInputs.length === 0) return;
 
             event.preventDefault();
+            event.stopImmediatePropagation();
             emptyInputs.forEach(input => setFieldError(input, input.dataset.valRequired));
             emptyInputs[0].focus();
-        });
+        }, true);
 
         // Clear a field's message as soon as the user starts fixing it.
         inputs.forEach(input => input.addEventListener("input", () => setFieldError(input, "")));
+
+        // A modal keeps its errors and typed text in the page while it is closed, so clean up on close
+        // (Cancel, the X button and Esc all fire "close"). Otherwise they show up again next time it opens.
+        // reset() puts each field back to the value the server rendered: empty/defaults for a create
+        // form, the saved values for an edit form.
+        // The message clearing covers every message in the form, not just the required ones, so errors the
+        // server sent back (see submitCreateProject) go away too.
+        form.closest("dialog")?.addEventListener("close", () => {
+            form.reset();
+            form.querySelectorAll(".input-validation-error")
+                .forEach(input => input.classList.remove("input-validation-error"));
+            form.querySelectorAll("[data-valmsg-for]").forEach(messageElement => {
+                messageElement.textContent = "";
+                messageElement.classList.remove("field-validation-error");
+            });
+        });
     }
+}
+
+// A board lane's "+ Add task" button (<button data-add-task-status="1">) opens the create-task modal
+// with Status already set to that lane's status. The number is the TaskStatus enum value, which is
+// also what the Status <select> options use. The header's "New task" button has no attribute, so it
+// opens the modal with the default status (closing the modal resets the form, see setUpRequiredFieldChecks).
+function setUpAddTaskButtons() {
+    const modal = document.getElementById("create-task-modal");
+    const statusSelect = modal?.querySelector("[name='Status']");
+    if (!modal || !statusSelect) return;
+
+    document.querySelectorAll("[data-add-task-status]").forEach(button => {
+        button.addEventListener("click", () => {
+            statusSelect.value = button.dataset.addTaskStatus;
+            modal.showModal();
+        });
+    });
 }
 
 // Projects page: status pills, Status and Due date dropdowns, search box, "Clear filters" and sorting.
@@ -506,7 +545,10 @@ function setUpProjectFilters() {
         });
 
         items.forEach(item => {
-            const matchesStatus = status === "all" || item.dataset.projectItem === status;
+            // "All" means everything still in play: archived projects only show when picked directly.
+            const matchesStatus = status === "all"
+                ? item.dataset.projectItem !== "archived"
+                : item.dataset.projectItem === status;
             const matchesDue = due === "" || item.dataset.projectDue === due;
             const matchesSearch = item.dataset.projectText.toLowerCase().includes(searchText);
             item.hidden = !(matchesStatus && matchesDue && matchesSearch);
@@ -542,11 +584,163 @@ function setUpProjectFilters() {
     applySort();
 }
 
+// Tasks page: status pills, Project / Priority / Due date dropdowns, search box, "Clear filters"
+// and "Group by". Same idea as setUpProjectFilters: every task row carries
+//   data-task-item="pending|completed"   what the pills match
+//   data-task-group="<key>"              its Due date group (overdue/today/week/later/completed)
+//   data-task-project="<project id>"     data-task-priority="<TaskPriority>"
+//   data-task-text="<name> <description>"   what the search box looks at
+//   data-task-due-label / -due-color / -due-order, -project-name, -priority-rank, -date
+//                                        what "Group by" sorts and labels on
+// One pass hides the rows that don't match, then the rows are re-sorted and the group headers
+// rebuilt (with counts of the rows still shown).
+// ("Hide archived" is not handled here: it reloads the page, because the server leaves those tasks out.)
+function setUpTaskFilters() {
+    const pills = document.querySelectorAll("[data-status-filter]");
+    const projectSelect = document.querySelector("[data-project-filter]");
+    const prioritySelect = document.querySelector("[data-priority-filter]");
+    const dueSelect = document.querySelector("[data-due-filter]");
+    const groupSelect = document.querySelector("[data-group-by]");
+    const searchBox = document.querySelector("[data-task-search]");
+    const clearButtons = document.querySelectorAll("[data-clear-filters]");
+    const rows = [...document.querySelectorAll("[data-task-item]")];
+    const table = document.getElementById("task-table");
+    const tableBody = table?.querySelector(".data-table");
+    const noResults = document.getElementById("task-no-results");
+    // Not on the Tasks page, or it has no tasks at all (the server shows its own empty state then).
+    if (!projectSelect || !prioritySelect || !dueSelect || !groupSelect || !searchBox || !tableBody || !noResults) return;
+
+    // Unlike the dropdowns, pills aren't form fields, so the chosen one is kept here.
+    let status = "all";
+
+    // For each "Group by" option: how to order rows, and which header a row goes under
+    // (label: null means no headers). Array.sort is stable, and we always start from the
+    // server's order (due date, then name), so rows within a group stay in that order.
+    const groupings = {
+        due: {
+            compare: (a, b) => Number(a.dataset.taskDueOrder) - Number(b.dataset.taskDueOrder),
+            label: row => row.dataset.taskDueLabel,
+            color: row => row.dataset.taskDueColor
+        },
+        project: {
+            compare: (a, b) => a.dataset.taskProjectName.localeCompare(
+                b.dataset.taskProjectName, undefined, { sensitivity: "base" }),
+            label: row => row.dataset.taskProjectName
+        },
+        priority: {
+            // Critical first.
+            compare: (a, b) => Number(b.dataset.taskPriorityRank) - Number(a.dataset.taskPriorityRank),
+            label: row => row.dataset.taskPriority
+        },
+        none: {
+            // A yyyy-MM-dd string sorts correctly as plain text.
+            compare: (a, b) => a.dataset.taskDate.localeCompare(b.dataset.taskDate),
+            label: null
+        }
+    };
+
+    function makeGroupHeader(label, color) {
+        // textContent (not innerHTML), so a project name can never be read as HTML.
+        const header = document.createElement("div");
+        header.className = "group-header";
+        const title = document.createElement("span");
+        title.textContent = label;
+        if (color) title.style.color = color;
+        const count = document.createElement("span");
+        count.className = "badge badge-muted";
+        header.append(title, count);
+        return { header, count };
+    }
+
+    function renderGroups() {
+        tableBody.querySelectorAll(".group-header").forEach(header => header.remove());
+
+        const grouping = groupings[groupSelect.value] ?? groupings.due;
+        const sorted = [...rows].sort(grouping.compare);
+
+        let currentLabel = null;
+        let currentCount = null;
+        let shownInGroup = 0;
+
+        for (const row of sorted) {
+            // append() moves the existing row, so the table's header row stays first.
+            tableBody.append(row);
+            if (!grouping.label || row.hidden) continue;
+
+            const label = grouping.label(row);
+            if (label !== currentLabel) {
+                const { header, count } = makeGroupHeader(label, grouping.color?.(row));
+                row.before(header);
+                currentLabel = label;
+                currentCount = count;
+                shownInGroup = 0;
+            }
+            currentCount.textContent = String(++shownInGroup);
+        }
+    }
+
+    function applyFilters() {
+        const searchText = searchBox.value.trim().toLowerCase();
+
+        pills.forEach(pill => {
+            const isActive = pill.dataset.statusFilter === status;
+            pill.classList.toggle("is-active", isActive);
+            pill.setAttribute("aria-pressed", String(isActive));
+        });
+
+        rows.forEach(row => {
+            const matches =
+                (status === "all" || row.dataset.taskItem === status) &&
+                (projectSelect.value === "" || row.dataset.taskProject === projectSelect.value) &&
+                (prioritySelect.value === "" || row.dataset.taskPriority === prioritySelect.value) &&
+                (dueSelect.value === "" || row.dataset.taskGroup === dueSelect.value) &&
+                row.dataset.taskText.toLowerCase().includes(searchText);
+            row.hidden = !matches;
+        });
+
+        renderGroups();
+
+        const anyVisible = rows.some(row => !row.hidden);
+        table.hidden = !anyVisible;
+        noResults.hidden = anyVisible;
+    }
+
+    pills.forEach(pill => {
+        pill.addEventListener("click", () => {
+            status = pill.dataset.statusFilter;
+            applyFilters();
+        });
+    });
+
+    projectSelect.addEventListener("change", applyFilters);
+    prioritySelect.addEventListener("change", applyFilters);
+    dueSelect.addEventListener("change", applyFilters);
+    groupSelect.addEventListener("change", applyFilters);
+    searchBox.addEventListener("input", applyFilters);
+
+    // "Group by" is a view choice, not a filter, so Clear filters leaves it alone.
+    clearButtons.forEach(button => {
+        button.addEventListener("click", () => {
+            status = "all";
+            projectSelect.value = "";
+            prioritySelect.value = "";
+            dueSelect.value = "";
+            searchBox.value = "";
+            applyFilters();
+        });
+    });
+
+    // Picks up dropdown/search values a browser restored after a reload or Back.
+    applyFilters();
+}
+
 showServerToasts();
+setUpClickOutsideToClose();
 setUpRequiredFieldChecks();
+setUpAddTaskButtons();
 setUpProjectFilters();
+setUpTaskFilters();
 setUpEmptyTrashDialog();
 setUpTrashDialog("confirm-trash", "data-confirm-trash");
 setUpTrashDialog("confirm-task-trash", "data-confirm-task-trash");
 setUpTrashDialog("confirm-purge", "data-confirm-purge");
-setUpClickOutsideToClose();
