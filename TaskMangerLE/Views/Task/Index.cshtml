@@ -94,7 +94,7 @@
         </form>
 
         <div class="sp"></div>
-        <button type="button" class="btn-text" style="color:var(--bt)" data-clear-filters>
+        <button type="button" class="btn btn-text" style="color:var(--bt)" data-clear-filters>
             Clear filters
         </button>
     </div>
@@ -172,31 +172,41 @@
 }
 
 @if (Model.Tasks.Count == 0) {
-    <div class="card card-dashed empty-state">
-        <div
-            style="width:64px;height:64px;border-radius:18px;display:grid;place-items:center;color:var(--bt);background:color-mix(in srgb,var(--bt) 14%,transparent)">
-            <svg width="28" height="28" viewBox="0 0 24 24"
-                 fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="11" cy="11" r="7"></circle>
-                <path d="m21 21-4.3-4.3"></path>
+    @* No tasks at all (filters never get this far: site.js shows #task-no-results for those).
+       Same layout as the "Create your first project" box on Project/Index. *@
+    bool hasProjects = ViewData["AvailableProjects"] is IReadOnlyList<ProjectCardViewModel> { Count: > 0 };
+
+    <section class="card card-dashed empty-state">
+        <div class="icon-tile is-lg" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 11l3 3 8-8"></path>
+                <path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"></path>
             </svg>
         </div>
 
-        <h2 style="font-size:20px;font-weight:700">
-            No tasks match your filters
-        </h2>
+        <h2 style="font-size:20px;font-weight:700">Create your first task</h2>
 
-        <p class="muted">
-            Try removing a filter or searching for something else.
-        </p>
+        @* A task has to belong to a project, so without one, send the user to make a project first. *@
+        @if (hasProjects) {
+            <p class="muted">
+                Tasks from all your projects show up here, grouped by when they're due.
+            </p>
 
-        <div class="row wrap" style="justify-content:center;margin-top:6px">
-            <button type="button" class="btn btn-lg" data-clear-filters>
-                Clear filters
+            <button type="button" class="btn btn-primary"
+                    onclick="document.getElementById('create-task-modal').showModal()">
+                + New Task
             </button>
-        </div>
-    </div>
+        }
+        else {
+            <p class="muted">
+                Tasks live inside projects. Create a project first, then add tasks to it.
+            </p>
+
+            <a asp-controller="Project" asp-action="Index" class="btn btn-primary">Go to Projects</a>
+        }
+    </section>
 }
 else {
     <div id="task-table" class="data-scroll">
