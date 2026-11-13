@@ -7,9 +7,10 @@
         ViewData["CreateTaskModel"] as TaskItemCreateViewModel
         ?? new TaskItemCreateViewModel();
 
-    // The status pills: same names and order as the board columns on Project/Detail, plus Cancelled.
-    // Key is what each row's data-task-item holds (see StatusKey), so site.js can compare them directly.
-    var statusPills = new[]
+    // Every status, for the Status dropdown. Labels and order match the board columns on Project/Detail.
+    // The option values (see StatusKey) are what each row's data-task-item holds, so site.js can
+    // compare them directly.
+    var statuses = new[]
     {
         (Status: TaskStatus.ToDo, Label: "To Do"),
         (Status: TaskStatus.InProgress, Label: "In Progress"),
@@ -17,6 +18,9 @@
         (Status: TaskStatus.Done, Label: "Done"),
         (Status: TaskStatus.Cancelled, Label: "Cancelled")
     };
+
+    // The pills are shortcuts for the dropdown, kept short on purpose: the two statuses that need attention.
+    var statusPills = statuses.Where(s => s.Status is TaskStatus.ToDo or TaskStatus.Review).ToList();
 
     // "ToDo" -> "todo". The same rule the Projects page uses for data-project-item.
     string StatusKey(TaskStatus status) => status.ToString().ToLowerInvariant();
@@ -39,7 +43,8 @@
 
 <div class="stack">
     <div class="row wrap">
-        @* Filters run in the browser: see setUpTaskFilters in site.js and the data-task-* attributes on each row. *@
+        @* Filters run in the browser: see setUpTaskFilters in site.js and the data-task-* attributes on each row.
+           The pills are shortcuts for the Status dropdown below (same values), like on the Projects page. *@
         <div class="pills" role="group" aria-label="Filter tasks by status">
             @* "All" leaves Cancelled out, like "All except archived" on the Projects page. *@
             <button type="button" class="is-active" data-status-filter="all" aria-pressed="true">
@@ -60,20 +65,9 @@
                data-task-search/>
     </div>
 
-    @* Left: filters (what is shown), with Clear filters right next to the things it clears.
-       Right: view settings (how it is shown), which Clear filters leaves alone. *@
+    @* Left: the dropdowns together, then the archived checkbox. Right: Clear filters.
+       (Clear filters resets Status, Priority and search; Group by is a view choice, so it stays.) *@
     <div class="row wrap">
-        <select class="input input-inline" aria-label="Project" data-project-filter>
-            <option value="">All projects</option>
-            @* Value is the project id, not the name: two projects can share a name. *@
-            @foreach (var project in Model.Tasks
-                              .Select(t => new { t.ProjectId, t.ProjectName })
-                              .Distinct()
-                              .OrderBy(p => p.ProjectName)) {
-                <option value="@project.ProjectId">@project.ProjectName</option>
-            }
-        </select>
-
         <select class="input input-inline" aria-label="Priority" data-priority-filter>
             <option value="">All priorities</option>
             @foreach (var priority in Model.Tasks.Select(t => t.Priority).Distinct().OrderBy(p => p)) {
@@ -81,19 +75,12 @@
             }
         </select>
 
-        <select class="input input-inline" aria-label="Due date" data-due-filter>
-            <option value="">All due dates</option>
-            <option value="overdue">Overdue</option>
-            <option value="today">Today</option>
-            <option value="week">This week</option>
-            <option value="later">Later</option>
+        <select class="input input-inline" aria-label="Status" data-status-select>
+            <option value="all">All except cancelled</option>
+            @foreach (var status in statuses) {
+                <option value="@StatusKey(status.Status)">@status.Label</option>
+            }
         </select>
-
-        <button type="button" class="btn btn-text" style="color:var(--bt)" data-clear-filters>
-            Clear filters
-        </button>
-
-        <div class="sp"></div>
 
         <select class="input input-inline" aria-label="Group by" data-group-by>
             <option value="due">Group by: Due date</option>
@@ -115,6 +102,12 @@
                 <span>Show archived projects</span>
             </label>
         </form>
+
+        <div class="sp"></div>
+
+        <button type="button" class="btn btn-text" style="color:var(--bt)" data-clear-filters>
+            Clear filters
+        </button>
     </div>
 </div>
 
@@ -130,47 +123,38 @@
 
     var groups = new[]
     {
-        // Key matches the Due date dropdown's option values, so the filter can compare them directly.
-        // Done and Cancelled have no matching option, so they never match a due-date filter
-        // (same as finished projects on the Projects page).
         new
         {
-            Key = "overdue",
             Title = "Overdue",
             Tasks = openTasks.Where(t => t.DueDate < today).ToList(),
             Color = "var(--rt)"
         },
         new
         {
-            Key = "today",
             Title = "Today",
             Tasks = openTasks.Where(t => t.DueDate == today).ToList(),
             Color = "var(--at)"
         },
         new
         {
-            Key = "week",
             Title = "This week",
             Tasks = openTasks.Where(t => t.DueDate > today && t.DueDate <= weekEnd).ToList(),
             Color = "var(--text)"
         },
         new
         {
-            Key = "later",
             Title = "Later",
             Tasks = openTasks.Where(t => t.DueDate > weekEnd).ToList(),
             Color = "var(--text)"
         },
         new
         {
-            Key = "done",
             Title = "Done",
             Tasks = Model.Tasks.Where(t => t.Status == TaskStatus.Done).ToList(),
             Color = "var(--gt)"
         },
         new
         {
-            Key = "cancelled",
             Title = "Cancelled",
             Tasks = Model.Tasks.Where(t => t.Status == TaskStatus.Cancelled).ToList(),
             Color = "var(--muted)"
@@ -261,8 +245,6 @@ else {
 
                         <div class="data-row"
                              data-task-item="@StatusKey(task.Status)"
-                             data-task-group="@group.Key"
-                             data-task-project="@task.ProjectId"
                              data-task-priority="@task.Priority"
                              data-task-text="@task.Name @task.Description"
                              data-task-due-label="@group.Title"

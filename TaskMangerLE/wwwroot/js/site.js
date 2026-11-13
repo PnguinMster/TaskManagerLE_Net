@@ -669,11 +669,12 @@ function setUpProjectFilters() {
     applySort();
 }
 
-// Tasks page: status pills, Project / Priority / Due date dropdowns, search box, "Clear filters"
-// and "Group by". Same idea as setUpProjectFilters: every task row carries
-//   data-task-item="<status>"            lowercase TaskStatus (todo/inprogress/review/done/cancelled): what the pills match
-//   data-task-group="<key>"              its Due date group (overdue/today/week/later/completed)
-//   data-task-project="<project id>"     data-task-priority="<TaskPriority>"
+// Tasks page: status pills, Status / Priority dropdowns, search box, "Clear filters"
+// and "Group by". Same idea as setUpProjectFilters: the pills are shortcuts for the Status dropdown,
+// and every task row carries
+//   data-task-item="<status>"            lowercase TaskStatus (todo/inprogress/review/done/cancelled):
+//                                        what the Status dropdown (and so the pills) match
+//   data-task-priority="<TaskPriority>"  what the Priority dropdown matches
 //   data-task-text="<name> <description>"   what the search box looks at
 //   data-task-due-label / -due-color / -due-order, -project-name, -priority-rank, -date
 //                                        what "Group by" sorts and labels on
@@ -682,9 +683,8 @@ function setUpProjectFilters() {
 // ("Show archived projects" is not handled here: it reloads the page, because the server leaves those tasks out.)
 function setUpTaskFilters() {
     const pills = document.querySelectorAll("[data-status-filter]");
-    const projectSelect = document.querySelector("[data-project-filter]");
+    const statusSelect = document.querySelector("[data-status-select]");
     const prioritySelect = document.querySelector("[data-priority-filter]");
-    const dueSelect = document.querySelector("[data-due-filter]");
     const groupSelect = document.querySelector("[data-group-by]");
     const searchBox = document.querySelector("[data-task-search]");
     const clearButtons = document.querySelectorAll("[data-clear-filters]");
@@ -693,10 +693,8 @@ function setUpTaskFilters() {
     const tableBody = table?.querySelector(".data-table");
     const noResults = document.getElementById("task-no-results");
     // Not on the Tasks page, or it has no tasks at all (the server shows its own empty state then).
-    if (!projectSelect || !prioritySelect || !dueSelect || !groupSelect || !searchBox || !tableBody || !noResults) return;
+    if (!statusSelect || !prioritySelect || !groupSelect || !searchBox || !tableBody || !noResults) return;
 
-    // Unlike the dropdowns, pills aren't form fields, so the chosen one is kept here.
-    let status = "all";
     const FILTERS_KEY = "taskFilters";
 
     // For each "Group by" option: how to order rows, and which header a row goes under
@@ -765,9 +763,13 @@ function setUpTaskFilters() {
         }
     }
 
+    // The controls themselves hold the state (no separate variable), so the pills and the
+    // dropdown can never disagree.
     function applyFilters() {
+        const status = statusSelect.value;   // "all" or a status
         const searchText = searchBox.value.trim().toLowerCase();
 
+        // Highlight the pill that matches the dropdown (none, if it's on a status with no pill, like Done).
         pills.forEach(pill => {
             const isActive = pill.dataset.statusFilter === status;
             pill.classList.toggle("is-active", isActive);
@@ -782,9 +784,7 @@ function setUpTaskFilters() {
                 : row.dataset.taskItem === status;
             const matches =
                 matchesStatus &&
-                (projectSelect.value === "" || row.dataset.taskProject === projectSelect.value) &&
                 (prioritySelect.value === "" || row.dataset.taskPriority === prioritySelect.value) &&
-                (dueSelect.value === "" || row.dataset.taskGroup === dueSelect.value) &&
                 row.dataset.taskText.toLowerCase().includes(searchText);
             row.hidden = !matches;
         });
@@ -797,9 +797,7 @@ function setUpTaskFilters() {
 
         saveFilters(FILTERS_KEY, {
             status,
-            project: projectSelect.value,
             priority: prioritySelect.value,
-            due: dueSelect.value,
             group: groupSelect.value,
             search: searchBox.value
         });
@@ -807,24 +805,21 @@ function setUpTaskFilters() {
 
     pills.forEach(pill => {
         pill.addEventListener("click", () => {
-            status = pill.dataset.statusFilter;
+            statusSelect.value = pill.dataset.statusFilter;
             applyFilters();
         });
     });
 
-    projectSelect.addEventListener("change", applyFilters);
+    statusSelect.addEventListener("change", applyFilters);
     prioritySelect.addEventListener("change", applyFilters);
-    dueSelect.addEventListener("change", applyFilters);
     groupSelect.addEventListener("change", applyFilters);
     searchBox.addEventListener("input", applyFilters);
 
     // "Group by" is a view choice, not a filter, so Clear filters leaves it alone.
     clearButtons.forEach(button => {
         button.addEventListener("click", () => {
-            status = "all";
-            projectSelect.value = "";
+            statusSelect.value = "all";
             prioritySelect.value = "";
-            dueSelect.value = "";
             searchBox.value = "";
             applyFilters();
         });
@@ -832,10 +827,8 @@ function setUpTaskFilters() {
 
     // Put back what was chosen before a reload (see loadSavedFilters).
     const saved = loadSavedFilters(FILTERS_KEY);
-    if ([...pills].some(pill => pill.dataset.statusFilter === saved.status)) status = saved.status;
-    restoreControl(projectSelect, saved.project);
+    restoreControl(statusSelect, saved.status);
     restoreControl(prioritySelect, saved.priority);
-    restoreControl(dueSelect, saved.due);
     restoreControl(groupSelect, saved.group);
     restoreControl(searchBox, saved.search);
 
