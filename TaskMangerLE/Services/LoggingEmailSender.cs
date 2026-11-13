@@ -1,3 +1,4 @@
+using System.Net;
 using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace TaskMangerLE.Services;
@@ -8,7 +9,9 @@ public class LoggingEmailSender(ILogger<LoggingEmailSender> logger) : IEmailSend
 {
     public Task SendEmailAsync(string email, string subject, string htmlMessage)
     {
-        logger.LogInformation("Email to {Email} | {Subject}\n{Body}", email, subject, htmlMessage);
+        // HtmlDecode turns "&amp;" back into "&" so a link copied from the console works in the browser.
+        // A real email client does this decoding for you.
+        logger.LogInformation("Email to {Email} | {Subject}\n{Body}", email, subject, WebUtility.HtmlDecode(htmlMessage));
         return Task.CompletedTask;
     }
 }

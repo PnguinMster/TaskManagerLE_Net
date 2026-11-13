@@ -341,6 +341,10 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
             return BadRequest();
         }
 
+        // The query string was already bound into ModelState (with the still-encoded code), and tag helpers
+        // like asp-for prefer ModelState over the model. Clear it so the hidden field gets the decoded token.
+        ModelState.Clear();
+
         return View(new ResetPasswordViewModel { Email = email, Code = code });
     }
 
@@ -348,10 +352,18 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
     {
+        var user = string.IsNullOrEmpty(model.Email) ? null : await userManager.FindByEmailAsync(model.Email);
+
+        // Same idea as Register: check the password rules before the IsValid test, so a rule error
+        // and a "doesn't match" error show together instead of one hiding the other.
+        if (user is not null && !string.IsNullOrEmpty(model.Password)) {
+            foreach (var validator in userManager.PasswordValidators)
+                AddRegisterErrors(await validator.ValidateAsync(userManager, user, model.Password));
+        }
+
         if (!ModelState.IsValid)
             return View(model);
 
-        var user = await userManager.FindByEmailAsync(model.Email);
         if (user is null)
             return ResetPasswordDone(); // don't reveal that the email doesn't exist
 
@@ -359,13 +371,12 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
         if (result.Succeeded)
             return ResetPasswordDone();
 
-        foreach (var error in result.Errors) {
-            // An old or already-used link gives the same code either way; one friendly message covers both.
-            var message = error.Code == nameof(IdentityErrorDescriber.InvalidToken)
-                ? "This reset link is invalid or has expired. Please request a new one."
-                : error.Description;
-            ModelState.AddModelError(string.Empty, message);
-        }
+        // An old or already-used link gives the same code either way; one friendly message covers both.
+        if (result.Errors.Any(e => e.Code == nameof(IdentityErrorDescriber.InvalidToken)))
+            ModelState.AddModelError(string.Empty, "This reset link is invalid or has expired. Please request a new one.");
+        else
+            AddRegisterErrors(result); // password-rule errors go under the Password field, like on Register
+
         return View(model);
     }
 
