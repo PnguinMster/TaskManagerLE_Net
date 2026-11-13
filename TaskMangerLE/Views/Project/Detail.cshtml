@@ -280,7 +280,8 @@
                                 @if (isCancelled) {
                                     <span class="badge badge-muted">Cancelled</span>
                                 }
-                                <span class="badge @priorityClass">@task.Priority</span>
+                                @* The dot is decoration only (the word says the priority), so screen readers skip it. *@
+                                <span class="badge @priorityClass"><span aria-hidden="true">●</span> @task.Priority</span>
                                 <span class="due @(isDueToday ? "is-today" : "")">
                                     <svg width="14" height="14" viewBox="0 0 24 24"
                                          fill="none" stroke="currentColor" stroke-width="2"

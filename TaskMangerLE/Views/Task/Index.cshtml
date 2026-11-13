@@ -279,7 +279,8 @@ else {
                                 };
                             }
 
-                            <span class="badge @priorityClass">@task.Priority</span>
+                            @* The dot is decoration only (the word says the priority), so screen readers skip it. *@
+                            <span class="badge @priorityClass"><span aria-hidden="true">●</span> @task.Priority</span>
 
                             <span
                                 style="display:flex;align-items:center;gap:6px;font-size:13px;color:@(group.Title == "Overdue" ? "var(--rt)" : "var(--muted)")">
