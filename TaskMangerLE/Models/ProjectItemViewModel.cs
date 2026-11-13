@@ -6,7 +6,7 @@ namespace TaskMangerLE.Models;
 
 public abstract class ProjectItemViewModelBase
 {
-    [Required]
+    [Required(ErrorMessage = "Project title is required.")]
     [MaxLength(ItemConstraints.NameMaxLength)]
     public string Name { get; set; } = string.Empty;
     [DataType(DataType.MultilineText)]

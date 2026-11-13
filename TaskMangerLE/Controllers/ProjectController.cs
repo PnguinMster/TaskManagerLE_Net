@@ -92,6 +92,7 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
             Id = projectItem.Id,
             Name = projectItem.Name,
             Description = projectItem.Description,
+            DueDate = projectItem.DueDate,
             Status = projectItem.Status,
         };
 
@@ -111,7 +112,7 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
             return View(projectItemModel);
 
         await services.UpdateProjectAsync(projectItem, projectItemModel);
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(Detail), new { projectId = projectItem.Id });
     }
 
     [HttpPost]

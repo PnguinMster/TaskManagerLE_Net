@@ -90,6 +90,7 @@ public class ProjectService(ApplicationDbContext context)
     {
         projectItem.Name = projectItemModel.Name;
         projectItem.Description = projectItemModel.Description ?? string.Empty;
+        projectItem.DueDate = projectItemModel.DueDate;
         projectItem.Status = projectItemModel.Status;
 
         await context.SaveChangesAsync();

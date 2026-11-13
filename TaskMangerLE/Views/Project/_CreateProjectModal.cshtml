@@ -16,7 +16,7 @@
         </button>
     </div>
 
-    <form id="create-project-form" asp-controller="Project" asp-action="Create" method="post">
+    <form id="create-project-form" asp-controller="Project" asp-action="Create" method="post" data-check-required novalidate>
         @Html.AntiForgeryToken()
 
         <div class="modal-body">
@@ -39,17 +39,17 @@
 
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px">
                 <div class="form-group">
-                    <label asp-for="DueDate">Due date</label>
-                    <input asp-for="DueDate" type="date" class="input"/>
-                    <span asp-validation-for="DueDate"></span>
-                </div>
-
-                <div class="form-group">
                     <label asp-for="Status"></label>
                     <select asp-for="Status"
                             asp-items="Html.GetEnumSelectList<ProjectStatus>()"
                             class="input"></select>
                     <span asp-validation-for="Status"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="DueDate">Due date</label>
+                    <input asp-for="DueDate" type="date" class="input"/>
+                    <span asp-validation-for="DueDate"></span>
                 </div>
             </div>
         </div>

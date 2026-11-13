@@ -295,8 +295,10 @@
                         </article>
                     }
 
+                    @* data-add-task-status: site.js sets the modal's Status to this lane's status before opening it.
+                       Done and Cancelled share a lane, so the first status (Done) is the one used. *@
                     <button type="button" class="btn card-dashed"
-                            onclick="document.getElementById('create-task-modal').showModal()">
+                            data-add-task-status="@((int)column.Statuses[0])">
                         + Add task
                     </button>
                 </section>
@@ -323,7 +325,7 @@
             </button>
         </div>
 
-        <form asp-action="Update" method="post">
+        <form id="edit-project-form" asp-action="Update" method="post" data-check-required novalidate>
             @Html.AntiForgeryToken()
             <input type="hidden" name="Id" value="@Model.Id"/>
 
@@ -336,7 +338,11 @@
                            value="@Model.Name"
                            maxlength="@ItemConstraints.NameMaxLength"
                            autocomplete="off"
-                           required/>
+                           data-val="true"
+                           data-val-required="Project title is required."/>
+                    @* Written by hand: this page's model (ProjectDetailViewModel) has no [Required], so asp-for
+                       can't generate these. The text must match the [Required] message on ProjectItemViewModelBase.Name. *@
+                    <span data-valmsg-for="Name" class="field-error"></span>
                 </div>
 
                 <div class="form-group">
@@ -353,17 +359,17 @@
 
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px">
                     <div class="form-group">
-                        <label asp-for="DueDate">Due date</label>
-                        <input asp-for="DueDate" type="date" class="input"/>
-                        <span asp-validation-for="DueDate"></span>
-                    </div>
-
-                    <div class="form-group">
                         <label asp-for="Status"></label>
                         <select asp-for="Status"
                                 asp-items="Html.GetEnumSelectList<ProjectStatus>()"
                                 class="input"></select>
                         <span asp-validation-for="Status"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="DueDate">Due date</label>
+                        <input asp-for="DueDate" type="date" class="input"/>
+                        <span asp-validation-for="DueDate"></span>
                     </div>
                 </div>
 
@@ -372,17 +378,10 @@
                     by @Model.OwnerName
                 </p>
             </div>
+        </form>
 
-            <form id="edit-project-form" asp-action="Update" method="post">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="Id" value="@Model.Id"/>
-
-                <div class="modal-body">
-                    @* Name, Description, DueDate, and Status fields go here. *@
-                </div>
-            </form>
-
-            <div class="modal-footer">
+        @* Footer is outside the form on purpose: forms can't be nested. Save links back via form="edit-project-form". *@
+        <div class="modal-footer">
                 <form asp-action="Delete"
                       asp-route-projectId="@Model.Id"
                       method="post"
@@ -402,8 +401,7 @@
                 <button type="submit" form="edit-project-form" class="btn btn-primary">
                     Save changes
                 </button>
-            </div>
-        </form>
+        </div>
     </dialog>
     <partial name="~/Views/Task/_CreateTaskModal.cshtml"
              model="new TaskItemCreateViewModel { ProjectId = Model.Id, DueDate = TimeProvider.Today() }"/>
