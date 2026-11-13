@@ -857,6 +857,12 @@ strong {
     border-top: 1px solid var(--divider);
 }
 
+/* Grid items stretch to fill their cell by default, which made badges (e.g. Priority) as wide as
+   the column. start = only as wide as the word. */
+.data-row > .badge {
+    justify-self: start;
+}
+
 .data-row:hover {
     background: var(--card-hover);
 }
