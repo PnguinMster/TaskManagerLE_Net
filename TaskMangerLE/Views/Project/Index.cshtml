@@ -88,7 +88,7 @@ else {
            value (the lowercase ProjectStatus). See setUpProjectFilters in site.js. *@
         <div class="pills" role="group" aria-label="Filter projects by status">
             <button class="is-active" type="button" data-project-status-pill="all" aria-pressed="true">
-                All (@Model.Count)
+                All (@Model.Count(p => p.Status != ProjectStatus.Archived))
             </button>
             <button type="button" data-project-status-pill="planning" aria-pressed="false">
                 Planning (@Model.Count(p => p.Status == ProjectStatus.Planning))
@@ -112,13 +112,13 @@ else {
 
     <div class="row wrap">
         <select class="input input-inline" aria-label="Status" data-project-status>
-            <option value="all">All statuses</option>
+            <option value="all">All except archived</option>
             <option value="planning">Planning</option>
             <option value="active">In Progress</option>
             <option value="onhold">On Hold</option>
             <option value="completed">Completed</option>
             <option value="cancelled">Cancelled</option>
-            <option value="archived">Archived</option>
+            <option value="archived">Archived (@Model.Count(p => p.Status == ProjectStatus.Archived))</option>
         </select>
 
         @* Finished projects (Completed, Cancelled, Archived) never match a due-date option. *@

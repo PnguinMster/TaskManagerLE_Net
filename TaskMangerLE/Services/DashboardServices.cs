@@ -19,13 +19,20 @@ public class DashboardServices(ApplicationDbContext context, TimeProvider timePr
         var projectCounts = await context.ProjectItems.AsNoTracking().Where(p => p.OwnerId == userId).GroupBy(p => p.Status)
             .Select(g => new { Status = g.Key, Count = g.Count() }).ToListAsync();
 
-        int pendingTasks = await context.TaskItems.AsNoTracking()
-            .CountAsync(t => t.Project.OwnerId == userId && t.Status != TaskStatus.Done && t.Status != TaskStatus.Cancelled);
+        // Archived projects are put away on purpose, so neither they nor their tasks show on the dashboard.
+        var openTasks = context.TaskItems.AsNoTracking().Where(t =>
+            t.Project.OwnerId == userId &&
+            t.Project.Status != ProjectStatus.Archived &&
+            t.Status != TaskStatus.Done &&
+            t.Status != TaskStatus.Cancelled);
 
-        int overdueTasks = await context.TaskItems.AsNoTracking().CountAsync(t =>
-            t.Project.OwnerId == userId && t.DueDate < today && t.Status != TaskStatus.Done && t.Status != TaskStatus.Cancelled);
+        int pendingTasks = await openTasks.CountAsync();
 
-        var recentProjects = await context.ProjectItems.AsNoTracking().Where(p => p.OwnerId == userId).OrderByDescending(p => p.UpdatedAtUtc)
+        int overdueTasks = await openTasks.CountAsync(t => t.DueDate < today);
+
+        var recentProjects = await context.ProjectItems.AsNoTracking()
+            .Where(p => p.OwnerId == userId && p.Status != ProjectStatus.Archived)
+            .OrderByDescending(p => p.UpdatedAtUtc)
             .Take(RecentProjectsLimit).Select(p => new DashboardProjectViewModel
             {
                 Id = p.Id,
@@ -33,12 +40,12 @@ public class DashboardServices(ApplicationDbContext context, TimeProvider timePr
                 Description = p.Description,
                 Status = p.Status,
                 UpdatedAtUtc = p.UpdatedAtUtc,
-                TotalTasksCount = p.Tasks.Count,
+                TotalTasksCount = p.Tasks.Count(t => t.Status != TaskStatus.Cancelled),
                 CompletedTasksCount = p.Tasks.Count(t => t.Status == TaskStatus.Done),
             }).ToListAsync();
 
-        var upcomingTasks = await context.TaskItems.AsNoTracking()
-            .Where(t => t.Project.OwnerId == userId && t.DueDate >= today && t.Status != TaskStatus.Done && t.Status != TaskStatus.Cancelled)
+        var upcomingTasks = await openTasks
+            .Where(t => t.DueDate >= today)
             .OrderBy(t => t.DueDate).Take(UpcomingTasksLimit).Select(t => new DashboardTaskViewModel
             {
                 Id = t.Id,
