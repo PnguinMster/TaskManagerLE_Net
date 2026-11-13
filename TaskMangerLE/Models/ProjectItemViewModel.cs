@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using TaskMangerLE.Extensions;
 using TaskMangerLE.Models.Enums;
 
 namespace TaskMangerLE.Models;
@@ -23,7 +24,7 @@ public class ProjectItemCreateViewModel : ProjectItemViewModelBase
     // overwrites it with whatever the user submits.
     public ProjectItemCreateViewModel()
     {
-        DueDate = DateOnly.FromDateTime(TimeProvider.System.GetLocalNow().DateTime);
+        DueDate = TimeProvider.System.Today();
     }
 }
 

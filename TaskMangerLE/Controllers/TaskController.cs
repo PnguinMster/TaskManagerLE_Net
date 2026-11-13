@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using TaskMangerLE.Extensions;
 using TaskMangerLE.Models;
 using TaskMangerLE.Models.Enums;
 using TaskMangerLE.Services;
@@ -8,7 +9,11 @@ using TaskMangerLE.Services;
 namespace TaskMangerLE.Controllers;
 
 [Authorize]
-public class TaskController(TaskService taskService, ProjectService projectService, IAuthorizationService authorizationService)
+public class TaskController(
+    TaskService taskService,
+    ProjectService projectService,
+    IAuthorizationService authorizationService,
+    TimeProvider timeProvider)
     : ItemControllerBase(authorizationService)
 {
     [HttpGet]
@@ -39,7 +44,7 @@ public class TaskController(TaskService taskService, ProjectService projectServi
         return View(new TaskItemCreateViewModel
         {
             ProjectId = projectItem.Id,
-            DueDate = DateOnly.FromDateTime(DateTime.UtcNow)
+            DueDate = timeProvider.Today()
         });
     }
 

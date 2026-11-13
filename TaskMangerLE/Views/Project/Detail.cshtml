@@ -75,27 +75,25 @@
             <article style="background:color-mix(in srgb,var(--text) 3.5%,var(--card));border:1px solid var(--divider);border-radius:12px;padding:14px 16px">
                 <p class="muted" style="font-size:12px;font-weight:600">DUE DATE</p>
                 <p style="font-size:18px;font-weight:600;margin-top:2px">
-                    @(Model.DueDate?.ToString("MMM d, yyyy") ?? "No due date")
+                    @Model.DueDate.ToString("MMM d, yyyy")
                 </p>
-                <p class="muted" style="font-size:13px">
-                    @if (Model.DueDate is { } dueDate) {
-                        var daysRemaining = dueDate.DayNumber -
-                                                DateOnly.FromDateTime(DateTime.Today).DayNumber;
+                @* A finished project isn't "overdue", so it gets no countdown (same rule as _DueLabel). *@
+                @if (Model.Status is not (ProjectStatus.Completed or ProjectStatus.Cancelled or ProjectStatus.Archived)) {
+                    int daysRemaining = Model.DueDate.DayNumber - TimeProvider.Today().DayNumber;
 
-                        if (daysRemaining > 0) {
-                            @($"{daysRemaining} days left")
+                    <p style="margin-top:6px">
+                        @if (daysRemaining > 0) {
+                            <span class="badge badge-muted">@(daysRemaining == 1 ? "1 day left" : $"{daysRemaining} days left")</span>
                         }
                         else if (daysRemaining == 0) {
-                            @:Due today
+                            <span class="badge badge-amber">Due today</span>
                         }
                         else {
-                            @($"{Math.Abs(daysRemaining)} days overdue")
+                            int daysOverdue = Math.Abs(daysRemaining);
+                            <span class="badge badge-rose">@(daysOverdue == 1 ? "1 day overdue" : $"{daysOverdue} days overdue")</span>
                         }
-                    }
-                    else {
-                        @:No upcoming task due
-                    }
-                </p>
+                    </p>
+                }
             </article>
 
             <article style="background:color-mix(in srgb,var(--text) 3.5%,var(--card));border:1px solid var(--divider);border-radius:12px;padding:14px 16px">
@@ -198,7 +196,7 @@
                         };
 
                         bool isDueToday =
-                            task.DueDate == DateOnly.FromDateTime(DateTime.Today);
+                            task.DueDate == TimeProvider.Today();
 
                         <article class="card task-card">
                             <div class="row" style="align-items:flex-start">
@@ -389,5 +387,5 @@
         </form>
     </dialog>
     <partial name="~/Views/Task/_CreateTaskModal.cshtml"
-             model="new TaskItemCreateViewModel { ProjectId = Model.Id, DueDate = DateOnly.FromDateTime(DateTime.UtcNow) }"/>
+             model="new TaskItemCreateViewModel { ProjectId = Model.Id, DueDate = TimeProvider.Today() }"/>
 </div>

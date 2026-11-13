@@ -87,7 +87,7 @@
 
 
 @{
-    var today = DateOnly.FromDateTime(DateTime.Today);
+    var today = TimeProvider.Today();
     var weekEnd = today.AddDays(7);
 
     var groups = new[]

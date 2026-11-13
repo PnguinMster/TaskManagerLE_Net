@@ -514,6 +514,15 @@ button {
     background: var(--card-hover);
 }
 
+/* Visible outline for project cards; --border is too faint against dark cards. */
+.card-outline {
+    border-color: var(--divider);
+}
+
+.card-outline:hover {
+    background: color-mix(in srgb, var(--text) 4%, var(--card));
+}
+
 .card-flush {
     padding: 0;
     overflow: hidden;
@@ -1509,7 +1518,7 @@ dialog.modal::backdrop {
     right: 0;
     width: min(16rem, calc(100vw - 2rem));
     padding: 0.5rem;
-    border: 1px solid var(--border);
+    border: 1px solid var(--divider);
     border-radius: var(--radius-sm);
     background: var(--card);
     box-shadow: 0 12px 32px rgb(0 0 0 / 20%);
@@ -1549,7 +1558,7 @@ dialog.modal::backdrop {
 .user-menu-divider {
     height: 1px;
     margin: 0.25rem 0;
-    background: var(--border);
+    background: var(--divider);
 }
 
 .user-menu-panel form {
@@ -1631,6 +1640,18 @@ dialog.modal::backdrop {
 
 .grid-cards > .card {
     margin: 4px;
+}
+
+/* Projects page only: sizing from the ProjectPulse reference board (Trash shares .grid-cards).
+   The 16px gap is the only spacing between cards, so the default .card margin is removed. */
+#project-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+#project-grid > .card {
+    padding: 20px;
+    margin: 0;
 }
 
 

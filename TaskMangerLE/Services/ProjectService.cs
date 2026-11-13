@@ -19,9 +19,6 @@ public class ProjectService(ApplicationDbContext context)
         return projects.Select(project =>
         {
             var tasks = project.Tasks.ToList();
-            var activeTasks = tasks
-                .Where(t => t.Status != TaskStatus.Done && t.Status != TaskStatus.Cancelled)
-                .ToList();
             var completedCount = tasks.Count(t => t.Status == TaskStatus.Done);
 
             return new ProjectCardViewModel
@@ -35,9 +32,7 @@ public class ProjectService(ApplicationDbContext context)
                 ProgressPercent = tasks.Count == 0
                     ? 0
                     : (int)Math.Round(completedCount * 100.0 / tasks.Count),
-                NextDueDate = activeTasks
-                    .Select(t => (DateOnly?)t.DueDate)
-                    .Min()
+                DueDate = project.DueDate
             };
         }).ToList();
     }
@@ -57,11 +52,7 @@ public class ProjectService(ApplicationDbContext context)
                 OwnerName = p.Owner.UserName ?? p.Owner.Email ?? "Unknown",
                 CompletedTaskCount = p.Tasks.Count(t => t.Status == TaskStatus.Done),
                 TotalTaskCount = p.Tasks.Count(),
-                DueDate = p.Tasks
-                    .Where(t => t.Status != TaskStatus.Done &&
-                                t.Status != TaskStatus.Cancelled)
-                    .Select(t => (DateOnly?)t.DueDate)
-                    .Min(),
+                DueDate = p.DueDate,
                 Tasks = p.Tasks
                     .OrderBy(t => t.DueDate)
                     .Select(t => new ProjectDetailTaskViewModel

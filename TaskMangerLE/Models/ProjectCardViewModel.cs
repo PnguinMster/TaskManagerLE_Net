@@ -11,5 +11,5 @@ public class ProjectCardViewModel
     public int CompletedTaskCount { get; init; }
     public int TotalTaskCount { get; init; }
     public int ProgressPercent { get; init; }
-    public DateOnly? NextDueDate { get; init; }
+    public DateOnly DueDate { get; init; }
 }

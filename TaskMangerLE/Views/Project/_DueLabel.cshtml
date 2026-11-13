@@ -1,0 +1,21 @@
+@* Project due date on a card: "Due Nov 20", "Due today" or "Overdue · Nov 5". *@
+@model ProjectCardViewModel
+
+@{
+    DateOnly today = TimeProvider.Today();
+    DateOnly dueDate = Model.DueDate;
+
+    // A finished project that passed its date isn't "overdue": show the plain date.
+    bool isFinished = Model.Status is ProjectStatus.Completed or ProjectStatus.Cancelled or ProjectStatus.Archived;
+}
+
+@* Same badge classes as the due dates on the home page's upcoming-tasks list. *@
+@if (isFinished || dueDate > today) {
+    <span class="badge badge-muted">Due @dueDate.ToString("MMM d")</span>
+}
+else if (dueDate == today) {
+    <span class="badge badge-amber">Due today</span>
+}
+else {
+    <span class="badge badge-rose">Overdue · @dueDate.ToString("MMM d")</span>
+}

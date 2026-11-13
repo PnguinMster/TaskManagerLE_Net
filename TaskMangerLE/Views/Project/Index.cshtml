@@ -106,7 +106,7 @@ else {
                 ProjectStatus.Archived => ("Archived", "badge-muted", "", "muted"),
                 _ => (project.Status.ToString(), "badge-muted", "", "muted")
             };
-            <div class="card card-hover"
+            <div class="card card-outline"
                  style="display:flex;flex-direction:column;gap:14px">
 
                 <div class="row" style="justify-content:space-between;align-items:flex-start">
@@ -135,12 +135,7 @@ else {
 
                 <div class="row" style="margin-top:auto">
                     <span class="muted small" style="flex:1">
-                        @if (project.NextDueDate is not null) {
-                            @:Due @project.NextDueDate.Value.ToString("MMM d")
-                        }
-                        else {
-                            @:No upcoming due date
-                        }
+                        <partial name="_DueLabel" model="project" />
                     </span>
                     <a asp-controller="Project"
                        asp-action="Detail"
@@ -225,12 +220,7 @@ else {
                         </div>
 
                         <span class="muted small">
-                            @if (project.NextDueDate is not null) {
-                                @:Due @project.NextDueDate.Value.ToString("MMM d")
-                            }
-                            else {
-                                @:No upcoming due date
-                            }
+                            <partial name="_DueLabel" model="project" />
                         </span>
 
                         <div class="project-actions">

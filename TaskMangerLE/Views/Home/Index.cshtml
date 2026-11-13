@@ -81,7 +81,7 @@
                             _ => (project.Status.ToString(), "badge-muted", "", "muted")
                         };
 
-                        <a class="card card-hover dashboard-project-card"
+                        <a class="card card-outline dashboard-project-card"
                            asp-controller="Project"
                            asp-action="Detail"
                            asp-route-projectId="@project.Id">
@@ -136,7 +136,7 @@
                     <div class="card dashboard-tasks">
                         <div class="dashboard-task-list">
                             @foreach (var task in Model.UpcomingTasks) {
-                                bool isDueToday = task.DueDateUtc?.Date == DateTime.UtcNow.Date;
+                                bool isDueToday = task.DueDate == TimeProvider.Today();
 
                                 var task1 = task;
                                 <div class="row dashboard-task">
@@ -162,7 +162,7 @@
                                     </span>
 
                                     <span class="badge @(isDueToday ? "badge-rose" : "badge-muted")">
-                                        @(isDueToday ? "Today" : task1.DueDateUtc?.ToString("MMM d"))
+                                        @(isDueToday ? "Today" : task1.DueDate.ToString("MMM d"))
                                     </span>
                                 </div>
                             }
@@ -264,7 +264,7 @@ else {
                 </div>
 
                 <div class="stack">
-                    <div class="card dashboard-project-card">
+                    <div class="card card-outline dashboard-project-card">
                         <div class="row between dashboard-project-heading">
                             <h3>Website Redesign</h3>
                             <span class="badge badge-blue">In Progress</span>
@@ -285,7 +285,7 @@ else {
                         </div>
                     </div>
 
-                    <div class="card dashboard-project-card">
+                    <div class="card card-outline dashboard-project-card">
                         <div class="row between dashboard-project-heading">
                             <h3>Onboarding Flow</h3>
                             <span class="badge badge-amber">On Hold</span>

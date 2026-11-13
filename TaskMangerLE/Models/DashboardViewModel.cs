@@ -38,5 +38,5 @@ public class DashboardTaskViewModel
     public string Name { get; init; } = string.Empty;
     public string ProjectName { get; init; } = string.Empty;
     public TaskPriority Priority { get; init; }
-    public DateTime? DueDateUtc { get; init; }
+    public DateOnly DueDate { get; init; }
 }

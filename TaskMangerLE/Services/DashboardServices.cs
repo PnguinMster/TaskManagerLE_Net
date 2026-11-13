@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TaskMangerLE.Data;
+using TaskMangerLE.Extensions;
 using TaskMangerLE.Models;
 using TaskMangerLE.Models.Enums;
 using TaskStatus = TaskMangerLE.Models.Enums.TaskStatus;
@@ -13,7 +14,7 @@ public class DashboardServices(ApplicationDbContext context, TimeProvider timePr
 
     public async Task<DashboardViewModel> GetDashboardAsync(string userId)
     {
-        DateOnly today = DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime);
+        DateOnly today = timeProvider.Today();
 
         var projectCounts = await context.ProjectItems.AsNoTracking().Where(p => p.OwnerId == userId).GroupBy(p => p.Status)
             .Select(g => new { Status = g.Key, Count = g.Count() }).ToListAsync();
@@ -45,7 +46,7 @@ public class DashboardServices(ApplicationDbContext context, TimeProvider timePr
                 Name = t.Name,
                 ProjectName = t.Project.Name,
                 Priority = t.Priority,
-                DueDateUtc = t.DueDate.ToDateTime(TimeOnly.MinValue),
+                DueDate = t.DueDate,
             })
             .ToListAsync();
 
