@@ -12,6 +12,7 @@ public enum TaskPriority
 
 public enum TaskStatus
 {
+    [Display(Name = "To Do")]
     ToDo = 0,
     [Display(Name = "In Progress")]
     InProgress = 1,
