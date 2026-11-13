@@ -24,24 +24,7 @@
         setTheme(nextTheme);
         localStorage.setItem("theme", nextTheme);
     });
-    
-        const userMenu = document.querySelector(".user-menu");
-    
-        if (userMenu) {
-            document.addEventListener("click", (event) => {
-                if (!userMenu.contains(event.target)) {
-                    userMenu.open = false;
-                }
-            });
-    
-            document.addEventListener("keydown", (event) => {
-                if (event.key === "Escape" && userMenu.open) {
-                    userMenu.open = false;
-                    userMenu.querySelector("summary")?.focus();
-                }
-            });
-        }
-        
+
         document.addEventListener("DOMContentLoaded", () => {
             const gridButton = document.getElementById("grid-view");
             const listButton = document.getElementById("list-view");
@@ -277,6 +260,50 @@ function setUpEmptyTrashDialog() {
 
 // ---------- Toasts ----------
 // showToast({ kind, title, message, actionLabel, onAction })
+// Click outside a popup to close it.
+// - <details> menus (the account menu and each task's "..." menu): a click anywhere outside an open
+//   menu closes it, and so does Esc. Opening a second menu counts as outside the first, so only one
+//   stays open. querySelectorAll runs on each click, so it also covers menus added to the page later.
+// - Modals (<dialog class="modal">): a click on the dark backdrop closes it, the same as Cancel or Esc.
+//   Every modal already cleans up on "close" (form reset, pending form cleared), so nothing else changes.
+function setUpClickOutsideToClose() {
+    const openMenus = () => document.querySelectorAll("details.user-menu[open], details.task-card-menu[open]");
+
+    document.addEventListener("click", event => {
+        openMenus().forEach(menu => {
+            if (!menu.contains(event.target)) menu.open = false;
+        });
+    });
+
+    document.addEventListener("keydown", event => {
+        if (event.key !== "Escape") return;
+        openMenus().forEach(menu => {
+            menu.open = false;
+            menu.querySelector("summary")?.focus();
+        });
+    });
+
+    // A click on a modal's ::backdrop is reported with the <dialog> itself as the target. The x/y check
+    // makes sure it really was outside the box, not on a gap between the dialog's children.
+    function isOnBackdrop(event) {
+        const dialog = event.target;
+        if (!(dialog instanceof HTMLDialogElement) || !dialog.matches("dialog.modal[open]")) return false;
+
+        const box = dialog.getBoundingClientRect();
+        return event.clientX < box.left || event.clientX > box.right ||
+               event.clientY < box.top || event.clientY > box.bottom;
+    }
+
+    // Only close when the press also started on the backdrop. Otherwise selecting text in an input
+    // and letting go of the mouse outside the box would close the modal and lose what was typed.
+    let pressStartedOnBackdrop = false;
+    document.addEventListener("pointerdown", event => { pressStartedOnBackdrop = isOnBackdrop(event); });
+    document.addEventListener("click", event => {
+        if (pressStartedOnBackdrop && isOnBackdrop(event)) event.target.close();
+        pressStartedOnBackdrop = false;
+    });
+}
+
 //   kind:        "success" (green), "info" (blue) or "error" (rose)
 //   actionLabel: optional button text, e.g. "Undo" or "Retry"; onAction runs when it is clicked.
 // Toasts close after 5 seconds (paused while hovered or focused). At most 3 are shown;
@@ -522,3 +549,4 @@ setUpEmptyTrashDialog();
 setUpTrashDialog("confirm-trash", "data-confirm-trash");
 setUpTrashDialog("confirm-task-trash", "data-confirm-task-trash");
 setUpTrashDialog("confirm-purge", "data-confirm-purge");
+setUpClickOutsideToClose();

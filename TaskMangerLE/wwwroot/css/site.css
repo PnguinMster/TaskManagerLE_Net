@@ -1799,7 +1799,9 @@ main.container:has(.filters-row) {
     background: var(--card-hover);
 }
 
-.task-card-menu-panel button {
+/* Only the destructive action is red. It's the button inside the delete <form>; Edit is a link on
+   the Tasks page and a plain button on a project's Detail page, and both stay the normal text color. */
+.task-card-menu-panel form button {
     color: var(--rt);
 }
 
