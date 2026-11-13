@@ -49,7 +49,27 @@
             const list = document.getElementById("project-list");
         
             if (!gridButton || !listButton || !grid || !list) return;
-        
+
+            const VIEW_KEY = "projectView";
+
+            // localStorage can throw (blocked storage, private mode), so never let it break the toggle.
+            function loadView() {
+                try {
+                    const saved = localStorage.getItem(VIEW_KEY);
+                    return saved === "list" ? "list" : "grid"; // only trust known values
+                } catch {
+                    return "grid";
+                }
+            }
+
+            function saveView(view) {
+                try {
+                    localStorage.setItem(VIEW_KEY, view);
+                } catch {
+                    // Not saving is fine: the user just gets the default next time.
+                }
+            }
+
             function setView(view) {
                 const showGrid = view === "grid";
         
@@ -62,8 +82,16 @@
                 listButton.setAttribute("aria-pressed", String(!showGrid));
             }
         
-            gridButton.addEventListener("click", () => setView("grid"));
-            listButton.addEventListener("click", () => setView("list"));
+            gridButton.addEventListener("click", () => {
+                setView("grid");
+                saveView("grid");
+            });
+            listButton.addEventListener("click", () => {
+                setView("list");
+                saveView("list");
+            });
+
+            setView(loadView());
         });
         
             document.getElementById("create-project-form")
