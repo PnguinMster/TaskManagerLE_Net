@@ -473,11 +473,25 @@ else {
                  }"/>
     }
 
-    @* Shown by site.js (setUpTaskFilters) when the search/filters match nothing. *@
+    @* Shown by site.js (setUpTaskFilters) when the search/filters match nothing.
+       Same building blocks as the "Create your first task" box above: card-dashed + empty-state + icon-tile. *@
     <section id="task-no-results" class="card card-dashed empty-state" role="status" hidden>
+        <div class="icon-tile is-lg" aria-hidden="true">
+            @* A magnifying glass: "searched, found nothing" (same icon as the search box in the design). *@
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="7"></circle>
+                <path d="M21 21l-4.3-4.3"></path>
+            </svg>
+        </div>
+
         <h2 style="font-size:20px;font-weight:700">No tasks match your filters</h2>
         <p class="muted">Try removing a filter or searching for something else.</p>
-        <button type="button" class="btn btn-text" style="color:var(--bt)" data-clear-filters>Clear filters</button>
+
+        <div class="row wrap" style="justify-content:center;margin-top:6px">
+            <button type="button" class="btn btn-lg" data-clear-filters>Clear filters</button>
+        </div>
     </section>
 }
 <partial name="_CreateTaskModal" model="createTaskModel"/>
