@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TaskMangerLE.Authorization;
 using TaskMangerLE.Models;
+using TaskMangerLE.Models.Enums;
 using TaskMangerLE.Services;
 
 namespace TaskMangerLE.Controllers;
@@ -33,6 +34,22 @@ public class TrashController(TrashService trashService, UserManager<ApplicationU
             return Challenge();
 
         await trashService.EmptyTrashAsync(userId, User.IsInRole(Roles.Admin));
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RestoreAll()
+    {
+        string? userId = userManager.GetUserId(User);
+        if (userId is null)
+            return Challenge();
+
+        int restored = await trashService.RestoreAllAsync(userId, User.IsInRole(Roles.Admin));
+        if (restored > 0)
+            this.ShowToast(new ToastMessage(ToastKind.Success, "Trash restored",
+                restored == 1 ? "1 item is back." : $"{restored} items are back."));
+
         return RedirectToAction(nameof(Index));
     }
 }

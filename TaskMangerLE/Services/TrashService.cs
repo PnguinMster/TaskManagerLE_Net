@@ -67,6 +67,27 @@ public class TrashService(ApplicationDbContext context)
         await transaction.CommitAsync();
     }
 
+    // Brings back everything in the user's trash. Returns how many items were restored.
+    public async Task<int> RestoreAllAsync(string userId, bool isAdmin)
+    {
+        // Loaded and restored one by one (not ExecuteUpdateAsync) so SaveChangesAsync sets UpdatedAtUtc.
+        List<ProjectItem> projects = await GetTrashedProjectsQuery(userId, isAdmin).ToListAsync();
+        // Only tasks that are deleted themselves; tasks that were only hidden by their project
+        // come back when the project does.
+        List<TaskItem> tasks = await GetTrashedTasksQuery(userId, isAdmin)
+            .Where(t => t.IsDeleted)
+            .ToListAsync();
+
+        foreach (ProjectItem project in projects)
+            project.Restore();
+        foreach (TaskItem task in tasks)
+            task.Restore();
+
+        // One SaveChangesAsync is one transaction: either everything comes back or nothing does.
+        await context.SaveChangesAsync();
+        return projects.Count + tasks.Count;
+    }
+
     private IQueryable<ProjectItem> GetTrashedProjectsQuery(string userId, bool isAdmin)
     {
         IQueryable<ProjectItem> projects = context.ProjectItems.IgnoreQueryFilters().Where(p => p.IsDeleted);

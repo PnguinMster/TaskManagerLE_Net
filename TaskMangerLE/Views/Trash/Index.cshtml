@@ -11,7 +11,10 @@
     </div>
 
     <div class="row">
-        <button type="button" class="btn btn-success">Restore all</button>
+        @* The form tag helper adds the anti-forgery token. No confirm dialog: restoring loses nothing. *@
+        <form asp-action="RestoreAll" asp-controller="Trash" method="post">
+            <button type="submit" class="btn btn-success">Restore all</button>
+        </form>
         <button type="button" class="btn btn-danger" id="empty-trash-open"
                 data-projects="@Model.ProjectCount" data-tasks="@Model.TaskCount">Empty trash</button>
     </div>
