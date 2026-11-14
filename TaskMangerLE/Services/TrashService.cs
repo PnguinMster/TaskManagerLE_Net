@@ -4,7 +4,7 @@ using TaskMangerLE.Models;
 
 namespace TaskMangerLE.Services;
 
-public class TrashService(ApplicationDbContext context)
+public class TrashService(ApplicationDbContext context, TimeProvider timeProvider)
 {
     public async Task<TrashSummaryViewModel> GetSummaryAsync(string userId, bool isAdmin) =>
         new()
@@ -67,8 +67,8 @@ public class TrashService(ApplicationDbContext context)
         await transaction.CommitAsync();
     }
 
-    // Brings back everything in the user's trash. Returns how many items were restored.
-    public async Task<int> RestoreAllAsync(string userId, bool isAdmin)
+    // Brings back everything in the user's trash. Returns what was restored, so it can be undone.
+    public async Task<RestoreAllResult> RestoreAllAsync(string userId, bool isAdmin)
     {
         // Loaded and restored one by one (not ExecuteUpdateAsync) so SaveChangesAsync sets UpdatedAtUtc.
         List<ProjectItem> projects = await GetTrashedProjectsQuery(userId, isAdmin).ToListAsync();
@@ -78,6 +78,11 @@ public class TrashService(ApplicationDbContext context)
             .Where(t => t.IsDeleted)
             .ToListAsync();
 
+        // Taken before Restore() clears the deletion fields.
+        var result = new RestoreAllResult(
+            projects.Select(TakeSnapshot).ToList(),
+            tasks.Select(TakeSnapshot).ToList());
+
         foreach (ProjectItem project in projects)
             project.Restore();
         foreach (TaskItem task in tasks)
@@ -85,8 +90,47 @@ public class TrashService(ApplicationDbContext context)
 
         // One SaveChangesAsync is one transaction: either everything comes back or nothing does.
         await context.SaveChangesAsync();
-        return projects.Count + tasks.Count;
+        return result;
     }
+
+    // Undo for Restore all: moves the same items back to the Trash with their original deletion
+    // time and user. Items already deleted again (or no longer the user's) are skipped.
+    // Returns how many projects and tasks went back.
+    public async Task<(int Projects, int Tasks)> UndoRestoreAllAsync(RestoreAllResult restored, string userId, bool isAdmin)
+    {
+        Dictionary<int, TrashedItemSnapshot> projectSnapshots = restored.Projects.ToDictionary(s => s.Id);
+        Dictionary<int, TrashedItemSnapshot> taskSnapshots = restored.Tasks.ToDictionary(s => s.Id);
+        List<int> projectIds = [.. projectSnapshots.Keys];
+        List<int> taskIds = [.. taskSnapshots.Keys];
+
+        // No IgnoreQueryFilters: the global filter already limits this to items not in the Trash.
+        IQueryable<ProjectItem> projectQuery = context.ProjectItems.Where(p => projectIds.Contains(p.Id));
+        IQueryable<TaskItem> taskQuery = context.TaskItems.Where(t => taskIds.Contains(t.Id));
+        if (!isAdmin)
+        {
+            projectQuery = projectQuery.Where(p => p.OwnerId == userId);
+            taskQuery = taskQuery.Where(t => t.Project.OwnerId == userId);
+        }
+
+        List<ProjectItem> projects = await projectQuery.ToListAsync();
+        List<TaskItem> tasks = await taskQuery.ToListAsync();
+
+        DateTime nowUtc = timeProvider.GetUtcNow().UtcDateTime;
+        foreach (ProjectItem project in projects)
+            PutBackInTrash(project, projectSnapshots[project.Id], userId, nowUtc);
+        foreach (TaskItem task in tasks)
+            PutBackInTrash(task, taskSnapshots[task.Id], userId, nowUtc);
+
+        await context.SaveChangesAsync();
+        return (projects.Count, tasks.Count);
+    }
+
+    private static TrashedItemSnapshot TakeSnapshot(ItemBase item) =>
+        new(item.Id, item.DeletedAtUtc, item.DeletedByUserId);
+
+    // Deleted rows normally have both values; the fallbacks only cover older rows that might not.
+    private static void PutBackInTrash(ItemBase item, TrashedItemSnapshot snapshot, string userId, DateTime nowUtc) =>
+        item.SoftDelete(snapshot.DeletedByUserId ?? userId, snapshot.DeletedAtUtc ?? nowUtc);
 
     private IQueryable<ProjectItem> GetTrashedProjectsQuery(string userId, bool isAdmin)
     {
