@@ -22,7 +22,7 @@ public class ProjectDetailViewModel
     public int ProgressPercent =>
         TotalTaskCount == 0
             ? 0
-            : (int)Math.Round(CompletedTaskCount * 100.0 / TotalTaskCount);
+            : (int)Math.Round(CompletedTaskCount * 100.0 / TotalTaskCount, MidpointRounding.AwayFromZero);
 }
 
 public class ProjectDetailTaskViewModel

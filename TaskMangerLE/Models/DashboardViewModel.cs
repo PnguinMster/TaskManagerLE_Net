@@ -28,7 +28,7 @@ public class DashboardProjectViewModel
     public DateTime UpdatedAtUtc { get; init; }
 
 
-    public int CompletedPercent => TotalTasksCount == 0 ? 0 : (int)Math.Round(CompletedTasksCount * 100.0 / TotalTasksCount);
+    public int CompletedPercent => TotalTasksCount == 0 ? 0 : (int)Math.Round(CompletedTasksCount * 100.0 / TotalTasksCount, MidpointRounding.AwayFromZero);
 }
 
 public class DashboardTaskViewModel

@@ -32,7 +32,7 @@ public class ProjectService(ApplicationDbContext context, TimeProvider timeProvi
                 TotalTaskCount = tasks.Count,
                 ProgressPercent = tasks.Count == 0
                     ? 0
-                    : (int)Math.Round(completedCount * 100.0 / tasks.Count),
+                    : (int)Math.Round(completedCount * 100.0 / tasks.Count, MidpointRounding.AwayFromZero),
                 DueDate = project.DueDate
             };
         }).ToList();
