@@ -134,36 +134,55 @@
     </section>
 }
 else {
-    <div class="row wrap" style="margin-bottom:16px">
-        <div class="pills" role="group" aria-label="Filter trash items">
-            <button type="button"
-                    class="is-active"
-                    data-trash-filter="all"
-                    aria-pressed="true">
-                All items <span class="pill-count">@Model.TotalCount</span>
-            </button>
-            <button type="button"
-                    data-trash-filter="project"
-                    aria-pressed="false">
-                Projects <span class="pill-count">@Model.ProjectCount</span>
-            </button>
-            <button type="button"
-                    data-trash-filter="task"
-                    aria-pressed="false">
-                Tasks <span class="pill-count">@Model.TaskCount</span>
-            </button>
+    // Counted from the rows below, not Model.TaskCount: that also counts tasks hidden inside a
+    // deleted project, which have no row of their own (they come back with the project).
+    int projectRows = Model.Items.Count(item => item.IsProject);
+    int taskRows = Model.Items.Count - projectRows;
+
+    @* Same layout as the Tasks and Projects pages: the filter row, then a "Showing X of Y" line. *@
+    <div class="stack" style="margin-bottom:16px">
+        <div class="row wrap">
+            @* The counts start as the server's totals; site.js updates them as you search. *@
+            <div class="pills" role="group" aria-label="Filter trash items">
+                <button type="button"
+                        class="is-active"
+                        data-trash-filter="all"
+                        aria-pressed="true">
+                    All items <span class="pill-count">@Model.Items.Count</span>
+                </button>
+                <button type="button"
+                        data-trash-filter="project"
+                        aria-pressed="false">
+                    Projects <span class="pill-count">@projectRows</span>
+                </button>
+                <button type="button"
+                        data-trash-filter="task"
+                        aria-pressed="false">
+                    Tasks <span class="pill-count">@taskRows</span>
+                </button>
+            </div>
+
+            <div class="sp"></div>
+
+            <input class="input input-inline"
+                   type="search"
+                   placeholder="Search trash…"
+                   aria-label="Search trash"
+                   data-trash-search/>
+
+            @* Reorders the rows in the browser (site.js). Same look as "Sort by" on the Projects page. *@
+            <select class="input input-inline" aria-label="Sort by" data-trash-sort>
+                <option value="newest">Sort by: Newest deleted</option>
+                <option value="oldest">Sort by: Oldest deleted</option>
+                <option value="name">Sort by: Name</option>
+            </select>
         </div>
 
-        <div class="sp"></div>
-
-        <input class="input input-inline"
-               type="search"
-               placeholder="Search trash…"
-               aria-label="Search trash"
-               data-trash-search/>
+        @* Filled in by site.js, so it's always clear when the filters are hiding something. *@
+        <p class="muted small" role="status" data-trash-summary></p>
     </div>
 
-    <div class="data-scroll">
+    <div class="data-scroll" id="trash-table">
         <div class="card card-flush">
             <div class="data-table cols-trash">
                 <div class="data-row data-head">
@@ -184,7 +203,11 @@ else {
                         ["returnUrl"] = trashUrl
                     };
 
-                    <div class="data-row" data-trash-item="@(item.IsProject ? "project" : "task")">
+                    @* data-trash-name / -date are what "Sort by" orders on. The "o" (ISO 8601) format
+                       sorts correctly as plain text and doesn't depend on the server's culture. *@
+                    <div class="data-row" data-trash-item="@(item.IsProject ? "project" : "task")"
+                         data-trash-name="@item.Name"
+                         data-trash-date="@(item.DeletedAtUtc?.ToString("o") ?? "")">
                         @if (item.IsProject) {
                             <span class="badge badge-blue badge-icon">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -240,4 +263,23 @@ else {
             </div>
         </div>
     </div>
+
+    @* Shown by site.js when the type pills and search hide every row. Same card as #task-no-results. *@
+    <section id="trash-no-results" class="card card-dashed empty-state" role="status" hidden>
+        <div class="icon-tile is-lg" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="7"></circle>
+                <path d="M21 21l-4.3-4.3"></path>
+            </svg>
+        </div>
+
+        <h2 style="font-size:20px;font-weight:700">No items match your filters</h2>
+        <p class="muted">Try another type or searching for something else.</p>
+
+        <div class="row wrap" style="justify-content:center;margin-top:6px">
+            <button type="button" class="btn btn-lg" data-trash-clear-filters>Clear filters</button>
+        </div>
+    </section>
 }

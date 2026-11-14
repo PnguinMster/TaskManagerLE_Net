@@ -147,40 +147,91 @@
                         const trashSearch = document.querySelector("[data-trash-search]");
                         const trashItems = document.querySelectorAll("[data-trash-item]");
                 
+                        const trashSummary = document.querySelector("[data-trash-summary]");
+                        const trashTable = document.getElementById("trash-table");
+                        const trashNoResults = document.getElementById("trash-no-results");
+                        const trashClearButtons = document.querySelectorAll("[data-trash-clear-filters]");
+
                         let activeTrashFilter = "all";
-                
+
+                        const matchesTrashType = (item, type) => type === "all" || item.dataset.trashItem === type;
+                        const matchesTrashSearch = (item, searchText) =>
+                            item.textContent.toLowerCase().includes(searchText);
+
                         function filterTrashItems() {
                             const searchText = trashSearch.value.trim().toLowerCase();
-                
+
                             trashItems.forEach(item => {
-                                const matchesType =
-                                    activeTrashFilter === "all" ||
-                                    item.dataset.trashItem === activeTrashFilter;
-                
-                                const matchesSearch =
-                                    item.textContent.toLowerCase().includes(searchText);
-                
-                                item.hidden = !(matchesType && matchesSearch);
+                                item.hidden = !(matchesTrashType(item, activeTrashFilter) &&
+                                    matchesTrashSearch(item, searchText));
                             });
+
+                            // Each pill counts the rows it would show with the current search.
+                            trashFilters.forEach(button => {
+                                const count = [...trashItems].filter(item =>
+                                    matchesTrashType(item, button.dataset.trashFilter) &&
+                                    matchesTrashSearch(item, searchText)).length;
+                                button.querySelector(".pill-count").textContent = String(count);
+                            });
+
+                            // Same "Showing X of Y" line and empty card as the Tasks page.
+                            const shown = [...trashItems].filter(item => !item.hidden).length;
+                            trashTable.hidden = shown === 0;
+                            trashNoResults.hidden = shown > 0;
+                            trashSummary.textContent = `Showing ${shown} of ${trashItems.length} items`;
                         }
-                
+
+                        function setTrashFilter(type) {
+                            activeTrashFilter = type;
+                            trashFilters.forEach(button => {
+                                const isActive = button.dataset.trashFilter === type;
+                                button.classList.toggle("is-active", isActive);
+                                button.setAttribute("aria-pressed", String(isActive));
+                            });
+                            filterTrashItems();
+                        }
+
                         trashFilters.forEach(button => {
+                            button.addEventListener("click", () => setTrashFilter(button.dataset.trashFilter));
+                        });
+
+                        // Back to the starting view: all items, no search.
+                        trashClearButtons.forEach(button => {
                             button.addEventListener("click", () => {
-                                activeTrashFilter = button.dataset.trashFilter;
-                
-                                trashFilters.forEach(filterButton => {
-                                    const isActive = filterButton === button;
-                                    filterButton.classList.toggle("is-active", isActive);
-                                    filterButton.setAttribute("aria-pressed", isActive);
-                                });
-                
-                                filterTrashItems();
+                                trashSearch.value = "";
+                                setTrashFilter("all");
+                                trashSearch.focus();
                             });
                         });
-                
-                        // Only the Trash page has a search box; without ?. this throws on every
-                        // other page and stops the rest of this file (including the dialog below).
-                        trashSearch?.addEventListener("input", filterTrashItems);
+
+                        // Only the Trash page (with items) has these elements; checking them first keeps this
+                        // from throwing on every other page and stopping the rest of this file.
+                        if (trashSearch && trashSummary && trashTable && trashNoResults) {
+                            trashSearch.addEventListener("input", filterTrashItems);
+                            filterTrashItems(); // fill in the summary line on load
+                        }
+
+                        // "Sort by" on the Trash page (same idea as sorters in setUpProjectFilters).
+                        const trashSort = document.querySelector("[data-trash-sort]");
+
+                        const byTrashName = (a, b) =>
+                            a.dataset.trashName.localeCompare(b.dataset.trashName, undefined, { sensitivity: "base" });
+                        // data-trash-date is an ISO date string, so plain text order is date order.
+                        const trashSorters = {
+                            newest: (a, b) => b.dataset.trashDate.localeCompare(a.dataset.trashDate) || byTrashName(a, b),
+                            oldest: (a, b) => a.dataset.trashDate.localeCompare(b.dataset.trashDate) || byTrashName(a, b),
+                            name: byTrashName
+                        };
+
+                        function sortTrashItems() {
+                            const sorter = trashSorters[trashSort.value] ?? trashSorters.newest;
+                            const sorted = [...trashItems].sort(sorter);
+                            // append() moves the existing rows, so the header row stays first.
+                            trashItems[0]?.parentElement.append(...sorted);
+                        }
+
+                        // Optional chaining again: only the Trash page has this select.
+                        trashSort?.addEventListener("change", sortTrashItems);
 })();
 
 // Styled "move to trash" confirmations.
