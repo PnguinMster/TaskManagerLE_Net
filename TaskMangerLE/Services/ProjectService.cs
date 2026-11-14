@@ -5,7 +5,7 @@ using TaskStatus = TaskMangerLE.Models.Enums.TaskStatus;
 
 namespace TaskMangerLE.Services;
 
-public class ProjectService(ApplicationDbContext context)
+public class ProjectService(ApplicationDbContext context, TimeProvider timeProvider)
 {
     public async Task<List<ProjectCardViewModel>> GetProjectCardsAsync(string? userId = null)
     {
@@ -110,7 +110,7 @@ public class ProjectService(ApplicationDbContext context)
 
     public async Task DeleteProjectAsync(ProjectItem projectItem, string deletedByUserId)
     {
-        DateTime deletedAtUtc = DateTime.UtcNow;
+        DateTime deletedAtUtc = timeProvider.GetUtcNow().UtcDateTime;
 
         projectItem.SoftDelete(deletedByUserId, deletedAtUtc);
         foreach (TaskItem taskItem in projectItem.Tasks)

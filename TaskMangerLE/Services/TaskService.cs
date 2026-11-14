@@ -6,7 +6,7 @@ using TaskStatus = TaskMangerLE.Models.Enums.TaskStatus;
 
 namespace TaskMangerLE.Services;
 
-public class TaskService(ApplicationDbContext context)
+public class TaskService(ApplicationDbContext context, TimeProvider timeProvider)
 {
     public async Task AddTaskAsync(TaskItemCreateViewModel taskItemModel)
     {
@@ -94,7 +94,7 @@ public class TaskService(ApplicationDbContext context)
 
     public async Task DeleteTaskAsync(TaskItem taskItem, string deletedByUserId)
     {
-        taskItem.SoftDelete(deletedByUserId, DateTime.UtcNow);
+        taskItem.SoftDelete(deletedByUserId, timeProvider.GetUtcNow().UtcDateTime);
         await context.SaveChangesAsync();
     }
 
