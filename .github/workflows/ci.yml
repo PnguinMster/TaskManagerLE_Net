@@ -1,0 +1,29 @@
+# Builds the solution and runs the tests on GitHub's servers.
+name: CI
+
+on:
+  push:            # every push, on any branch
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v5
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore packages
+        run: dotnet restore TaskMangerLE.sln
+
+      - name: Build
+        run: dotnet build TaskMangerLE.sln --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test TaskMangerLE.sln --no-build --configuration Release
