@@ -565,6 +565,13 @@ button {
     border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
 }
 
+/* Badge with a small icon before the text (e.g. Trash type pills) */
+.badge-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
 .badge-blue {
     color: var(--bt);
 }
