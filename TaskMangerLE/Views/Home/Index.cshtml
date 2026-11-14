@@ -161,9 +161,13 @@
                                         </span>
                                     </span>
 
-                                    <span class="badge @(isDueToday ? "badge-rose" : "badge-muted")">
-                                        @(isDueToday ? "Today" : task1.DueDate.ToString("MMM d"))
-                                    </span>
+                                    @* Due today is urgent, so it gets a badge; later dates are plain text (same rule as _DueLabel). *@
+                                    @if (isDueToday) {
+                                        <span class="badge badge-rose">Today</span>
+                                    }
+                                    else {
+                                        <span class="due"><partial name="_CalendarIcon" /> @task1.DueDate.ToString("MMM d")</span>
+                                    }
                                 </div>
                             }
                         </div>

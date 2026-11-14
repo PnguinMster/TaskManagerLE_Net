@@ -990,15 +990,17 @@ strong {
     margin-top: 14px;
 }
 
-.task-card .due {
+/* Plain due date with a calendar icon (task cards, project cards). Urgent dates use a badge instead. */
+.due {
     display: inline-flex;
     align-items: center;
     gap: 6px;
     font-size: 13px;
     color: var(--muted);
+    white-space: nowrap; /* keep "Nov 20" on one line in narrow rows, like .badge does */
 }
 
-.task-card .due.is-today {
+.due.is-today {
     color: var(--rt);
 }
 

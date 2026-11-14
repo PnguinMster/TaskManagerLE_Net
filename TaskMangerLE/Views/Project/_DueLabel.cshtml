@@ -1,4 +1,4 @@
-@* Project due date on a card: "Due Nov 20", "Due today" or "Overdue · Nov 5". *@
+@* Project due date on a card: "Due Nov 20" (plain), "Due today" or "Overdue · Nov 5" (badges). *@
 @model ProjectCardViewModel
 
 @{
@@ -7,7 +7,7 @@
     string dueText = Model.DueDate.ToString("MMM d");
 }
 
-@* Same badge classes as the due dates on the home page's upcoming-tasks list. *@
+@* Urgent dates get a badge so they stand out; an ordinary date is plain text with a calendar icon. *@
 @if (dueGroup == ProjectDueGroup.Overdue) {
     <span class="badge badge-rose">Overdue · @dueText</span>
 }
@@ -15,5 +15,5 @@ else if (dueGroup == ProjectDueGroup.Today) {
     <span class="badge badge-amber">Due today</span>
 }
 else {
-    <span class="badge badge-muted">Due @dueText</span>
+    <span class="due"><partial name="_CalendarIcon" /> Due @dueText</span>
 }
