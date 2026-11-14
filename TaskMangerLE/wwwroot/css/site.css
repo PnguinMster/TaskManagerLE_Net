@@ -1104,6 +1104,13 @@ dialog.modal::backdrop {
     border-radius: 18px;
 }
 
+/* Error pages (404, 403, 500): the icon is the page's main visual, so it gets the biggest tile. */
+.icon-tile.is-xl {
+    width: 76px;
+    height: 76px;
+    border-radius: 21px;
+}
+
 .summary-panel {
     display: flex;
     align-items: center;
