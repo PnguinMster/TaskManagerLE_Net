@@ -7,6 +7,52 @@
     // Same order as the "Sort by: Due date" option (the default): finished projects last, then soonest first.
     // Doing it here means the page loads already in the default order, so nothing jumps around.
     var projects = Model.OrderBy(p => p.IsFinished).ThenBy(p => p.DueDate).ThenBy(p => p.Name).ToList();
+
+    // Every status, for the Status checkboxes in the Filters panel, in the same order as the enum.
+    // The checkbox values (see StatusKey) are what each card's data-project-item holds.
+    var statuses = new[]
+    {
+        (Status: ProjectStatus.Planning, Label: "Planning"),
+        (Status: ProjectStatus.Active, Label: "In Progress"),
+        (Status: ProjectStatus.OnHold, Label: "On Hold"),
+        (Status: ProjectStatus.Completed, Label: "Completed"),
+        (Status: ProjectStatus.Cancelled, Label: "Cancelled"),
+        (Status: ProjectStatus.Archived, Label: "Archived")
+    };
+
+    // "OnHold" -> "onhold". The same rule as data-project-item below.
+    string StatusKey(ProjectStatus status) => status.ToString().ToLowerInvariant();
+
+    // "Open" = not finished (see ProjectCardViewModel.IsFinished). These start ticked: the default view.
+    bool IsOpen(ProjectStatus status) => status is not (ProjectStatus.Completed or ProjectStatus.Cancelled or ProjectStatus.Archived);
+    var openProjects = Model.Where(p => !p.IsFinished).ToList();
+    var openStatusKeys = string.Join(",", statuses.Where(s => IsOpen(s.Status)).Select(s => StatusKey(s.Status)));
+
+    // Quick views are presets for the Filters panel, like on the Tasks page: clicking one ticks these
+    // statuses and picks this due option. The due values match the Due radio buttons below.
+    var quickViews = new[]
+    {
+        (Label: "Open", Statuses: openStatusKeys, Due: "any", Count: openProjects.Count),
+        (Label: "Overdue", Statuses: openStatusKeys, Due: "overdue",
+            Count: openProjects.Count(p => p.GetDueGroup(today) == ProjectDueGroup.Overdue)),
+        (Label: "Due soon", Statuses: openStatusKeys, Due: "week",
+            Count: openProjects.Count(p => p.GetDueGroup(today) is ProjectDueGroup.Today or ProjectDueGroup.ThisWeek)),
+        (Label: "Completed", Statuses: StatusKey(ProjectStatus.Completed), Due: "any",
+            Count: Model.Count(p => p.Status == ProjectStatus.Completed)),
+        (Label: "Archived", Statuses: StatusKey(ProjectStatus.Archived), Due: "any",
+            Count: Model.Count(p => p.Status == ProjectStatus.Archived))
+    };
+
+    // Built on ProjectDueGroup (data-project-due), so the server and the filter agree on "overdue" etc.
+    // "week" = today or the next 7 days. Finished projects never match anything but "Any time".
+    var dueOptions = new[]
+    {
+        (Value: "any", Label: "Any time"),
+        (Value: "overdue", Label: "Overdue"),
+        (Value: "today", Label: "Today"),
+        (Value: "week", Label: "Next 7 days"),
+        (Value: "later", Label: "Later")
+    };
 }
 
 <header class="page-header">
@@ -83,64 +129,106 @@
     </section>
 }
 else {
-    <div class="row wrap">
-        @* The pills are shortcuts for the Status dropdown below; both use the card's data-project-item
-           value (the lowercase ProjectStatus). See setUpProjectFilters in site.js. *@
-        <div class="pills" role="group" aria-label="Filter projects by status">
-            <button class="is-active" type="button" data-project-status-pill="all" aria-pressed="true">
-                All (@Model.Count(p => p.Status != ProjectStatus.Archived))
-            </button>
-            <button type="button" data-project-status-pill="planning" aria-pressed="false">
-                Planning (@Model.Count(p => p.Status == ProjectStatus.Planning))
-            </button>
-            <button type="button" data-project-status-pill="active" aria-pressed="false">
-                In Progress (@Model.Count(p => p.Status == ProjectStatus.Active))
-            </button>
-            <button type="button" data-project-status-pill="completed" aria-pressed="false">
-                Completed (@Model.Count(p => p.Status == ProjectStatus.Completed))
-            </button>
+    @* Same layout as the Tasks page (see setUpProjectFilters in site.js).
+       Row 1: quick views and search. Row 2: the Filters panel, a chip per active filter, and Sort by
+       (a view choice, not a filter, so Clear all leaves it alone). *@
+    <div class="stack">
+        <div class="row wrap">
+            <div class="pills" role="group" aria-label="Quick views">
+                @foreach (var view in quickViews) {
+                    <button type="button"
+                            data-project-view
+                            data-view-statuses="@view.Statuses"
+                            data-view-due="@view.Due"
+                            aria-pressed="false">
+                        @view.Label (@view.Count)
+                    </button>
+                }
+            </div>
+
+            <div class="sp"></div>
+
+            <input id="project-search"
+                   class="input input-inline"
+                   type="search"
+                   placeholder="Search projects…"
+                   aria-label="Search projects"/>
         </div>
 
-        <div class="sp"></div>
+        <div class="row wrap">
+            @* The same <details> panel and classes as the Tasks page. *@
+            <details class="filter-panel">
+                <summary class="btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M4 6h16"></path>
+                        <path d="M7 12h10"></path>
+                        <path d="M10 18h4"></path>
+                    </svg>
+                    Filters
+                    <span class="filter-count" data-filter-count hidden></span>
+                </summary>
 
-        <input id="project-search"
-               class="input input-inline"
-               type="search"
-               placeholder="Search projects…"
-               aria-label="Search projects"/>
-    </div>
+                <div class="filter-panel-body">
+                    <div class="filter-panel-groups">
+                        @* Open statuses start ticked: the default view, and what "Clear all" goes back to. *@
+                        <fieldset class="filter-group">
+                            <legend>Status</legend>
+                            <div class="filter-options">
+                                @foreach (var status in statuses) {
+                                    <label class="filter-option">
+                                        <input type="checkbox"
+                                               value="@StatusKey(status.Status)"
+                                               checked="@IsOpen(status.Status)"
+                                               data-project-status-option/>
+                                        <span>@status.Label</span>
+                                    </label>
+                                }
+                            </div>
+                        </fieldset>
 
-    <div class="row wrap">
-        <select class="input input-inline" aria-label="Status" data-project-status>
-            <option value="all">All except archived</option>
-            <option value="planning">Planning</option>
-            <option value="active">In Progress</option>
-            <option value="onhold">On Hold</option>
-            <option value="completed">Completed</option>
-            <option value="cancelled">Cancelled</option>
-            <option value="archived">Archived (@Model.Count(p => p.Status == ProjectStatus.Archived))</option>
-        </select>
+                        <fieldset class="filter-group">
+                            <legend>Due</legend>
+                            <div class="filter-options">
+                                @foreach (var due in dueOptions) {
+                                    <label class="filter-option">
+                                        <input type="radio"
+                                               name="project-due"
+                                               value="@due.Value"
+                                               checked="@(due.Value == "any")"
+                                               data-project-due-option/>
+                                        <span>@due.Label</span>
+                                    </label>
+                                }
+                            </div>
+                        </fieldset>
+                    </div>
 
-        @* Finished projects (Completed, Cancelled, Archived) never match a due-date option. *@
-        <select class="input input-inline" aria-label="Due date" data-project-due-filter>
-            <option value="">All due dates</option>
-            <option value="overdue">Overdue</option>
-            <option value="today">Today</option>
-            <option value="thisweek">This week</option>
-            <option value="later">Later</option>
-        </select>
+                    <div class="filter-panel-footer">
+                        <button type="button" class="btn btn-text" style="color:var(--bt)" data-project-clear-filters>Reset</button>
+                        <button type="button" class="btn btn-primary" data-close-filters>Show projects</button>
+                    </div>
+                </div>
+            </details>
 
-        @* Reorders the cards and list rows (site.js, setUpProjectFilters). "Clear filters" leaves it alone. *@
-        <select class="input input-inline" aria-label="Sort by" data-project-sort>
-            <option value="due">Sort by: Due date</option>
-            <option value="name">Sort by: Name</option>
-            <option value="progress">Sort by: Progress</option>
-        </select>
+            <div class="filter-chips" data-filter-chips></div>
 
-        <div class="sp"></div>
-        <button type="button" class="btn btn-text" style="color:var(--bt)" data-project-clear-filters>
-            Clear filters
-        </button>
+            <button type="button" class="btn btn-text" style="color:var(--bt);height:32px" data-project-clear-filters data-clear-all hidden>
+                Clear all
+            </button>
+
+            <div class="sp"></div>
+
+            @* Reorders the cards and list rows (site.js, setUpProjectFilters). *@
+            <select class="input input-inline" aria-label="Sort by" data-project-sort>
+                <option value="due">Sort by: Due date</option>
+                <option value="name">Sort by: Name</option>
+                <option value="progress">Sort by: Progress</option>
+            </select>
+        </div>
+
+        <p class="muted small" role="status" data-shown-summary></p>
     </div>
 
     <div id="project-grid" class="grid-cards">
@@ -314,11 +402,24 @@ else {
         </div>
     </div>
 
-    @* Shown by site.js (setUpProjectFilters) when the search/filter matches nothing. *@
+    @* Shown by site.js (setUpProjectFilters) when the search/filters match nothing.
+       Same look as the Tasks page's "No tasks match your filters" box. *@
     <section id="project-no-results" class="card card-dashed empty-state" role="status" hidden>
-        <h2 style="font-size:20px;font-weight:700">No projects found</h2>
-        <p class="muted">Try a different search or filter.</p>
-        <button type="button" class="btn btn-text" style="color:var(--bt)" data-project-clear-filters>Clear filters</button>
+        <div class="icon-tile is-lg" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="7"></circle>
+                <path d="M21 21l-4.3-4.3"></path>
+            </svg>
+        </div>
+
+        <h2 style="font-size:20px;font-weight:700">No projects match your filters</h2>
+        <p class="muted">Try removing a filter or searching for something else.</p>
+
+        <div class="row wrap" style="justify-content:center;margin-top:6px">
+            <button type="button" class="btn btn-lg" data-project-clear-filters>Clear filters</button>
+        </div>
     </section>
 
     @* Applies the saved grid/list choice before the first paint. site.js loads at the end of <body> and

@@ -552,31 +552,123 @@ function restoreControl(control, value) {
     control.value = value;
 }
 
-// Projects page: status pills, Status and Due date dropdowns, search box, "Clear filters" and sorting.
-// Both the grid cards and the list rows carry
-//   data-project-item="<status>"   lowercase ProjectStatus: the pills and the Status dropdown match it
-//   data-project-due="<group>"     lowercase ProjectDueGroup: the Due date dropdown matches it
+// Small helpers for the Filters panels (Tasks and Projects pages). The panel's checkboxes and
+// radio buttons are the filter state, so these just read and set them.
+const checkedValues = boxes => boxes.filter(box => box.checked).map(box => box.value);
+const checkedLabels = boxes => boxes.filter(box => box.checked).map(box => box.closest("label").textContent.trim());
+const setChecked = (boxes, values) => boxes.forEach(box => { box.checked = values.includes(box.value); });
+const sameValues = (a, b) => a.length === b.length && a.every(value => b.includes(value));
+
+// One removable chip ("Status: Done ×") for the filter row. filter = { name, value }; onRemove runs on ×.
+// createElement + textContent (not innerHTML), so a project name can never be read as HTML.
+function makeFilterChip(filter, onRemove) {
+    const chip = document.createElement("span");
+    chip.className = "filter-chip";
+
+    const name = document.createElement("span");
+    name.className = "muted";
+    name.textContent = `${filter.name}:`;
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "filter-chip-remove";
+    remove.setAttribute("aria-label", `Remove ${filter.name} filter`);
+    remove.textContent = "×";
+    remove.addEventListener("click", onRemove);
+
+    chip.append(name, ` ${filter.value}`, remove);
+    return chip;
+}
+
+// Projects page: quick views, search box, the Filters panel (Status / Due), the removable chips,
+// "Clear all" and "Sort by". Same design as the Tasks page (setUpTaskFilters). Both the grid cards
+// and the list rows carry
+//   data-project-item="<status>"   lowercase ProjectStatus: what the Status checkboxes match
+//   data-project-due="<group>"     lowercase ProjectDueGroup: what the Due options match
 //   data-project-text="<name> <description>"   what the search box looks at
 //   data-project-name / -date (yyyy-MM-dd) / -progress (0-100)   what "Sort by" orders on
 // so one pass hides, shows or reorders both views and they always agree.
 function setUpProjectFilters() {
-    const pills = document.querySelectorAll("[data-project-status-pill]");
-    const statusSelect = document.querySelector("[data-project-status]");
-    const dueSelect = document.querySelector("[data-project-due-filter]");
+    const panel = document.querySelector("details.filter-panel");
+    const viewButtons = [...document.querySelectorAll("[data-project-view]")];
+    const statusBoxes = [...document.querySelectorAll("[data-project-status-option]")];
+    const dueRadios = [...document.querySelectorAll("[data-project-due-option]")];
     const sortSelect = document.querySelector("[data-project-sort]");
     const clearButtons = document.querySelectorAll("[data-project-clear-filters]");
+    const clearAllButton = document.querySelector("[data-clear-all]");
+    const closeButton = document.querySelector("[data-close-filters]");
+    const chipList = document.querySelector("[data-filter-chips]");
+    const filterCount = document.querySelector("[data-filter-count]");
+    const shownSummary = document.querySelector("[data-shown-summary]");
     const searchBox = document.getElementById("project-search");
     const items = document.querySelectorAll("[data-project-item]");
+    // Every project is drawn twice (grid card + list row), so count from the grid only.
+    const gridItems = [...document.querySelectorAll("#project-grid > [data-project-item]")];
     const noResults = document.getElementById("project-no-results");
-    if (!statusSelect || !dueSelect || !sortSelect || !searchBox || !noResults) return;
+    if (!panel || !sortSelect || !searchBox || !noResults || !chipList) return;
 
     const FILTERS_KEY = "projectFilters";
+
+    // The statuses the server ticked (the open ones): the default view, and what Clear all goes back to.
+    const defaultStatuses = statusBoxes.filter(box => box.defaultChecked).map(box => box.value);
+    const dueValue = () => dueRadios.find(radio => radio.checked)?.value ?? "any";
+    const setDue = value => dueRadios.forEach(radio => { radio.checked = radio.value === value; });
+
+    // data-project-due is "finished" for Completed/Cancelled/Archived, so those only match "Any time"
+    // (the same rule the old Due date dropdown had).
+    function matchesDue(item, due) {
+        const group = item.dataset.projectDue;
+        if (due === "any") return true;
+        if (due === "week") return group === "today" || group === "thisweek";
+        return group === due;
+    }
+
     const saveProjectFilters = () => saveFilters(FILTERS_KEY, {
-        status: statusSelect.value,
-        due: dueSelect.value,
+        statuses: checkedValues(statusBoxes),
+        due: dueValue(),
         sort: sortSelect.value,
         search: searchBox.value
     });
+
+    // A chip for every filter that differs from the default, each knowing how to undo itself.
+    function activeFilters() {
+        const filters = [];
+        if (!sameValues(checkedValues(statusBoxes), defaultStatuses)) {
+            filters.push({
+                name: "Status",
+                value: checkedLabels(statusBoxes).join(", ") || "None",
+                reset: () => setChecked(statusBoxes, defaultStatuses)
+            });
+        }
+        if (dueValue() !== "any") {
+            filters.push({ name: "Due", value: checkedLabels(dueRadios).join(""), reset: () => setDue("any") });
+        }
+        return filters;
+    }
+
+    function renderChips(filters) {
+        chipList.replaceChildren(...filters.map(filter => makeFilterChip(filter, () => {
+            filter.reset();
+            applyFilters();
+            // The chip (and the focused button) is gone now, so put focus somewhere sensible.
+            panel.querySelector("summary").focus();
+        })));
+
+        clearAllButton.hidden = filters.length === 0;
+        filterCount.textContent = String(filters.length);
+        filterCount.hidden = filters.length === 0;
+    }
+
+    // A quick view is highlighted only when the panel holds exactly its preset.
+    function highlightQuickView() {
+        const statuses = checkedValues(statusBoxes);
+        viewButtons.forEach(button => {
+            const isActive = dueValue() === button.dataset.viewDue &&
+                sameValues(statuses, button.dataset.viewStatuses.split(","));
+            button.classList.toggle("is-active", isActive);
+            button.setAttribute("aria-pressed", String(isActive));
+        });
+    }
 
     const byName = (a, b) =>
         a.dataset.projectName.localeCompare(b.dataset.projectName, undefined, { sensitivity: "base" });
@@ -607,60 +699,61 @@ function setUpProjectFilters() {
         saveProjectFilters();
     }
 
-    // The controls themselves hold the state, so a browser that restores form values after a reload
-    // or Back (and the page's own initial call below) stays in sync with what is shown.
     function applyFilters() {
-        const status = statusSelect.value;   // "all" or a status
-        const due = dueSelect.value;         // "" (any) or a due group
+        const statuses = checkedValues(statusBoxes);
+        const due = dueValue();
         const searchText = searchBox.value.trim().toLowerCase();
 
-        // The pills are shortcuts for the Status dropdown: highlight the one that matches it
-        // (none, if the dropdown is on a status that has no pill, like Planning).
-        pills.forEach(pill => {
-            const isActive = pill.dataset.projectStatusPill === status;
-            pill.classList.toggle("is-active", isActive);
-            pill.setAttribute("aria-pressed", String(isActive));
-        });
-
         items.forEach(item => {
-            // "All" means everything still in play: archived projects only show when picked directly.
-            const matchesStatus = status === "all"
-                ? item.dataset.projectItem !== "archived"
-                : item.dataset.projectItem === status;
-            const matchesDue = due === "" || item.dataset.projectDue === due;
-            const matchesSearch = item.dataset.projectText.toLowerCase().includes(searchText);
-            item.hidden = !(matchesStatus && matchesDue && matchesSearch);
+            item.hidden = !(
+                statuses.includes(item.dataset.projectItem) &&
+                matchesDue(item, due) &&
+                item.dataset.projectText.toLowerCase().includes(searchText));
         });
 
-        noResults.hidden = [...items].some(item => !item.hidden);
+        highlightQuickView();
+        renderChips(activeFilters());
+
+        const shown = gridItems.filter(item => !item.hidden).length;
+        noResults.hidden = shown > 0;
+        shownSummary.textContent = `Showing ${shown} of ${gridItems.length} projects`;
+        closeButton.textContent = shown === 1 ? "Show 1 project" : `Show ${shown} projects`;
         saveProjectFilters();
     }
 
-    pills.forEach(pill => {
-        pill.addEventListener("click", () => {
-            statusSelect.value = pill.dataset.projectStatusPill;
+    viewButtons.forEach(button => {
+        button.addEventListener("click", () => {
+            setChecked(statusBoxes, button.dataset.viewStatuses.split(","));
+            setDue(button.dataset.viewDue);
             applyFilters();
         });
     });
 
-    statusSelect.addEventListener("change", applyFilters);
-    dueSelect.addEventListener("change", applyFilters);
+    // One listener for every checkbox and radio button in the panel ("change" bubbles up).
+    panel.addEventListener("change", applyFilters);
     searchBox.addEventListener("input", applyFilters);
     sortSelect.addEventListener("change", applySort);
 
+    closeButton.addEventListener("click", () => {
+        panel.open = false;
+        panel.querySelector("summary").focus();
+    });
+
+    // Back to the default view. "Sort by" is a view choice, not a filter, so it stays.
     clearButtons.forEach(button => {
         button.addEventListener("click", () => {
-            statusSelect.value = "all";
-            dueSelect.value = "";
+            setChecked(statusBoxes, defaultStatuses);
+            setDue("any");
             searchBox.value = "";
             applyFilters();
         });
     });
 
-    // Put back what was chosen before a reload (see loadSavedFilters).
+    // Put back what was chosen before a reload (see loadSavedFilters). The Array check skips a status
+    // saved by the old filter bar, which stored a single string.
     const saved = loadSavedFilters(FILTERS_KEY);
-    restoreControl(statusSelect, saved.status);
-    restoreControl(dueSelect, saved.due);
+    if (Array.isArray(saved.statuses)) setChecked(statusBoxes, saved.statuses);
+    if (dueRadios.some(radio => radio.value === saved.due)) setDue(saved.due);
     restoreControl(sortSelect, saved.sort);
     restoreControl(searchBox, saved.search);
 
@@ -713,11 +806,6 @@ function setUpTaskFilters() {
     // The statuses the server ticked (the open ones): the default view, and what Clear all goes back to.
     // Read from the markup so the list lives in one place (Task/Index.cshtml).
     const defaultStatuses = statusBoxes.filter(box => box.defaultChecked).map(box => box.value);
-
-    const checkedValues = boxes => boxes.filter(box => box.checked).map(box => box.value);
-    const checkedLabels = boxes => boxes.filter(box => box.checked).map(box => box.closest("label").textContent.trim());
-    const setChecked = (boxes, values) => boxes.forEach(box => { box.checked = values.includes(box.value); });
-    const sameValues = (a, b) => a.length === b.length && a.every(value => b.includes(value));
     const dueValue = () => dueRadios.find(radio => radio.checked)?.value ?? "any";
     const setDue = value => dueRadios.forEach(radio => { radio.checked = radio.value === value; });
     const isOpen = row => row.dataset.taskItem !== "done" && row.dataset.taskItem !== "cancelled";
@@ -757,31 +845,12 @@ function setUpTaskFilters() {
     }
 
     function renderChips(filters) {
-        // createElement + textContent (not innerHTML), so a project name can never be read as HTML.
-        const chips = filters.map(filter => {
-            const chip = document.createElement("span");
-            chip.className = "filter-chip";
-
-            const name = document.createElement("span");
-            name.className = "muted";
-            name.textContent = `${filter.name}:`;
-
-            const remove = document.createElement("button");
-            remove.type = "button";
-            remove.className = "filter-chip-remove";
-            remove.setAttribute("aria-label", `Remove ${filter.name} filter`);
-            remove.textContent = "×";
-            remove.addEventListener("click", () => {
-                filter.reset();
-                applyFilters();
-                // The chip (and the focused button) is gone now, so put focus somewhere sensible.
-                panel.querySelector("summary").focus();
-            });
-
-            chip.append(name, ` ${filter.value}`, remove);
-            return chip;
-        });
-        chipList.replaceChildren(...chips);
+        chipList.replaceChildren(...filters.map(filter => makeFilterChip(filter, () => {
+            filter.reset();
+            applyFilters();
+            // The chip (and the focused button) is gone now, so put focus somewhere sensible.
+            panel.querySelector("summary").focus();
+        })));
 
         clearAllButton.hidden = filters.length === 0;
         // The archived chip is drawn by the server, but it is still a filter that is on.
