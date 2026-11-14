@@ -137,17 +137,17 @@ else {
                     class="is-active"
                     data-trash-filter="all"
                     aria-pressed="true">
-                All items
+                All items <span class="pill-count">@Model.TotalCount</span>
             </button>
             <button type="button"
                     data-trash-filter="project"
                     aria-pressed="false">
-                Projects
+                Projects <span class="pill-count">@Model.ProjectCount</span>
             </button>
             <button type="button"
                     data-trash-filter="task"
                     aria-pressed="false">
-                Tasks
+                Tasks <span class="pill-count">@Model.TaskCount</span>
             </button>
         </div>
 
