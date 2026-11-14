@@ -26,7 +26,7 @@ public sealed class TaskServiceTests : IDisposable
 	public void Dispose() => _db.Dispose();
 
 	[Fact]
-	public async Task DeleteTaskAsync_SetsDeletedFields_UsingTimeProvider()
+	public async Task DeleteTaskAsync_ActiveTask_SetsDeletedFieldsToCurrentTime()
 	{
 		// Arrange
 		TaskItem created = await AddTaskAsync("Write tests");

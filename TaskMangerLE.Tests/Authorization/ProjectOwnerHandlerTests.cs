@@ -11,7 +11,7 @@ public class ProjectOwnerHandlerTests
 	private const string Bob = "bob";
 
 	[Fact]
-	public async Task Owner_IsAuthorized()
+	public async Task HandleAsync_UserIsOwner_Succeeds()
 	{
 		// Arrange
 		ClaimsPrincipal alice = CreateUser(Alice);
@@ -25,7 +25,7 @@ public class ProjectOwnerHandlerTests
 	}
 
 	[Fact]
-	public async Task OtherUser_IsNotAuthorized()
+	public async Task HandleAsync_UserIsNotOwner_DoesNotSucceed()
 	{
 		// Arrange
 		ClaimsPrincipal bob = CreateUser(Bob);
@@ -39,7 +39,7 @@ public class ProjectOwnerHandlerTests
 	}
 
 	[Fact]
-	public async Task UserWithoutIdClaim_IsNotAuthorized()
+	public async Task HandleAsync_UserHasNoIdClaim_DoesNotSucceed()
 	{
 		// Arrange
 		ClaimsPrincipal noId = new(new ClaimsIdentity());
@@ -53,7 +53,7 @@ public class ProjectOwnerHandlerTests
 	}
 
 	[Fact]
-	public async Task ProjectWithoutOwner_IsNotAuthorized()
+	public async Task HandleAsync_ProjectHasNoOwner_DoesNotSucceed()
 	{
 		// Arrange
 		ClaimsPrincipal alice = CreateUser(Alice);
@@ -69,7 +69,7 @@ public class ProjectOwnerHandlerTests
 	[Theory]
 	[InlineData(Roles.Admin, true)]
 	[InlineData(Roles.User, false)]
-	public async Task UserWithRole_OnSomeoneElseProject_IsAuthorizedOnlyIfAdmin(string role, bool expected)
+	public async Task HandleAsync_NonOwnerWithRole_SucceedsOnlyForAdmin(string role, bool expected)
 	{
 		// Arrange
 		ClaimsPrincipal bob = CreateUser(Bob, role);

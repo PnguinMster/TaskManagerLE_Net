@@ -10,7 +10,7 @@ public class ItemBaseTests
     private static readonly DateTime DeletedAt = new(2026, 1, 15, 10, 30, 0, DateTimeKind.Utc);
 
     [Fact]
-    public void NewItem_IsNotDeleted()
+    public void Constructor_NewItem_IsNotDeleted()
     {
         // Arrange + Act: just creating the item is the action here.
         var task = new TaskItem();
@@ -22,7 +22,7 @@ public class ItemBaseTests
     }
 
     [Fact]
-    public void SoftDelete_SetsDeletedFlagAndAuditFields()
+    public void SoftDelete_ActiveItem_SetsDeletedFlagAndAuditFields()
     {
         // Arrange
         var task = new TaskItem();

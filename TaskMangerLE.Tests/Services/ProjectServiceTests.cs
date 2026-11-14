@@ -27,7 +27,7 @@ public sealed class ProjectServiceTests : IDisposable
 	public void Dispose() => _db.Dispose();
 
 	[Fact]
-	public async Task DeleteProjectAsync_DeletesProjectAndItsTasks_WithTheSameTime()
+	public async Task DeleteProjectAsync_ProjectWithTasks_SoftDeletesAllWithSameTimestamp()
 	{
 		// Arrange
 		ProjectItem created = await AddProjectAsync("Write tests", "A", "B");
@@ -52,7 +52,7 @@ public sealed class ProjectServiceTests : IDisposable
 	}
 
 	[Fact]
-	public async Task RestoreProjectAsync_RestoresOnlyTasksDeletedWithTheProject()
+	public async Task RestoreProjectAsync_TaskDeletedEarlier_StaysInTrash()
 	{
 		// Arrange
 		ProjectItem created = await AddProjectAsync("Project", "A", "B");
@@ -97,7 +97,7 @@ public sealed class ProjectServiceTests : IDisposable
 	[InlineData(1, 1, 2, 50)] // cancelled don't count → 1 of 2
 	[InlineData(0, 0, 2, 0)] // only cancelled → treated as no tasks
 	[InlineData(1, 7, 0, 13)] // 1 of 8 = 12.5% → rounds half up to 13
-	public async Task GetProjectCardsAsync_CalculatesProgress_IgnoringCancelledTasks(
+	public async Task GetProjectCardsAsync_MixedStatuses_ReturnsRoundedPercentExcludingCancelled(
 		int done, int notDone, int cancelled, int expectedPercent)
 	{
 		// Arrange

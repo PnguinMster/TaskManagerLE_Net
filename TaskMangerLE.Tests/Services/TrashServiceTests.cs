@@ -34,7 +34,7 @@ public sealed class TrashServiceTests : IDisposable
     // ---------- GetSummaryAsync ----------
 
     [Fact]
-    public async Task GetSummaryAsync_ReturnsOnlyTheUsersDeletedItems_NewestFirst()
+    public async Task GetSummaryAsync_RegularUser_ReturnsOwnDeletedItemsNewestFirst()
     {
         // Arrange
         await AddProjectAsync(Alice, "Active");
@@ -87,7 +87,7 @@ public sealed class TrashServiceTests : IDisposable
     // ---------- EmptyTrashAsync ----------
 
     [Fact]
-    public async Task EmptyTrashAsync_RemovesUsersTrash_KeepsActiveItemsAndOtherUsersTrash()
+    public async Task EmptyTrashAsync_MixedItems_RemovesOnlyUsersTrash()
     {
         // Arrange
         ProjectItem active = await AddProjectAsync(Alice, "Active");
@@ -112,7 +112,7 @@ public sealed class TrashServiceTests : IDisposable
     // ---------- RestoreAllAsync ----------
 
     [Fact]
-    public async Task RestoreAllAsync_RestoresEverything_AndReturnsWhatWasRestored()
+    public async Task RestoreAllAsync_ItemsInTrash_RestoresAllAndReturnsThem()
     {
         // Arrange
         ProjectItem old = await AddProjectAsync(Alice, "Old", deletedAt: Jan1);
@@ -142,7 +142,7 @@ public sealed class TrashServiceTests : IDisposable
     // ---------- UndoRestoreAllAsync ----------
 
     [Fact]
-    public async Task UndoRestoreAllAsync_PutsItemsBackInTrash_WithOriginalDeletionInfo()
+    public async Task UndoRestoreAllAsync_AfterRestoreAll_RestoresOriginalDeletionInfo()
     {
         // Arrange: delete, then restore (each step in its own context, like separate requests).
         ProjectItem old = await AddProjectAsync(Alice, "Old", deletedAt: Jan1);
