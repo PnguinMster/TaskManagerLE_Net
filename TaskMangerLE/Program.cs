@@ -24,8 +24,8 @@ builder.Services.AddAuthorizationBuilder()
 	.AddPolicy(Policies.ProjectOwner, policy => policy.Requirements.Add(new ProjectOwnerRequirement()));
 builder.Services.AddScoped<IAuthorizationHandler, ProjectOwnerHandler>();
 
-// builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("DefaultConnection", sql => sql.MigrationsAssembly("TaskMangerLE")));
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), sql => sql.EnableRetryOnFailure()));
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 	{
