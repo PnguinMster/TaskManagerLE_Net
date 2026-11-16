@@ -380,11 +380,7 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
     {
         await signInManager.SignOutAsync();
 
-        // Only follow local URLs, so a crafted link can't bounce users to another site (open redirect).
-        if (Url.IsLocalUrl(returnUrl))
-            return LocalRedirect(returnUrl);
-
-        return RedirectToAction(nameof(Index), "Home");
+        return this.RedirectToLocal(returnUrl, RedirectToAction(nameof(Index), "Home"));
     }
 
     [HttpGet]

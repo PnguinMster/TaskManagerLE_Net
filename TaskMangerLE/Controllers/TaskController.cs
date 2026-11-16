@@ -76,11 +76,7 @@ public class TaskController(
 
 		await taskService.AddTaskAsync(taskItemModel);
 
-		// Only follow local URLs, so a crafted link can't send users to another site (see Restore).
-		if (Url.IsLocalUrl(returnUrl))
-			return LocalRedirect(returnUrl);
-
-		return RedirectToAction(nameof(Index));
+		return this.RedirectToLocal(returnUrl, RedirectToAction(nameof(Index)));
 	}
 
 	[HttpGet]
@@ -121,11 +117,7 @@ public class TaskController(
 
 		await taskService.UpdateTaskAsync(taskItem, taskItemModel);
 
-		// Only follow local URLs, so a crafted link can't send users to another site (see Create).
-		if (Url.IsLocalUrl(returnUrl))
-			return LocalRedirect(returnUrl);
-
-		return RedirectToAction("Detail", "Project", new { projectId = taskItem.ProjectId });
+		return this.RedirectToLocal(returnUrl, RedirectToAction("Detail", "Project", new { projectId = taskItem.ProjectId }));
 	}
 
 	[HttpPost]
@@ -182,14 +174,7 @@ public class TaskController(
 
 		await taskService.ToggleCompletionAsync(taskItem);
 
-		// Same as Update: only follow local URLs.
-		if (Url.IsLocalUrl(returnUrl))
-			return LocalRedirect(returnUrl);
-
-		return RedirectToAction(
-			"Detail",
-			"Project",
-			new { projectId = taskItem.ProjectId });
+		return this.RedirectToLocal(returnUrl, RedirectToAction("Detail", "Project", new { projectId = taskItem.ProjectId }));
 	}
 
 	[HttpGet]
@@ -220,11 +205,7 @@ public class TaskController(
 		await taskService.RestoreTaskAsync(taskItem);
 		this.ShowToast(new ToastMessage(ToastKind.Success, "Task restored", $"{taskItem.Name} is back."));
 
-		// Same as ProjectController.Restore: only follow local return URLs.
-		if (Url.IsLocalUrl(returnUrl))
-			return LocalRedirect(returnUrl);
-
-		return RedirectToAction(nameof(Restore), new { projectId = taskItem.ProjectId });
+		return this.RedirectToLocal(returnUrl, RedirectToAction(nameof(Restore), new { projectId = taskItem.ProjectId }));
 	}
 
 	[HttpPost]
@@ -241,10 +222,7 @@ public class TaskController(
 		int taskProjectId = taskItem.ProjectId;
 		await taskService.PurgeTaskAsync(taskItem);
 
-		// The Trash page sends a returnUrl; only local ones are followed (see RestoreConfirmed).
-		if (Url.IsLocalUrl(returnUrl))
-			return LocalRedirect(returnUrl);
-
-		return RedirectToAction(nameof(Restore), new { projectId = taskProjectId });
+		// The Trash page sends a returnUrl.
+		return this.RedirectToLocal(returnUrl, RedirectToAction(nameof(Restore), new { projectId = taskProjectId }));
 	}
 }

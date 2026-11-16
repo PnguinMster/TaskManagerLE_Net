@@ -166,12 +166,8 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         this.ShowToast(new ToastMessage(ToastKind.Success, "Project restored",
             $"{projectItem.Name} and its tasks are back."));
 
-        // Undo from a toast sends the user back where they were. Only local URLs, so the
-        // parameter can't be abused to redirect someone to another site.
-        if (Url.IsLocalUrl(returnUrl))
-            return LocalRedirect(returnUrl);
-
-        return RedirectToAction(nameof(Restore));
+        // Undo from a toast sends the user back where they were.
+        return this.RedirectToLocal(returnUrl, RedirectToAction(nameof(Restore)));
     }
 
     [HttpPost]
@@ -187,10 +183,7 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
 
         await services.PurgeProjectAsync(projectItem);
 
-        // The Trash page sends a returnUrl; only local ones are followed (see Restore).
-        if (Url.IsLocalUrl(returnUrl))
-            return LocalRedirect(returnUrl);
-
-        return RedirectToAction(nameof(Restore));
+        // The Trash page sends a returnUrl.
+        return this.RedirectToLocal(returnUrl, RedirectToAction(nameof(Restore)));
     }
 }
