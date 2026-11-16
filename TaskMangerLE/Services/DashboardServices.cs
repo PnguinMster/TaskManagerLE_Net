@@ -40,8 +40,8 @@ public class DashboardServices(ApplicationDbContext context, TimeProvider timePr
                 Description = p.Description,
                 Status = p.Status,
                 UpdatedAtUtc = p.UpdatedAtUtc,
-                TotalTasksCount = p.Tasks.Count(t => t.Status != TaskStatus.Cancelled),
-                CompletedTasksCount = p.Tasks.Count(t => t.Status == TaskStatus.Done),
+                TotalTaskCount = p.Tasks.Count(t => t.Status != TaskStatus.Cancelled),
+                CompletedTaskCount = p.Tasks.Count(t => t.Status == TaskStatus.Done),
             }).ToListAsync();
 
         var upcomingTasks = await openTasks

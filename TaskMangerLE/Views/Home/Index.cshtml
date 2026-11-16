@@ -88,18 +88,18 @@
                             </p>
 
                             <div class="progress-meta">
-                                <span>@project.CompletedTasksCount of @project.TotalTasksCount tasks completed</span>
-                                <span class="@textClass">@project.CompletedPercent%</span>
+                                <span>@project.CompletedTaskCount of @project.TotalTaskCount tasks completed</span>
+                                <span class="@textClass">@project.ProgressPercent%</span>
                             </div>
 
                             <div class="progress"
                                  role="progressbar"
-                                 aria-label="@project.CompletedPercent% of @project.Name tasks completed"
-                                 aria-valuenow="@project.CompletedPercent"
+                                 aria-label="@project.ProgressPercent% of @project.Name tasks completed"
+                                 aria-valuenow="@project.ProgressPercent"
                                  aria-valuemin="0"
                                  aria-valuemax="100">
                                 <div class="progress-bar @progressClass"
-                                     style="width:@(project.CompletedPercent)%"></div>
+                                     style="width:@(project.ProgressPercent)%"></div>
                             </div>
                         </a>
                     }

@@ -21,14 +21,14 @@ public class DashboardProjectViewModel
     public string Name { get; init; } = string.Empty;
 
     public string Description { get; init; } = string.Empty;
-    public int TotalTasksCount { get; init; }
-    public int CompletedTasksCount { get; init; }
+    public int TotalTaskCount { get; init; }
+    public int CompletedTaskCount { get; init; }
 
     public ProjectStatus Status { get; init; }
     public DateTime UpdatedAtUtc { get; init; }
 
 
-    public int CompletedPercent => TotalTasksCount == 0 ? 0 : (int)Math.Round(CompletedTasksCount * 100.0 / TotalTasksCount, MidpointRounding.AwayFromZero);
+    public int ProgressPercent => ProgressMath.Percent(CompletedTaskCount, TotalTaskCount);
 }
 
 public class DashboardTaskViewModel

@@ -10,8 +10,9 @@ public class ProjectCardViewModel
     public string Description { get; init; } = string.Empty;
     public int CompletedTaskCount { get; init; }
     public int TotalTaskCount { get; init; }
-    public int ProgressPercent { get; init; }
     public DateOnly DueDate { get; init; }
+
+    public int ProgressPercent => ProgressMath.Percent(CompletedTaskCount, TotalTaskCount);
 
     public bool IsFinished =>
         Status is ProjectStatus.Completed or ProjectStatus.Cancelled or ProjectStatus.Archived;
