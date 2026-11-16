@@ -77,7 +77,7 @@
             @* Passed in through ViewData (not the model) because the model is the form that gets posted back. *@
             @if (ViewData["CreatedAtUtc"] is DateTime createdAtUtc) {
                 <p class="muted" style="font-size:13px;margin:0">
-                    Created @createdAtUtc.ToLocalTime().ToString("MMM d, yyyy")
+                    Created @createdAtUtc.ToLocalTime().ToLongDisplay()
                 </p>
             }
         </div>

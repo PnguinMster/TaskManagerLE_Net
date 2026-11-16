@@ -4,7 +4,7 @@
 @{
     // The overdue/today/finished rule lives in ProjectCardViewModel so the filter uses the same one.
     ProjectDueGroup dueGroup = Model.GetDueGroup(TimeProvider.Today());
-    string dueText = Model.DueDate.ToString("MMM d");
+    string dueText = Model.DueDate.ToShortDisplay();
 }
 
 @* Urgent dates get a badge so they stand out; an ordinary date is plain text with a calendar icon. *@

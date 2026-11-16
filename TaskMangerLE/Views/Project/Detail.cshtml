@@ -67,7 +67,7 @@
             <article style="background:color-mix(in srgb,var(--text) 3.5%,var(--card));border:1px solid var(--divider);border-radius:12px;padding:14px 16px">
                 <p class="muted" style="font-size:12px;font-weight:600">DUE DATE</p>
                 <p style="font-size:18px;font-weight:600;margin-top:2px">
-                    @Model.DueDate.ToString("MMM d, yyyy")
+                    @Model.DueDate.ToLongDisplay()
                 </p>
                 @* A finished project isn't "overdue", so it gets no countdown (same rule as _DueLabel). *@
                 @if (Model.Status is not (ProjectStatus.Completed or ProjectStatus.Cancelled or ProjectStatus.Archived)) {
@@ -91,7 +91,7 @@
             <article style="background:color-mix(in srgb,var(--text) 3.5%,var(--card));border:1px solid var(--divider);border-radius:12px;padding:14px 16px">
                 <p class="muted" style="font-size:12px;font-weight:600">CREATED</p>
                 <p style="font-size:18px;font-weight:600;margin-top:2px">
-                    @Model.CreatedAtUtc.ToLocalTime().ToString("MMM d, yyyy")
+                    @Model.CreatedAtUtc.ToLocalTime().ToLongDisplay()
                 </p>
                 <p class="muted" style="font-size:13px">by @Model.OwnerName</p>
             </article>
@@ -267,7 +267,7 @@
                                 <partial name="_PriorityBadge" model="task.Priority" />
                                 <span class="due @(isDueToday ? "is-today" : "")">
                                     <partial name="_CalendarIcon" />
-                                    Due @task.DueDate.ToString("MMM d")
+                                    Due @task.DueDate.ToShortDisplay()
                                 </span>
                             </div>
                         </article>
@@ -352,7 +352,7 @@
                 </div>
 
                 <p class="muted" style="font-size:13px;margin:0">
-                    Created @Model.CreatedAtUtc.ToLocalTime().ToString("MMM d, yyyy")
+                    Created @Model.CreatedAtUtc.ToLocalTime().ToLongDisplay()
                     by @Model.OwnerName
                 </p>
             </div>

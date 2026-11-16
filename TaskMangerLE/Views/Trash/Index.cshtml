@@ -242,7 +242,7 @@ else {
                             </div>
                         </div>
 
-                        <span class="muted small">@deletedAt?.ToString("MMM d, h:mm tt")</span>
+                        <span class="muted small">@deletedAt?.ToDateTimeDisplay()</span>
 
                         <div class="row" style="justify-content:flex-end">
                             @* The form tag helper adds the anti-forgery token to both forms. *@

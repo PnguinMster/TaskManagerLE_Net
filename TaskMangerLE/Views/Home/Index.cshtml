@@ -157,7 +157,7 @@
                                         <span class="badge badge-rose">Today</span>
                                     }
                                     else {
-                                        <span class="due"><partial name="_CalendarIcon" /> @task1.DueDate.ToString("MMM d")</span>
+                                        <span class="due"><partial name="_CalendarIcon" /> @task1.DueDate.ToShortDisplay()</span>
                                     }
                                 </div>
                             }

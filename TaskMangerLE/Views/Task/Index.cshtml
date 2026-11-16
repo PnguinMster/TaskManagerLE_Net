@@ -277,10 +277,10 @@
 
     string DueDateLabel(DateOnly dueDate, bool isDone) =>
         isDone
-            ? $"Done {dueDate.ToString("MMM d")}"
+            ? $"Done {dueDate.ToShortDisplay()}"
             : dueDate == today
                 ? "Today"
-                : dueDate.ToString("MMM d");
+                : dueDate.ToShortDisplay();
 }
 
 @if (Model.Tasks.Count == 0) {

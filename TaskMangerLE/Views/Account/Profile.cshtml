@@ -33,7 +33,7 @@
             <div class="stack profile-identity">
                 <h2>@Model.UserName</h2>
                 <p class="muted">
-                    Member since @Model.MemberSinceUtc.ToLocalTime().ToString("MMM d, yyyy")
+                    Member since @Model.MemberSinceUtc.ToLocalTime().ToLongDisplay()
                 </p>
             </div>
         </div>
