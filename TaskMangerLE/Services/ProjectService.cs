@@ -14,25 +14,20 @@ public class ProjectService(ApplicationDbContext context, TimeProvider timeProvi
         if (userId is not null)
             query = query.Where(p => p.OwnerId == userId);
 
-        var projects = await query.Include(p => p.Tasks).ToListAsync();
-
-        return projects.Select(project =>
-        {
-            // Cancelled tasks will never be done, so they don't count toward progress.
-            var tasks = project.Tasks.Where(t => t.Status != TaskStatus.Cancelled).ToList();
-            var completedCount = tasks.Count(t => t.Status == TaskStatus.Done);
-
-            return new ProjectCardViewModel
+        // Counted in SQL (like GetProjectDetailAsync), so the tasks themselves are never loaded.
+        return await query
+            .Select(p => new ProjectCardViewModel
             {
-                Id = project.Id,
-                Name = project.Name,
-                Status = project.Status,
-                Description = project.Description,
-                CompletedTaskCount = completedCount,
-                TotalTaskCount = tasks.Count,
-                DueDate = project.DueDate
-            };
-        }).ToList();
+                Id = p.Id,
+                Name = p.Name,
+                Status = p.Status,
+                Description = p.Description,
+                // Cancelled tasks will never be done, so they don't count toward progress.
+                CompletedTaskCount = p.Tasks.Count(t => t.Status == TaskStatus.Done),
+                TotalTaskCount = p.Tasks.Count(t => t.Status != TaskStatus.Cancelled),
+                DueDate = p.DueDate
+            })
+            .ToListAsync();
     }
 
     public async Task<ProjectDetailViewModel?> GetProjectDetailAsync(int projectId)
