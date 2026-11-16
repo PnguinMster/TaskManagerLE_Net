@@ -70,16 +70,7 @@
 
                 <div class="stack">
                     @foreach (DashboardProjectViewModel project in Model.RecentProjects) {
-                        var (statusLabel, badgeClass, progressClass, textClass) = project.Status switch
-                        {
-                            ProjectStatus.Active => ("In Progress", "badge-blue", "", "text-blue"),
-                            ProjectStatus.Planning => ("Planning", "badge-purple", "", "text-purple"),
-                            ProjectStatus.OnHold => ("On Hold", "badge-amber", "is-amber", "text-amber"),
-                            ProjectStatus.Completed => ("Completed", "badge-green", "is-green", "text-green"),
-                            ProjectStatus.Cancelled => ("Cancelled", "badge-rose", "", "text-rose"),
-                            ProjectStatus.Archived => ("Archived", "badge-muted", "", "muted"),
-                            _ => (project.Status.ToString(), "badge-muted", "", "muted")
-                        };
+                        var (statusLabel, badgeClass, progressClass, textClass) = project.Status.GetStyle();
 
                         <a class="card card-outline dashboard-project-card"
                            asp-controller="Project"

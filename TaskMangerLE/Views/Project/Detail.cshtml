@@ -12,16 +12,8 @@
     </nav>
 
     @{
-        var (statusLabel, badgeClass, progressClass) = Model.Status switch
-        {
-            ProjectStatus.Active => ("In Progress", "badge-blue", ""),
-            ProjectStatus.Planning => ("Planning", "badge-purple", ""),
-            ProjectStatus.OnHold => ("On Hold", "badge-amber", "is-amber"),
-            ProjectStatus.Completed => ("Completed", "badge-green", "is-green"),
-            ProjectStatus.Cancelled => ("Cancelled", "badge-rose", ""),
-            ProjectStatus.Archived => ("Archived", "badge-muted", ""),
-            _ => (Model.Status.ToString(), "badge-muted", "")
-        };
+        // Detail has no coloured percentage, so the text class is discarded (_).
+        var (statusLabel, badgeClass, progressClass, _) = Model.Status.GetStyle();
     }
 
     <section class="card"

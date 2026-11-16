@@ -233,16 +233,7 @@ else {
 
     <div id="project-grid" class="grid-cards">
         @foreach (var project in projects) {
-            var (statusLabel, badgeClass, progressClass, textClass) = project.Status switch
-            {
-                ProjectStatus.Active => ("In Progress", "badge-blue", "", "text-blue"),
-                ProjectStatus.Planning => ("Planning", "badge-purple", "", "text-purple"),
-                ProjectStatus.OnHold => ("On Hold", "badge-amber", "is-amber", "text-amber"),
-                ProjectStatus.Completed => ("Completed", "badge-green", "is-green", "text-green"),
-                ProjectStatus.Cancelled => ("Cancelled", "badge-rose", "", "text-rose"),
-                ProjectStatus.Archived => ("Archived", "badge-muted", "", "muted"),
-                _ => (project.Status.ToString(), "badge-muted", "", "muted")
-            };
+            var (statusLabel, badgeClass, progressClass, textClass) = project.Status.GetStyle();
             <div class="card card-outline"
                  data-project-item="@project.Status.ToString().ToLowerInvariant()"
                  data-project-due="@project.GetDueGroup(today).ToString().ToLowerInvariant()"
@@ -320,16 +311,7 @@ else {
                 </div>
 
                 @foreach (var project in projects) {
-                    var (statusLabel, badgeClass, progressClass, textClass) = project.Status switch
-                    {
-                        ProjectStatus.Active => ("In Progress", "badge-blue", "is-blue", "text-blue"),
-                        ProjectStatus.Planning => ("Planning", "badge-purple", "is-purple", "text-purple"),
-                        ProjectStatus.OnHold => ("On Hold", "badge-amber", "is-amber", "text-amber"),
-                        ProjectStatus.Completed => ("Completed", "badge-green", "is-green", "text-green"),
-                        ProjectStatus.Cancelled => ("Cancelled", "badge-rose", "is-rose", "text-rose"),
-                        ProjectStatus.Archived => ("Archived", "badge-muted", "is-muted", "muted"),
-                        _ => (project.Status.ToString(), "badge-muted", "is-muted", "muted")
-                    };
+                    var (statusLabel, badgeClass, progressClass, textClass) = project.Status.GetStyle();
 
                     <div class="data-row cols-projects"
                          data-project-item="@project.Status.ToString().ToLowerInvariant()"
