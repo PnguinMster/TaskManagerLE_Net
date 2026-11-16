@@ -364,7 +364,6 @@ else {
                                   asp-route-taskId="@task.Id"
                                   method="post"
                                   class="dashboard-complete-form">
-                                @Html.AntiForgeryToken()
                                 @* Come back to this page (filters in the query string included) instead of the project page. *@
                                 <partial name="_ReturnUrlInput" />
                                 <input type="checkbox"
@@ -425,7 +424,6 @@ else {
                                           method="post"
                                           data-confirm-task-trash="@task.Name"
                                           data-trash-detail="in @task.ProjectName">
-                                        @Html.AntiForgeryToken()
                                         <partial name="_ReturnUrlInput" />
                                         <button type="submit">Move to trash</button>
                                     </form>

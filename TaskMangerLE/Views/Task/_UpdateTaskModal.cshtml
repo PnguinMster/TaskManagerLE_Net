@@ -13,7 +13,6 @@
     </div>
 
     <form asp-controller="Task" asp-action="Update" method="post" data-check-required novalidate>
-        @Html.AntiForgeryToken()
         <input asp-for="Id" type="hidden"/>
         <input asp-for="ProjectId" type="hidden"/>
         @* Where to go after saving: the page this modal is on (Tasks or a project's Detail page). Same as _CreateTaskModal. *@
@@ -108,7 +107,6 @@
           method="post"
           data-confirm-task-trash="@Model.Name"
           data-trash-detail="in @ViewData["ProjectName"]">
-        @Html.AntiForgeryToken()
         <partial name="_ReturnUrlInput" />
     </form>
 </dialog>

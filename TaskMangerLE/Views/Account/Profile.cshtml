@@ -39,7 +39,6 @@
         </div>
 
         <form asp-action="Profile" method="post" class="stack">
-            @Html.AntiForgeryToken()
             <div asp-validation-summary="ModelOnly" class="field-error"></div>
 
             <div class="grid-kpi">
@@ -73,7 +72,6 @@
         <p class="muted">Enter your current password, then choose a new one.</p>
 
         <form asp-action="ChangePassword" method="post" class="stack">
-            @Html.AntiForgeryToken()
 
             <div asp-validation-summary="ModelOnly" class="field-error"></div>
 

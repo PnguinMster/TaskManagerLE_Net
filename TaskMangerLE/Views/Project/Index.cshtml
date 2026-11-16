@@ -282,7 +282,6 @@ else {
                           method="post"
                           data-confirm-trash="@project.Name"
                           data-trash-detail="@project.CompletedTaskCount of @project.TotalTaskCount tasks done">
-                        @Html.AntiForgeryToken()
                         <button type="submit"
                                 class="icon-btn"
                                 aria-label="Move @project.Name to trash">
@@ -366,7 +365,6 @@ else {
                                   method="post"
                                   data-confirm-trash="@project.Name"
                           data-trash-detail="@project.CompletedTaskCount of @project.TotalTaskCount tasks done">
-                                @Html.AntiForgeryToken()
                                 <button type="submit" class="icon-btn"
                                         aria-label="Move @project.Name to trash">
                                     <svg width="18" height="18" viewBox="0 0 24 24"

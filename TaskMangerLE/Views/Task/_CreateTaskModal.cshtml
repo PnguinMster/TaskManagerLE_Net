@@ -17,7 +17,6 @@
     </div>
 
     <form asp-controller="Task" asp-action="Create" method="post" data-check-required novalidate>
-        @Html.AntiForgeryToken()
         @* Where to go after creating: the page this modal is on (Tasks or a project's Detail page). *@
         <partial name="_ReturnUrlInput" />
         <div class="modal-body">

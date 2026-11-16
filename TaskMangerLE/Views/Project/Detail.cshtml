@@ -53,7 +53,6 @@
                       method="post"
                       data-confirm-trash="@Model.Name"
                       data-trash-detail="@Model.CompletedTaskCount of @Model.TotalTaskCount tasks done">
-                    @Html.AntiForgeryToken()
                     <button type="submit"
                             class="btn"
                             style="color:var(--rt)">
@@ -208,7 +207,6 @@
                                       asp-action="ToggleCompletion"
                                       asp-route-taskId="@task.Id"
                                       method="post">
-                                    @Html.AntiForgeryToken()
 
                                     <input type="checkbox"
                                            class="checkbox"
@@ -239,7 +237,6 @@
                                               method="post"
                                               data-confirm-task-trash="@task.Name"
                                               data-trash-detail="in @Model.Name">
-                                            @Html.AntiForgeryToken()
                                             <partial name="_ReturnUrlInput" />
                                             <button type="submit">Move to trash</button>
                                         </form>
@@ -305,7 +302,6 @@
         </div>
 
         <form id="edit-project-form" asp-action="Update" method="post" data-check-required novalidate>
-            @Html.AntiForgeryToken()
             <input type="hidden" name="Id" value="@Model.Id"/>
 
             <div class="modal-body">
@@ -366,7 +362,6 @@
                       method="post"
                       data-confirm-trash="@Model.Name"
                       data-trash-detail="@Model.CompletedTaskCount of @Model.TotalTaskCount tasks done">
-                    @Html.AntiForgeryToken()
                     <button type="submit" class="btn" style="color:var(--rt)">
                         Delete project
                     </button>
