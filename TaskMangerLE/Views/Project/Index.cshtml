@@ -23,8 +23,8 @@
     // "OnHold" -> "onhold". The same rule as data-project-item below.
     string StatusKey(ProjectStatus status) => status.ToString().ToLowerInvariant();
 
-    // "Open" = not finished (see ProjectCardViewModel.IsFinished). These start ticked: the default view.
-    bool IsOpen(ProjectStatus status) => status is not (ProjectStatus.Completed or ProjectStatus.Cancelled or ProjectStatus.Archived);
+    // "Open" = not finished (see ProjectStatusExtensions.IsFinished). These start ticked: the default view.
+    bool IsOpen(ProjectStatus status) => !status.IsFinished();
     var openProjects = Model.Where(p => !p.IsFinished).ToList();
     var openStatusKeys = string.Join(",", statuses.Where(s => IsOpen(s.Status)).Select(s => StatusKey(s.Status)));
 

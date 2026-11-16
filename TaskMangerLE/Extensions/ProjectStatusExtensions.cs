@@ -7,6 +7,11 @@ public record ProjectStatusStyle(string Label, string BadgeClass, string Progres
 
 public static class ProjectStatusExtensions
 {
+    // Finished = no more work expected: never overdue, never "due soon", sorted last, and
+    // left out of the default ("Open") view. Every page uses this one rule.
+    public static bool IsFinished(this ProjectStatus status) =>
+        status is ProjectStatus.Completed or ProjectStatus.Cancelled or ProjectStatus.Archived;
+
     // The one place that maps a status to its label and colours, so every page shows a status the same way.
     // The progress bar uses the same colour as the badge.
     public static ProjectStatusStyle GetStyle(this ProjectStatus status) => status switch

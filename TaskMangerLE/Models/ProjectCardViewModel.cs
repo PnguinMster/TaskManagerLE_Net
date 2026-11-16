@@ -1,4 +1,5 @@
-﻿using TaskMangerLE.Models.Enums;
+﻿using TaskMangerLE.Extensions;
+using TaskMangerLE.Models.Enums;
 
 namespace TaskMangerLE.Models;
 
@@ -14,8 +15,7 @@ public class ProjectCardViewModel
 
     public int ProgressPercent => ProgressMath.Percent(CompletedTaskCount, TotalTaskCount);
 
-    public bool IsFinished =>
-        Status is ProjectStatus.Completed or ProjectStatus.Cancelled or ProjectStatus.Archived;
+    public bool IsFinished => Status.IsFinished();
 
     // "today" is passed in (views get it from TimeProvider.Today()) so the whole app agrees on it.
     public ProjectDueGroup GetDueGroup(DateOnly today)

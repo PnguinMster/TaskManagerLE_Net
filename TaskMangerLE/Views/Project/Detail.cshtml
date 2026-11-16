@@ -70,7 +70,7 @@
                     @Model.DueDate.ToLongDisplay()
                 </p>
                 @* A finished project isn't "overdue", so it gets no countdown (same rule as _DueLabel). *@
-                @if (Model.Status is not (ProjectStatus.Completed or ProjectStatus.Cancelled or ProjectStatus.Archived)) {
+                @if (!Model.Status.IsFinished()) {
                     int daysRemaining = Model.DueDate.DayNumber - TimeProvider.Today().DayNumber;
 
                     <p style="margin-top:6px">
