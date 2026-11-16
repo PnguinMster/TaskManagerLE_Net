@@ -260,7 +260,7 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
         var signInResult = await signInManager.PasswordSignInAsync(user.UserName!, loginModel.Password, loginModel.RememberMe, lockoutOnFailure: true);
 
         if (signInResult.Succeeded)
-            return RedirectToAction("Index", "Project");
+            return RedirectToAction(nameof(Index), "Home");
 
 
         // General invalid login
