@@ -275,14 +275,6 @@
         }
     };
 
-    string PriorityColor(TaskMangerLE.Models.Enums.TaskPriority priority) =>
-        priority.ToString() switch
-        {
-            "High" or "Critical" => "var(--rt)",
-            "Medium" => "var(--at)",
-            _ => "var(--bt)"
-        };
-
     string DueDateLabel(DateOnly dueDate, bool isDone) =>
         isDone
             ? $"Done {dueDate.ToString("MMM d")}"
@@ -355,7 +347,6 @@ else {
                     @foreach (var task in group.Tasks) {
                         var isDone = task.Status == TaskStatus.Done;
                         var isCancelled = task.Status == TaskStatus.Cancelled;
-                        var priorityColor = PriorityColor(task.Priority);
 
                         <div class="data-row"
                              data-task-item="@StatusKey(task.Status)"
@@ -403,18 +394,7 @@ else {
                                 @task.ProjectName
                             </a>
 
-                            @{
-                                var priorityClass = task.Priority.ToString() switch
-                                {
-                                    "Low" => "badge-blue",
-                                    "Medium" => "badge-amber",
-                                    "High" or "Critical" => "badge-rose",
-                                    _ => "badge-muted"
-                                };
-                            }
-
-                            @* The dot is decoration only (the word says the priority), so screen readers skip it. *@
-                            <span class="badge @priorityClass"><span aria-hidden="true">●</span> @task.Priority</span>
+                            <partial name="_PriorityBadge" model="task.Priority" />
 
                             <span
                                 style="display:flex;align-items:center;gap:6px;font-size:13px;color:@(group.Title == "Overdue" ? "var(--rt)" : "var(--muted)")">

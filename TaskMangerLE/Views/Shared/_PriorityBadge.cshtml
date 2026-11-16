@@ -1,0 +1,16 @@
+@* Task priority badge, e.g. "● High". Used on the project board (Project/Detail) and the Tasks page. *@
+@model TaskPriority
+
+@{
+    // Matching on the enum (not its ToString()) means a renamed value is a compile error, not a grey badge.
+    string badgeClass = Model switch
+    {
+        TaskPriority.Low => "badge-blue",
+        TaskPriority.Medium => "badge-amber",
+        TaskPriority.High or TaskPriority.Critical => "badge-rose",
+        _ => "badge-muted"
+    };
+}
+
+@* The dot is decoration only (the word says the priority), so screen readers skip it. *@
+<span class="badge @badgeClass"><span aria-hidden="true">●</span> @Model</span>

@@ -194,14 +194,6 @@
                                      Priority = task.Priority,
                                      DueDate = task.DueDate
                                  }"/>
-                        var priorityClass = task.Priority.ToString() switch
-                        {
-                            "Low" => "badge-blue",
-                            "Medium" => "badge-amber",
-                            "High" or "Critical" => "badge-rose",
-                            _ => "badge-muted"
-                        };
-
                         bool isDueToday =
                             task.DueDate == TimeProvider.Today();
 
@@ -272,8 +264,7 @@
                                 @if (isCancelled) {
                                     <span class="badge badge-muted">Cancelled</span>
                                 }
-                                @* The dot is decoration only (the word says the priority), so screen readers skip it. *@
-                                <span class="badge @priorityClass"><span aria-hidden="true">●</span> @task.Priority</span>
+                                <partial name="_PriorityBadge" model="task.Priority" />
                                 <span class="due @(isDueToday ? "is-today" : "")">
                                     <partial name="_CalendarIcon" />
                                     Due @task.DueDate.ToString("MMM d")
