@@ -17,7 +17,7 @@
         <input asp-for="Id" type="hidden"/>
         <input asp-for="ProjectId" type="hidden"/>
         @* Where to go after saving: the page this modal is on (Tasks or a project's Detail page). Same as _CreateTaskModal. *@
-        <input type="hidden" name="returnUrl" value="@($"{Context.Request.Path}{Context.Request.QueryString}")"/>
+        <partial name="_ReturnUrlInput" />
 
         <div class="modal-body">
             <div asp-validation-summary="ModelOnly" class="field-error"></div>
@@ -109,6 +109,6 @@
           data-confirm-task-trash="@Model.Name"
           data-trash-detail="in @ViewData["ProjectName"]">
         @Html.AntiForgeryToken()
-        <input type="hidden" name="returnUrl" value="@($"{Context.Request.Path}{Context.Request.QueryString}")"/>
+        <partial name="_ReturnUrlInput" />
     </form>
 </dialog>

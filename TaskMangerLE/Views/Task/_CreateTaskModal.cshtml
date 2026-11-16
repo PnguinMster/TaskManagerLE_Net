@@ -18,10 +18,8 @@
 
     <form asp-controller="Task" asp-action="Create" method="post" data-check-required novalidate>
         @Html.AntiForgeryToken()
-        @* Where to go after creating: the page this modal is on (Tasks or a project's Detail page).
-           If the form comes back with errors, the controller passes the original page along in ViewData. *@
-        <input type="hidden" name="returnUrl"
-               value="@(ViewData["ReturnUrl"] as string ?? $"{Context.Request.Path}{Context.Request.QueryString}")"/>
+        @* Where to go after creating: the page this modal is on (Tasks or a project's Detail page). *@
+        <partial name="_ReturnUrlInput" />
         <div class="modal-body">
             <div asp-validation-summary="ModelOnly" class="field-error"></div>
 

@@ -1,0 +1,6 @@
+@* Hidden returnUrl for a POST form: the page the form is on, so the action can send the user back
+   (the controller only follows local URLs, see RedirectToLocal).
+   When a failed POST re-shows a page (Task/Create re-shows the Tasks page), the request path is the
+   POST's URL, so the controller passes the original page in ViewData["ReturnUrl"]; that wins. *@
+<input type="hidden" name="returnUrl"
+       value="@(ViewData["ReturnUrl"] as string ?? $"{Context.Request.Path}{Context.Request.QueryString}")"/>

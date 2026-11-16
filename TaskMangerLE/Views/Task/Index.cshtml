@@ -366,7 +366,7 @@ else {
                                   class="dashboard-complete-form">
                                 @Html.AntiForgeryToken()
                                 @* Come back to this page (filters in the query string included) instead of the project page. *@
-                                <input type="hidden" name="returnUrl" value="@($"{Context.Request.Path}{Context.Request.QueryString}")"/>
+                                <partial name="_ReturnUrlInput" />
                                 <input type="checkbox"
                                        class="checkbox"
                                        checked="@isDone"
@@ -426,7 +426,7 @@ else {
                                           data-confirm-task-trash="@task.Name"
                                           data-trash-detail="in @task.ProjectName">
                                         @Html.AntiForgeryToken()
-                                        <input type="hidden" name="returnUrl" value="@($"{Context.Request.Path}{Context.Request.QueryString}")"/>
+                                        <partial name="_ReturnUrlInput" />
                                         <button type="submit">Move to trash</button>
                                     </form>
                                 </div>
