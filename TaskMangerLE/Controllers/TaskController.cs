@@ -137,7 +137,7 @@ public class TaskController(
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
-	public async Task<IActionResult> Delete(int? taskId)
+	public async Task<IActionResult> Delete(int? taskId, string? returnUrl)
 	{
 		if (taskId is not { } id)
 			return NotFound();
@@ -151,11 +151,16 @@ public class TaskController(
 			return Challenge();
 
 		await taskService.DeleteTaskAsync(taskItem, deletedByUserId);
+
+		// Back to the page the delete came from (Tasks or a project's board), and Undo returns there too.
+		// Checked once here (same open-redirect rule as RedirectToLocal), then used for both.
+		string backUrl = Url.IsLocalUrl(returnUrl) ? returnUrl : Url.Action(nameof(Index))!;
+
 		this.ShowToast(new ToastMessage(ToastKind.Info, "Task moved to Trash",
 			$"{taskItem.Name} can be restored from the Trash.",
 			ActionLabel: "Undo",
-			ActionUrl: Url.Action(nameof(Restore), new { taskId = id, returnUrl = Url.Action(nameof(Index)) })));
-		return RedirectToAction(nameof(Index), new { projectId = taskItem.ProjectId });
+			ActionUrl: Url.Action(nameof(Restore), new { taskId = id, returnUrl = backUrl })));
+		return LocalRedirect(backUrl);
 	}
 
 	[HttpPost]

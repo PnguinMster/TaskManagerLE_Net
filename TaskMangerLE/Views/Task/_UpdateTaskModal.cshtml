@@ -109,5 +109,6 @@
           data-confirm-task-trash="@Model.Name"
           data-trash-detail="in @ViewData["ProjectName"]">
         @Html.AntiForgeryToken()
+        <input type="hidden" name="returnUrl" value="@($"{Context.Request.Path}{Context.Request.QueryString}")"/>
     </form>
 </dialog>

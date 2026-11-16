@@ -240,6 +240,7 @@
                                               data-confirm-task-trash="@task.Name"
                                               data-trash-detail="in @Model.Name">
                                             @Html.AntiForgeryToken()
+                                            <input type="hidden" name="returnUrl" value="@($"{Context.Request.Path}{Context.Request.QueryString}")"/>
                                             <button type="submit">Move to trash</button>
                                         </form>
                                     </div>
