@@ -1,6 +1,6 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using TaskMangerLE.Extensions;
 using TaskMangerLE.Models;
 using TaskMangerLE.Models.Enums;
@@ -10,241 +10,241 @@ namespace TaskMangerLE.Controllers;
 
 [Authorize]
 public class TaskController(
-    TaskService taskService,
-    ProjectService projectService,
-    IAuthorizationService authorizationService,
-    TimeProvider timeProvider)
-    : ItemControllerBase(authorizationService)
+	UserManager<ApplicationUser> userManager,
+	TaskService taskService,
+	ProjectService projectService,
+	IAuthorizationService authorizationService,
+	TimeProvider timeProvider) : ItemControllerBase(authorizationService)
 {
-    [HttpGet]
-    // showArchived comes from the query string (?showArchived=true); missing means false, so archived
-    // projects' tasks are hidden by default.
-    public async Task<IActionResult> Index(bool showArchived = false)
-    {
-        string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId is null)
-            return Challenge();
+	[HttpGet]
+	// showArchived comes from the query string (?showArchived=true); missing means false, so archived
+	// projects' tasks are hidden by default.
+	public async Task<IActionResult> Index(bool showArchived = false)
+	{
+		string? userId = userManager.GetUserId(User);
+		if (userId is null)
+			return Challenge();
 
-        TaskListViewModel model = await taskService.GetTaskListAsync(userId, showArchived);
-        ViewData["AvailableProjects"] =
-            await projectService.GetProjectCardsAsync(userId);
+		TaskListViewModel model = await taskService.GetTaskListAsync(userId, showArchived);
+		ViewData["AvailableProjects"] =
+			await projectService.GetProjectCardsAsync(userId);
 
-        return View(model);
-    }
+		return View(model);
+	}
 
-    [HttpGet]
-    public async Task<IActionResult> Create(int? projectId)
-    {
-        if (projectId is not { } id)
-            return NotFound();
+	[HttpGet]
+	public async Task<IActionResult> Create(int? projectId)
+	{
+		if (projectId is not { } id)
+			return NotFound();
 
-        ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetProjectAsync(id));
-        if (projectItem is null)
-            return NotFound();
+		ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetProjectAsync(id));
+		if (projectItem is null)
+			return NotFound();
 
-        ViewData["ProjectName"] = projectItem.Name;
-        return View(new TaskItemCreateViewModel
-        {
-            ProjectId = projectItem.Id,
-            DueDate = timeProvider.Today()
-        });
-    }
+		ViewData["ProjectName"] = projectItem.Name;
+		return View(new TaskItemCreateViewModel
+		{
+			ProjectId = projectItem.Id,
+			DueDate = timeProvider.Today()
+		});
+	}
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(TaskItemCreateViewModel taskItemModel, string? returnUrl)
-    {
-        ProjectItem? projectItem = await LoadAuthorizedAsync(
-            projectService.GetProjectAsync(taskItemModel.ProjectId));
+	[HttpPost]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> Create(TaskItemCreateViewModel taskItemModel, string? returnUrl)
+	{
+		ProjectItem? projectItem = await LoadAuthorizedAsync(
+			projectService.GetProjectAsync(taskItemModel.ProjectId));
 
-        if (projectItem is null)
-            return NotFound();
+		if (projectItem is null)
+			return NotFound();
 
-        if (!ModelState.IsValid) {
-            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId is null)
-                return Challenge();
+		if (!ModelState.IsValid) {
+			string? userId = userManager.GetUserId(User);
+			if (userId is null)
+				return Challenge();
 
-            ViewData["AvailableProjects"] =
-                await projectService.GetProjectCardsAsync(userId);
+			ViewData["AvailableProjects"] =
+				await projectService.GetProjectCardsAsync(userId);
 
-            ViewData["CreateTaskModel"] = taskItemModel;
-            // Keep the original page, so fixing the errors and saving still goes back there.
-            ViewData["ReturnUrl"] = returnUrl;
-            return View(nameof(Index), await taskService.GetTaskListAsync(userId, showArchived: false));
-        }
+			ViewData["CreateTaskModel"] = taskItemModel;
+			// Keep the original page, so fixing the errors and saving still goes back there.
+			ViewData["ReturnUrl"] = returnUrl;
+			return View(nameof(Index), await taskService.GetTaskListAsync(userId, showArchived: false));
+		}
 
-        await taskService.AddTaskAsync(taskItemModel);
+		await taskService.AddTaskAsync(taskItemModel);
 
-        // Only follow local URLs, so a crafted link can't send users to another site (see Restore).
-        if (Url.IsLocalUrl(returnUrl))
-            return LocalRedirect(returnUrl);
+		// Only follow local URLs, so a crafted link can't send users to another site (see Restore).
+		if (Url.IsLocalUrl(returnUrl))
+			return LocalRedirect(returnUrl);
 
-        return RedirectToAction(nameof(Index));
-    }
+		return RedirectToAction(nameof(Index));
+	}
 
-    [HttpGet]
-    public async Task<IActionResult> Update(int? taskId)
-    {
-        if (taskId is not { } id)
-            return NotFound();
+	[HttpGet]
+	public async Task<IActionResult> Update(int? taskId)
+	{
+		if (taskId is not { } id)
+			return NotFound();
 
-        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetTaskWithProjectAsync(id), t => t.Project);
-        if (taskItem is null)
-            return NotFound();
+		TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetTaskWithProjectAsync(id), t => t.Project);
+		if (taskItem is null)
+			return NotFound();
 
-        TaskItemUpdateViewModel taskItemModel = new TaskItemUpdateViewModel
-        {
-            Id = taskItem.Id,
-            ProjectId = taskItem.ProjectId,
-            Name = taskItem.Name,
-            Description = taskItem.Description,
-            Priority = taskItem.Priority,
-            Status = taskItem.Status,
-            DueDate = taskItem.DueDate,
-        };
+		TaskItemUpdateViewModel taskItemModel = new TaskItemUpdateViewModel
+		{
+			Id = taskItem.Id,
+			ProjectId = taskItem.ProjectId,
+			Name = taskItem.Name,
+			Description = taskItem.Description,
+			Priority = taskItem.Priority,
+			Status = taskItem.Status,
+			DueDate = taskItem.DueDate,
+		};
 
-        ViewData["TaskName"] = taskItem.Name;
-        return View(taskItemModel);
-    }
+		ViewData["TaskName"] = taskItem.Name;
+		return View(taskItemModel);
+	}
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Update(TaskItemUpdateViewModel taskItemModel, string? returnUrl)
-    {
-        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetTaskWithProjectAsync(taskItemModel.Id), t => t.Project);
-        if (taskItem is null)
-            return NotFound();
+	[HttpPost]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> Update(TaskItemUpdateViewModel taskItemModel, string? returnUrl)
+	{
+		TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetTaskWithProjectAsync(taskItemModel.Id), t => t.Project);
+		if (taskItem is null)
+			return NotFound();
 
-        if (!ModelState.IsValid)
-            return View(taskItemModel);
+		if (!ModelState.IsValid)
+			return View(taskItemModel);
 
-        await taskService.UpdateTaskAsync(taskItem, taskItemModel);
+		await taskService.UpdateTaskAsync(taskItem, taskItemModel);
 
-        // Only follow local URLs, so a crafted link can't send users to another site (see Create).
-        if (Url.IsLocalUrl(returnUrl))
-            return LocalRedirect(returnUrl);
+		// Only follow local URLs, so a crafted link can't send users to another site (see Create).
+		if (Url.IsLocalUrl(returnUrl))
+			return LocalRedirect(returnUrl);
 
-        return RedirectToAction("Detail", "Project", new { projectId = taskItem.ProjectId });
-    }
+		return RedirectToAction("Detail", "Project", new { projectId = taskItem.ProjectId });
+	}
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Complete(int? taskId)
-    {
-        if (taskId is not { } id)
-            return NotFound();
+	[HttpPost]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> Complete(int? taskId)
+	{
+		if (taskId is not { } id)
+			return NotFound();
 
-        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetTaskWithProjectAsync(id), t => t.Project);
-        if (taskItem is null)
-            return NotFound();
+		TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetTaskWithProjectAsync(id), t => t.Project);
+		if (taskItem is null)
+			return NotFound();
 
-        await taskService.CompleteTaskAsync(taskItem);
-        return RedirectToAction("Index", "Home");
-    }
+		await taskService.CompleteTaskAsync(taskItem);
+		return RedirectToAction("Index", "Home");
+	}
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(int? taskId)
-    {
-        if (taskId is not { } id)
-            return NotFound();
+	[HttpPost]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> Delete(int? taskId)
+	{
+		if (taskId is not { } id)
+			return NotFound();
 
-        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetTaskWithProjectAsync(id), t => t.Project);
-        if (taskItem is null)
-            return NotFound();
+		TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetTaskWithProjectAsync(id), t => t.Project);
+		if (taskItem is null)
+			return NotFound();
 
-        string? deletedByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (deletedByUserId is null)
-            return Challenge();
+		string? deletedByUserId = userManager.GetUserId(User);
+		if (deletedByUserId is null)
+			return Challenge();
 
-        await taskService.DeleteTaskAsync(taskItem, deletedByUserId);
-        this.ShowToast(new ToastMessage(ToastKind.Info, "Task moved to Trash",
-            $"{taskItem.Name} can be restored from the Trash.",
-            ActionLabel: "Undo",
-            ActionUrl: Url.Action(nameof(Restore), new { taskId = id, returnUrl = Url.Action(nameof(Index)) })));
-        return RedirectToAction(nameof(Index), new { projectId = taskItem.ProjectId });
-    }
+		await taskService.DeleteTaskAsync(taskItem, deletedByUserId);
+		this.ShowToast(new ToastMessage(ToastKind.Info, "Task moved to Trash",
+			$"{taskItem.Name} can be restored from the Trash.",
+			ActionLabel: "Undo",
+			ActionUrl: Url.Action(nameof(Restore), new { taskId = id, returnUrl = Url.Action(nameof(Index)) })));
+		return RedirectToAction(nameof(Index), new { projectId = taskItem.ProjectId });
+	}
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ToggleCompletion(int? taskId, string? returnUrl)
-    {
-        if (taskId is not { } id)
-            return NotFound();
+	[HttpPost]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> ToggleCompletion(int? taskId, string? returnUrl)
+	{
+		if (taskId is not { } id)
+			return NotFound();
 
-        TaskItem? taskItem = await LoadAuthorizedAsync(
-            taskService.GetTaskWithProjectAsync(id),
-            t => t.Project);
+		TaskItem? taskItem = await LoadAuthorizedAsync(
+			taskService.GetTaskWithProjectAsync(id),
+			t => t.Project);
 
-        if (taskItem is null)
-            return NotFound();
+		if (taskItem is null)
+			return NotFound();
 
-        await taskService.ToggleCompletionAsync(taskItem);
+		await taskService.ToggleCompletionAsync(taskItem);
 
-        // Same as Update: only follow local URLs.
-        if (Url.IsLocalUrl(returnUrl))
-            return LocalRedirect(returnUrl);
+		// Same as Update: only follow local URLs.
+		if (Url.IsLocalUrl(returnUrl))
+			return LocalRedirect(returnUrl);
 
-        return RedirectToAction(
-            "Detail",
-            "Project",
-            new { projectId = taskItem.ProjectId });
-    }
+		return RedirectToAction(
+			"Detail",
+			"Project",
+			new { projectId = taskItem.ProjectId });
+	}
 
-    [HttpGet]
-    public async Task<IActionResult> Restore(int? projectId)
-    {
-        if (projectId is not { } id)
-            return NotFound();
+	[HttpGet]
+	public async Task<IActionResult> Restore(int? projectId)
+	{
+		if (projectId is not { } id)
+			return NotFound();
 
-        ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetProjectWithDeletedTasksAsync(id));
-        if (projectItem is null)
-            return NotFound();
+		ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetProjectWithDeletedTasksAsync(id));
+		if (projectItem is null)
+			return NotFound();
 
-        return View(nameof(Restore), projectItem);
-    }
+		return View(nameof(Restore), projectItem);
+	}
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    [ActionName("Restore")]
-    public async Task<IActionResult> RestoreConfirmed(int? taskId, string? returnUrl)
-    {
-        if (taskId is not { } id)
-            return NotFound();
+	[HttpPost]
+	[ValidateAntiForgeryToken]
+	[ActionName("Restore")]
+	public async Task<IActionResult> RestoreConfirmed(int? taskId, string? returnUrl)
+	{
+		if (taskId is not { } id)
+			return NotFound();
 
-        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetDeletedTaskAsync(id), t => t.Project);
-        if (taskItem is null)
-            return NotFound();
+		TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetDeletedTaskAsync(id), t => t.Project);
+		if (taskItem is null)
+			return NotFound();
 
-        await taskService.RestoreTaskAsync(taskItem);
-        this.ShowToast(new ToastMessage(ToastKind.Success, "Task restored", $"{taskItem.Name} is back."));
+		await taskService.RestoreTaskAsync(taskItem);
+		this.ShowToast(new ToastMessage(ToastKind.Success, "Task restored", $"{taskItem.Name} is back."));
 
-        // Same as ProjectController.Restore: only follow local return URLs.
-        if (Url.IsLocalUrl(returnUrl))
-            return LocalRedirect(returnUrl);
+		// Same as ProjectController.Restore: only follow local return URLs.
+		if (Url.IsLocalUrl(returnUrl))
+			return LocalRedirect(returnUrl);
 
-        return RedirectToAction(nameof(Restore), new { projectId = taskItem.ProjectId });
-    }
+		return RedirectToAction(nameof(Restore), new { projectId = taskItem.ProjectId });
+	}
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> PurgeTask(int? taskId, string? returnUrl)
-    {
-        if (taskId is not { } id)
-            return NotFound();
+	[HttpPost]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> PurgeTask(int? taskId, string? returnUrl)
+	{
+		if (taskId is not { } id)
+			return NotFound();
 
-        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetDeletedTaskAsync(id), t => t.Project);
-        if (taskItem is null)
-            return NotFound();
+		TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetDeletedTaskAsync(id), t => t.Project);
+		if (taskItem is null)
+			return NotFound();
 
-        int taskProjectId = taskItem.ProjectId;
-        await taskService.PurgeTaskAsync(taskItem);
+		int taskProjectId = taskItem.ProjectId;
+		await taskService.PurgeTaskAsync(taskItem);
 
-        // The Trash page sends a returnUrl; only local ones are followed (see RestoreConfirmed).
-        if (Url.IsLocalUrl(returnUrl))
-            return LocalRedirect(returnUrl);
+		// The Trash page sends a returnUrl; only local ones are followed (see RestoreConfirmed).
+		if (Url.IsLocalUrl(returnUrl))
+			return LocalRedirect(returnUrl);
 
-        return RedirectToAction(nameof(Restore), new { projectId = taskProjectId });
-    }
+		return RedirectToAction(nameof(Restore), new { projectId = taskProjectId });
+	}
 }
