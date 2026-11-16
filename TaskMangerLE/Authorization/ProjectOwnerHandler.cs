@@ -1,6 +1,5 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using TaskMangerLE.Models;
 
 namespace TaskMangerLE.Authorization;
@@ -9,11 +8,13 @@ public class ProjectOwnerRequirement : IAuthorizationRequirement
 {
 }
 
-public class ProjectOwnerHandler(UserManager<ApplicationUser> userManager) : AuthorizationHandler<ProjectOwnerRequirement, ProjectItem>
+public class ProjectOwnerHandler : AuthorizationHandler<ProjectOwnerRequirement, ProjectItem>
 {
 	protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, ProjectOwnerRequirement requirement, ProjectItem resource)
 	{
-		var userId = userManager.GetUserId(context.User);
+		// Read straight from the claims (the same claim UserManager.GetUserId uses by default), so the
+		// handler needs no services and unit tests can create it with new ProjectOwnerHandler().
+		var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
 		if (context.User.IsInRole(Roles.Admin) || resource.OwnerId == userId)
 			context.Succeed(requirement);
