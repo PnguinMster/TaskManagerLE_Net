@@ -129,35 +129,34 @@
                             @foreach (var task in Model.UpcomingTasks) {
                                 bool isDueToday = task.DueDate == TimeProvider.Today();
 
-                                var task1 = task;
                                 <div class="row dashboard-task">
                                     <form asp-controller="Task"
                                           asp-action="Complete"
-                                          asp-route-taskId="@task1.Id"
+                                          asp-route-taskId="@task.Id"
                                           method="post"
                                           class="dashboard-complete-form">
                                         <input type="checkbox"
                                                class="checkbox"
-                                               aria-label="Complete @task1.Name"
+                                               aria-label="Complete @task.Name"
                                                onchange="this.form.submit()">
                                     </form>
                                     <span class="dashboard-task-details">
-                                        <span class="dashboard-task-name">@task1.Name</span>
+                                        <span class="dashboard-task-name">@task.Name</span>
                                         <span class="small dashboard-task-meta">
                                             <a class="text-blue"
                                                asp-controller="Project"
                                                asp-action="Detail"
-                                               asp-route-projectId="@task1.ProjectId">@task1.ProjectName</a>
-                                            <span class="muted"> · Priority: @task1.Priority</span>
+                                               asp-route-projectId="@task.ProjectId">@task.ProjectName</a>
+                                            <partial name="_PriorityBadge" model="task.Priority" />
                                         </span>
                                     </span>
 
-                                    @* Due today is urgent, so it gets a badge; later dates are plain text (same rule as _DueLabel). *@
+                                    @* Due today is urgent, so it gets a badge; later dates are plain text (same look as _DueLabel). *@
                                     @if (isDueToday) {
-                                        <span class="badge badge-rose">Today</span>
+                                        <span class="badge badge-amber">Due today</span>
                                     }
                                     else {
-                                        <span class="due"><partial name="_CalendarIcon" /> @task1.DueDate.ToShortDisplay()</span>
+                                        <span class="due"><partial name="_CalendarIcon" /> @task.DueDate.ToShortDisplay()</span>
                                     }
                                 </div>
                             }
@@ -320,10 +319,10 @@ else {
                                 <span class="dashboard-task-name">Finalize homepage hero copy</span>
                                 <span class="small dashboard-task-meta">
                                     <span class="text-blue">Website Redesign</span>
-                                    <span class="muted"> · Priority: High</span>
+                                    <partial name="_PriorityBadge" model="TaskPriority.High" />
                                 </span>
                             </span>
-                            <span class="badge badge-rose">Today</span>
+                            <span class="badge badge-amber">Due today</span>
                         </div>
 
                         <div class="row dashboard-task">
@@ -335,10 +334,10 @@ else {
                                 <span class="dashboard-task-name">Fix signup validation on mobile</span>
                                 <span class="small dashboard-task-meta">
                                     <span class="text-blue">Onboarding Flow</span>
-                                    <span class="muted"> · Priority: High</span>
+                                    <partial name="_PriorityBadge" model="TaskPriority.High" />
                                 </span>
                             </span>
-                            <span class="badge badge-muted">Nov 18</span>
+                            <span class="due"><partial name="_CalendarIcon" /> Nov 18</span>
                         </div>
 
                         <div class="row dashboard-task">
@@ -350,10 +349,10 @@ else {
                                 <span class="dashboard-task-name">Wireframe key pages</span>
                                 <span class="small dashboard-task-meta">
                                     <span class="text-blue">Website Redesign</span>
-                                    <span class="muted"> · Priority: Medium</span>
+                                    <partial name="_PriorityBadge" model="TaskPriority.Medium" />
                                 </span>
                             </span>
-                            <span class="badge badge-muted">Nov 21</span>
+                            <span class="due"><partial name="_CalendarIcon" /> Nov 21</span>
                         </div>
                     </div>
                 </div>
