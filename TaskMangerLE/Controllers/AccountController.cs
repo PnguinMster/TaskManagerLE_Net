@@ -96,15 +96,12 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
                 "Confirm your new email address",
                 $"Confirm your new email address by <a href='{HtmlEncoder.Default.Encode(callbackUrl!)}'>clicking here</a>.");
 
-            // The email stays the old one until the link is opened, so say which address is waiting.
-            var checkEmail = $"We sent a confirmation link to {newEmail}. Your email changes once you open it.";
-            TempData["StatusMessage"] = userNameChanged ? $"Username saved. {checkEmail}" : checkEmail;
-
             if (userNameChanged)
                 this.ShowToast(new ToastMessage(ToastKind.Success, "Username saved"));
 
+            // The email stays the old one until the link is opened, so say which address is waiting.
             this.ShowToast(new ToastMessage(ToastKind.Info, "Confirmation link sent",
-                $"Check {newEmail} to confirm your new email."));
+                $"We sent a link to {newEmail}. Your email changes once you open it."));
         }
         else {
             this.ShowToast(new ToastMessage(ToastKind.Success, "Profile saved"));
@@ -217,7 +214,8 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
 
         var result = await userManager.ChangeEmailAsync(user, email, code);
         if (!result.Succeeded) {
-            TempData["StatusMessage"] = "We couldn't confirm that email change. Please request it again.";
+            this.ShowToast(new ToastMessage(ToastKind.Error, "Email not changed",
+                "We couldn't confirm that email change. Please request it again."));
             return RedirectToAction(nameof(Profile));
         }
 
@@ -471,7 +469,7 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
 
     private RedirectToActionResult ResetPasswordDone()
     {
-        TempData["StatusMessage"] = "Your password has been reset. You can log in now.";
+        this.ShowToast(new ToastMessage(ToastKind.Success, "Password reset", "You can log in now."));
         return RedirectToAction(nameof(Login));
     }
 
