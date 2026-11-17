@@ -71,12 +71,27 @@ public class TaskController(
 		IActionResult goBack = this.RedirectToLocal(returnUrl,
 			RedirectToAction("Detail", "Project", new { projectId = taskItem.ProjectId }));
 
+		// Moving to another project: that project must be the user's too (same ownership rule as everywhere),
+		// or a crafted form could put a task into someone else's project.
+		ProjectItem? targetProject = null;
+		if (taskItemModel.ProjectId != taskItem.ProjectId) {
+			targetProject = await LoadAuthorizedAsync(projectService.GetProjectAsync(taskItemModel.ProjectId));
+			if (targetProject is null)
+				return NotFound();
+		}
+
 		if (!ModelState.IsValid) {
 			ShowValidationErrorToast();
 			return goBack;
 		}
 
 		await taskService.UpdateTaskAsync(taskItem, taskItemModel);
+
+		// The task leaves the board it was on, so say where it went.
+		if (targetProject is not null)
+			this.ShowToast(new ToastMessage(ToastKind.Success, "Task moved",
+				$"{taskItem.Name} is now in {targetProject.Name}."));
+
 		return goBack;
 	}
 

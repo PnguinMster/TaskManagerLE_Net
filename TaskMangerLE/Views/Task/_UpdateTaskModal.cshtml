@@ -13,8 +13,9 @@
     </div>
 
     <form asp-controller="Task" asp-action="Update" method="post" data-check-required novalidate>
+        @* No hidden ProjectId: the Project <select> below sends it. Two fields with the same name would
+           send two values, and model binding would keep the first (the old project). *@
         <input asp-for="Id" type="hidden"/>
-        <input asp-for="ProjectId" type="hidden"/>
         @* Where to go after saving: the page this modal is on (Tasks or a project's Detail page). Same as _CreateTaskModal. *@
         <partial name="_ReturnUrlInput" />
 

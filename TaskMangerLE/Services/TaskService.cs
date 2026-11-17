@@ -35,6 +35,8 @@ public class TaskService(ApplicationDbContext context, TimeProvider timeProvider
         taskItem.Priority = taskItemModel.Priority;
         taskItem.Status = taskItemModel.Status;
         taskItem.DueDate = dueDate;
+        // The controller has already checked the user owns this project.
+        taskItem.ProjectId = taskItemModel.ProjectId;
 
         await context.SaveChangesAsync();
     }
