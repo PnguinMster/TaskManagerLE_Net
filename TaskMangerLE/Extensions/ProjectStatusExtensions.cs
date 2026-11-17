@@ -12,17 +12,22 @@ public static class ProjectStatusExtensions
     public static bool IsFinished(this ProjectStatus status) =>
         status is ProjectStatus.Completed or ProjectStatus.Cancelled or ProjectStatus.Archived;
 
-    // The one place that maps a status to its label and colours, so every page shows a status the same way.
-    // The progress bar uses the same colour as the badge.
-    public static ProjectStatusStyle GetStyle(this ProjectStatus status) => status switch
+    // The one place that maps a status to its colours, so every page shows a status the same way.
+    // The progress bar uses the same colour as the badge. The label comes from [Display] on the enum.
+    public static ProjectStatusStyle GetStyle(this ProjectStatus status)
     {
-        ProjectStatus.Active => new("In Progress", "badge-blue", "is-blue", "text-blue"),
-        ProjectStatus.Planning => new("Planning", "badge-purple", "is-purple", "text-purple"),
-        ProjectStatus.OnHold => new("On Hold", "badge-amber", "is-amber", "text-amber"),
-        ProjectStatus.Completed => new("Completed", "badge-green", "is-green", "text-green"),
-        ProjectStatus.Cancelled => new("Cancelled", "badge-rose", "is-rose", "text-rose"),
-        ProjectStatus.Archived => new("Archived", "badge-muted", "is-muted", "muted"),
-        // Enums can hold any int (e.g. a value added later), so the compiler wants a fallback.
-        _ => new(status.ToString(), "badge-muted", "is-muted", "muted")
-    };
+        (string badgeClass, string progressClass, string textClass) = status switch
+        {
+            ProjectStatus.Active => ("badge-blue", "is-blue", "text-blue"),
+            ProjectStatus.Planning => ("badge-purple", "is-purple", "text-purple"),
+            ProjectStatus.OnHold => ("badge-amber", "is-amber", "text-amber"),
+            ProjectStatus.Completed => ("badge-green", "is-green", "text-green"),
+            ProjectStatus.Cancelled => ("badge-rose", "is-rose", "text-rose"),
+            ProjectStatus.Archived => ("badge-muted", "is-muted", "muted"),
+            // Enums can hold any int (e.g. a value added later), so the compiler wants a fallback.
+            _ => ("badge-muted", "is-muted", "muted")
+        };
+
+        return new ProjectStatusStyle(status.GetDisplayName(), badgeClass, progressClass, textClass);
+    }
 }

@@ -7,17 +7,11 @@
         ViewData["CreateTaskModel"] as TaskItemCreateViewModel
         ?? new TaskItemCreateViewModel();
 
-    // Every status, for the Status checkboxes in the Filters panel. Labels and order match the board
-    // columns on Project/Detail. The checkbox values (see StatusKey) are what each row's data-task-item
-    // holds, so site.js can compare them directly.
-    var statuses = new[]
-    {
-        (Status: TaskStatus.ToDo, Label: "To Do"),
-        (Status: TaskStatus.InProgress, Label: "In Progress"),
-        (Status: TaskStatus.Review, Label: "Review"),
-        (Status: TaskStatus.Done, Label: "Done"),
-        (Status: TaskStatus.Cancelled, Label: "Cancelled")
-    };
+    // Every status, for the Status checkboxes in the Filters panel. The enum's numbers are already in
+    // workflow order, so GetValues gives the same order as the board columns on Project/Detail. Labels come
+    // from [Display]. The checkbox values (see StatusKey) are what each row's data-task-item holds, so
+    // site.js can compare them directly.
+    TaskStatus[] statuses = Enum.GetValues<TaskStatus>();
 
     // "ToDo" -> "todo". The same rule the Projects page uses for data-project-item.
     string StatusKey(TaskStatus status) => status.ToString().ToLowerInvariant();
@@ -29,7 +23,7 @@
     // (a done or cancelled task can't be "overdue"), and they are what the page shows by default.
     bool IsOpen(TaskStatus status) => !status.IsFinished();
     var openTasks = Model.Tasks.Where(t => IsOpen(t.Status)).ToList();
-    var openStatusKeys = string.Join(",", statuses.Where(s => IsOpen(s.Status)).Select(s => StatusKey(s.Status)));
+    var openStatusKeys = string.Join(",", statuses.Where(IsOpen).Select(StatusKey));
 
     // Quick views are presets for the Filters panel: clicking one ticks these statuses, picks this
     // due range and clears Priority and Project. site.js highlights the view that matches the panel.
@@ -126,10 +120,10 @@
                             @foreach (var status in statuses) {
                                 <label class="filter-option">
                                     <input type="checkbox"
-                                           value="@StatusKey(status.Status)"
-                                           checked="@IsOpen(status.Status)"
+                                           value="@StatusKey(status)"
+                                           checked="@IsOpen(status)"
                                            data-status-option/>
-                                    <span>@status.Label</span>
+                                    <span>@status.GetDisplayName()</span>
                                 </label>
                             }
                         </div>

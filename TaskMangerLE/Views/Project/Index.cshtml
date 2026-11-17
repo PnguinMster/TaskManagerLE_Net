@@ -8,17 +8,14 @@
     // Doing it here means the page loads already in the default order, so nothing jumps around.
     var projects = Model.OrderBy(p => p.IsFinished).ThenBy(p => p.DueDate).ThenBy(p => p.Name).ToList();
 
-    // Every status, for the Status checkboxes in the Filters panel, in the same order as the enum.
+    // Every status, for the Status checkboxes in the Filters panel, in workflow order (as in the enum).
+    // Listed by hand because Enum.GetValues sorts by number, and Archived is 1. Labels come from [Display].
     // The checkbox values (see StatusKey) are what each card's data-project-item holds.
-    var statuses = new[]
-    {
-        (Status: ProjectStatus.Planning, Label: "Planning"),
-        (Status: ProjectStatus.Active, Label: "In Progress"),
-        (Status: ProjectStatus.OnHold, Label: "On Hold"),
-        (Status: ProjectStatus.Completed, Label: "Completed"),
-        (Status: ProjectStatus.Cancelled, Label: "Cancelled"),
-        (Status: ProjectStatus.Archived, Label: "Archived")
-    };
+    ProjectStatus[] statuses =
+    [
+        ProjectStatus.Planning, ProjectStatus.Active, ProjectStatus.OnHold,
+        ProjectStatus.Completed, ProjectStatus.Cancelled, ProjectStatus.Archived
+    ];
 
     // "OnHold" -> "onhold". The same rule as data-project-item below.
     string StatusKey(ProjectStatus status) => status.ToString().ToLowerInvariant();
@@ -26,7 +23,7 @@
     // "Open" = not finished (see ProjectStatusExtensions.IsFinished). These start ticked: the default view.
     bool IsOpen(ProjectStatus status) => !status.IsFinished();
     var openProjects = Model.Where(p => !p.IsFinished).ToList();
-    var openStatusKeys = string.Join(",", statuses.Where(s => IsOpen(s.Status)).Select(s => StatusKey(s.Status)));
+    var openStatusKeys = string.Join(",", statuses.Where(IsOpen).Select(StatusKey));
 
     // Quick views are presets for the Filters panel, like on the Tasks page: clicking one ticks these
     // statuses and picks this due option. The due values match the Due radio buttons below.
@@ -179,10 +176,10 @@ else {
                                 @foreach (var status in statuses) {
                                     <label class="filter-option">
                                         <input type="checkbox"
-                                               value="@StatusKey(status.Status)"
-                                               checked="@IsOpen(status.Status)"
+                                               value="@StatusKey(status)"
+                                               checked="@IsOpen(status)"
                                                data-project-status-option/>
-                                        <span>@status.Label</span>
+                                        <span>@status.GetDisplayName()</span>
                                     </label>
                                 }
                             </div>

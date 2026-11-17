@@ -150,12 +150,13 @@
     @{
         // Columns follow the workflow order. Cancelled tasks sit in Done (with a badge) so they
         // stay visible; they're left out of the progress numbers in ProjectService.
+        // Each column is titled after its first status ([Display] label on the enum).
         var columns = new[]
         {
-            (Title: "To Do", Statuses: new[] { TaskStatus.ToDo }, DotClass: ""),
-            (Title: "In Progress", Statuses: new[] { TaskStatus.InProgress }, DotClass: "is-progress"),
-            (Title: "Review", Statuses: new[] { TaskStatus.Review }, DotClass: "is-review"),
-            (Title: "Done", Statuses: new[] { TaskStatus.Done, TaskStatus.Cancelled }, DotClass: "is-done")
+            (Statuses: new[] { TaskStatus.ToDo }, DotClass: ""),
+            (Statuses: new[] { TaskStatus.InProgress }, DotClass: "is-progress"),
+            (Statuses: new[] { TaskStatus.Review }, DotClass: "is-review"),
+            (Statuses: new[] { TaskStatus.Done, TaskStatus.Cancelled }, DotClass: "is-done")
         };
     }
 
@@ -169,11 +170,12 @@
                     .OrderBy(task => task.Status == TaskStatus.Cancelled)
                     .ToList();
                 int laneCancelled = columnTasks.Count(task => task.Status == TaskStatus.Cancelled);
+                string columnTitle = column.Statuses[0].GetDisplayName();
 
-                <section class="lane" aria-label="@column.Title tasks">
+                <section class="lane" aria-label="@columnTitle tasks">
                     <div class="lane-header">
                         <span class="lane-dot @column.DotClass" aria-hidden="true"></span>
-                        <h3>@column.Title</h3>
+                        <h3>@columnTitle</h3>
                         <span class="badge badge-muted">@(columnTasks.Count - laneCancelled)</span>
                         @if (laneCancelled > 0) {
                             <span class="muted" style="font-size:12px">+ @laneCancelled cancelled</span>
