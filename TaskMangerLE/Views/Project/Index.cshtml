@@ -31,16 +31,16 @@
     {
         (Label: "Open", Statuses: openStatusKeys, Due: "any", Count: openProjects.Count),
         (Label: "Overdue", Statuses: openStatusKeys, Due: "overdue",
-            Count: openProjects.Count(p => p.GetDueGroup(today) == ProjectDueGroup.Overdue)),
+            Count: openProjects.Count(p => p.GetDueGroup(today) == DueGroup.Overdue)),
         (Label: "Due soon", Statuses: openStatusKeys, Due: "week",
-            Count: openProjects.Count(p => p.GetDueGroup(today) is ProjectDueGroup.Today or ProjectDueGroup.ThisWeek)),
+            Count: openProjects.Count(p => p.GetDueGroup(today) is DueGroup.Today or DueGroup.ThisWeek)),
         (Label: "Completed", Statuses: StatusKey(ProjectStatus.Completed), Due: "any",
             Count: Model.Count(p => p.Status == ProjectStatus.Completed)),
         (Label: "Archived", Statuses: StatusKey(ProjectStatus.Archived), Due: "any",
             Count: Model.Count(p => p.Status == ProjectStatus.Archived))
     };
 
-    // Built on ProjectDueGroup (data-project-due), so the server and the filter agree on "overdue" etc.
+    // Built on DueGroup (data-project-due), so the server and the filter agree on "overdue" etc.
     // "week" = today or the next 7 days. Finished projects never match anything but "Any time".
     var dueOptions = new[]
     {

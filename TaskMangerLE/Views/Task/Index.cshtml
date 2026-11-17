@@ -17,13 +17,15 @@
     string StatusKey(TaskStatus status) => status.ToString().ToLowerInvariant();
 
     var today = TimeProvider.Today();
-    var weekEnd = today.AddDays(7);
 
-    // "Open" = not finished (see TaskStatusExtensions.IsFinished). Only these go into the due-date groups
-    // (a done or cancelled task can't be "overdue"), and they are what the page shows by default.
+    // "Open" = not finished (see TaskStatusExtensions.IsFinished). These are what the page shows by default.
     bool IsOpen(TaskStatus status) => !status.IsFinished();
     var openTasks = Model.Tasks.Where(t => IsOpen(t.Status)).ToList();
     var openStatusKeys = string.Join(",", statuses.Where(IsOpen).Select(StatusKey));
+
+    // Each task's due group (DueGroupExtensions.GetDueGroup, the same rule as the Projects page). A done or
+    // cancelled task is "Finished", so it never counts as overdue or due soon and only matches "Any time".
+    DueGroup DueGroupOf(TaskListItemViewModel task) => task.GetDueGroup(today);
 
     // Quick views are presets for the Filters panel: clicking one ticks these statuses, picks this
     // due range and clears Priority and Project. site.js highlights the view that matches the panel.
@@ -31,19 +33,22 @@
     var quickViews = new[]
     {
         (Label: "Open", Statuses: openStatusKeys, Due: "any", Count: openTasks.Count),
-        (Label: "Overdue", Statuses: openStatusKeys, Due: "overdue", Count: openTasks.Count(t => t.DueDate < today)),
-        (Label: "Due soon", Statuses: openStatusKeys, Due: "week", Count: openTasks.Count(t => t.DueDate >= today && t.DueDate <= weekEnd)),
+        (Label: "Overdue", Statuses: openStatusKeys, Due: "overdue",
+            Count: Model.Tasks.Count(t => DueGroupOf(t) == DueGroup.Overdue)),
+        (Label: "Due soon", Statuses: openStatusKeys, Due: "week",
+            Count: Model.Tasks.Count(t => DueGroupOf(t) is DueGroup.Today or DueGroup.ThisWeek)),
         (Label: "In review", Statuses: StatusKey(TaskStatus.Review), Due: "any", Count: Model.Tasks.Count(t => t.Status == TaskStatus.Review)),
         (Label: "Done", Statuses: StatusKey(TaskStatus.Done), Due: "any", Count: Model.Tasks.Count(t => t.Status == TaskStatus.Done))
     };
 
+    // Same options as the Projects page. "week" = today or the next 7 days.
     var dueOptions = new[]
     {
         (Value: "any", Label: "Any time"),
         (Value: "overdue", Label: "Overdue"),
         (Value: "today", Label: "Today"),
         (Value: "week", Label: "Next 7 days"),
-        (Value: "month", Label: "Next 30 days")
+        (Value: "later", Label: "Later")
     };
 
     // Only projects that have tasks on this page: picking any other one could never match a row.
@@ -229,30 +234,31 @@
 
 
 @{
+    // The open tasks are grouped by DueGroup; finished ones go under Done or Cancelled instead.
     var groups = new[]
     {
         new
         {
             Title = "Overdue",
-            Tasks = openTasks.Where(t => t.DueDate < today).ToList(),
+            Tasks = Model.Tasks.Where(t => DueGroupOf(t) == DueGroup.Overdue).ToList(),
             Color = "var(--rt)"
         },
         new
         {
             Title = "Today",
-            Tasks = openTasks.Where(t => t.DueDate == today).ToList(),
+            Tasks = Model.Tasks.Where(t => DueGroupOf(t) == DueGroup.Today).ToList(),
             Color = "var(--at)"
         },
         new
         {
             Title = "This week",
-            Tasks = openTasks.Where(t => t.DueDate > today && t.DueDate <= weekEnd).ToList(),
+            Tasks = Model.Tasks.Where(t => DueGroupOf(t) == DueGroup.ThisWeek).ToList(),
             Color = "var(--text)"
         },
         new
         {
             Title = "Later",
-            Tasks = openTasks.Where(t => t.DueDate > weekEnd).ToList(),
+            Tasks = Model.Tasks.Where(t => DueGroupOf(t) == DueGroup.Later).ToList(),
             Color = "var(--text)"
         },
         new
@@ -350,7 +356,7 @@ else {
                              data-task-due-order="@Array.IndexOf(groups, group)"
                              data-task-project-name="@task.ProjectName"
                              data-task-project-id="@task.ProjectId"
-                             data-task-days-left="@(task.DueDate.DayNumber - today.DayNumber)"
+                             data-task-due="@DueGroupOf(task).ToString().ToLowerInvariant()"
                              data-task-priority-rank="@((int)task.Priority)"
                              data-task-date="@task.DueDate.ToString("yyyy-MM-dd")">
                             <form asp-action="ToggleCompletion"

@@ -17,13 +17,5 @@ public class ProjectCardViewModel
 
     public bool IsFinished => Status.IsFinished();
 
-    // "today" is passed in (views get it from TimeProvider.Today()) so the whole app agrees on it.
-    public ProjectDueGroup GetDueGroup(DateOnly today)
-    {
-        if (IsFinished) return ProjectDueGroup.Finished;
-        if (DueDate < today) return ProjectDueGroup.Overdue;
-        if (DueDate == today) return ProjectDueGroup.Today;
-        if (DueDate <= today.AddDays(7)) return ProjectDueGroup.ThisWeek;
-        return ProjectDueGroup.Later;
-    }
+    public DueGroup GetDueGroup(DateOnly today) => DueDate.GetDueGroup(today, IsFinished);
 }

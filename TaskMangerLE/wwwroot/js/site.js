@@ -631,11 +631,20 @@ function makeFilterChip(filter, onRemove) {
     return chip;
 }
 
+// The Due filter on the Projects and Tasks pages. "group" is the server's lowercase DueGroup
+// (overdue / today / thisweek / later / finished), so both pages use the server's one rule.
+// "due" is the chosen radio value. "finished" only matches "any": a done item is never overdue or due soon.
+function matchesDueGroup(group, due) {
+    if (due === "any") return true;
+    if (due === "week") return group === "today" || group === "thisweek";
+    return group === due;
+}
+
 // Projects page: quick views, search box, the Filters panel (Status / Due), the removable chips,
 // "Clear all" and "Sort by". Same design as the Tasks page (setUpTaskFilters). Both the grid cards
 // and the list rows carry
 //   data-project-item="<status>"   lowercase ProjectStatus: what the Status checkboxes match
-//   data-project-due="<group>"     lowercase ProjectDueGroup: what the Due options match
+//   data-project-due="<group>"     lowercase DueGroup: what the Due options match (matchesDueGroup)
 //   data-project-text="<name> <description>"   what the search box looks at
 //   data-project-name / -date (yyyy-MM-dd) / -progress (0-100)   what "Sort by" orders on
 // so one pass hides, shows or reorders both views and they always agree.
@@ -664,15 +673,6 @@ function setUpProjectFilters() {
     const defaultStatuses = statusBoxes.filter(box => box.defaultChecked).map(box => box.value);
     const dueValue = () => dueRadios.find(radio => radio.checked)?.value ?? "any";
     const setDue = value => dueRadios.forEach(radio => { radio.checked = radio.value === value; });
-
-    // data-project-due is "finished" for Completed/Cancelled/Archived, so those only match "Any time"
-    // (the same rule the old Due date dropdown had).
-    function matchesDue(item, due) {
-        const group = item.dataset.projectDue;
-        if (due === "any") return true;
-        if (due === "week") return group === "today" || group === "thisweek";
-        return group === due;
-    }
 
     const saveProjectFilters = () => saveFilters(FILTERS_KEY, {
         statuses: checkedValues(statusBoxes),
@@ -758,7 +758,7 @@ function setUpProjectFilters() {
         items.forEach(item => {
             item.hidden = !(
                 statuses.includes(item.dataset.projectItem) &&
-                matchesDue(item, due) &&
+                matchesDueGroup(item.dataset.projectDue, due) &&
                 item.dataset.projectText.toLowerCase().includes(searchText));
         });
 
@@ -820,7 +820,7 @@ function setUpProjectFilters() {
 //                                        what the Status checkboxes match
 //   data-task-priority="<TaskPriority>"  what the Priority checkboxes match
 //   data-task-project-id="<id>"          what the Project checkboxes match
-//   data-task-days-left="<n>"            days until due (negative = past): what the Due options match
+//   data-task-due="<group>"              lowercase DueGroup: what the Due options match (matchesDueGroup)
 //   data-task-text="<name> <description>"   what the search box looks at
 //   data-task-due-label / -due-color / -due-order, -project-name, -priority-rank, -date
 //                                        what "Group by" sorts and labels on
@@ -859,19 +859,6 @@ function setUpTaskFilters() {
     const defaultStatuses = statusBoxes.filter(box => box.defaultChecked).map(box => box.value);
     const dueValue = () => dueRadios.find(radio => radio.checked)?.value ?? "any";
     const setDue = value => dueRadios.forEach(radio => { radio.checked = radio.value === value; });
-    const isOpen = row => row.dataset.taskItem !== "done" && row.dataset.taskItem !== "cancelled";
-
-    function matchesDue(row, due) {
-        const daysLeft = Number(row.dataset.taskDaysLeft);
-        switch (due) {
-            // Same rule as the server's "Overdue" group: a done or cancelled task can't be overdue.
-            case "overdue": return daysLeft < 0 && isOpen(row);
-            case "today": return daysLeft === 0;
-            case "week": return daysLeft >= 0 && daysLeft <= 7;
-            case "month": return daysLeft >= 0 && daysLeft <= 30;
-            default: return true;
-        }
-    }
 
     // A chip for every filter that differs from the default, each knowing how to undo itself.
     function activeFilters() {
@@ -1001,7 +988,7 @@ function setUpTaskFilters() {
                 statuses.includes(row.dataset.taskItem) &&
                 (priorities.length === 0 || priorities.includes(row.dataset.taskPriority)) &&
                 (projectIds.length === 0 || projectIds.includes(row.dataset.taskProjectId)) &&
-                matchesDue(row, due) &&
+                matchesDueGroup(row.dataset.taskDue, due) &&
                 row.dataset.taskText.toLowerCase().includes(searchText);
             row.hidden = !matches;
         });

@@ -1,4 +1,5 @@
-﻿using TaskMangerLE.Models.Enums;
+﻿using TaskMangerLE.Extensions;
+using TaskMangerLE.Models.Enums;
 using TaskStatus = TaskMangerLE.Models.Enums.TaskStatus;
 
 namespace TaskMangerLE.Models;
@@ -22,4 +23,7 @@ public class TaskListItemViewModel
     public TaskStatus Status { get; init; }
     public TaskPriority Priority { get; init; }
     public DateOnly DueDate { get; init; }
+
+    // Same rule as ProjectCardViewModel.GetDueGroup.
+    public DueGroup GetDueGroup(DateOnly today) => DueDate.GetDueGroup(today, Status.IsFinished());
 }

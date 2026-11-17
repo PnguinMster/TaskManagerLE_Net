@@ -3,15 +3,15 @@
 
 @{
     // The overdue/today/finished rule lives in ProjectCardViewModel so the filter uses the same one.
-    ProjectDueGroup dueGroup = Model.GetDueGroup(TimeProvider.Today());
+    DueGroup dueGroup = Model.GetDueGroup(TimeProvider.Today());
     string dueText = Model.DueDate.ToShortDisplay();
 }
 
 @* Urgent dates get a badge so they stand out; an ordinary date is plain text with a calendar icon. *@
-@if (dueGroup == ProjectDueGroup.Overdue) {
+@if (dueGroup == DueGroup.Overdue) {
     <span class="badge badge-rose">Overdue · @dueText</span>
 }
-else if (dueGroup == ProjectDueGroup.Today) {
+else if (dueGroup == DueGroup.Today) {
     <span class="badge badge-amber">Due today</span>
 }
 else {
