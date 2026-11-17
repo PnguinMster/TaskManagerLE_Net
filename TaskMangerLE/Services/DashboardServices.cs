@@ -23,8 +23,7 @@ public class DashboardServices(ApplicationDbContext context, TimeProvider timePr
         var openTasks = context.TaskItems.AsNoTracking().Where(t =>
             t.Project.OwnerId == userId &&
             t.Project.Status != ProjectStatus.Archived &&
-            t.Status != TaskStatus.Done &&
-            t.Status != TaskStatus.Cancelled);
+            !TaskStatusExtensions.FinishedStatuses.Contains(t.Status));
 
         int pendingTasks = await openTasks.CountAsync();
 

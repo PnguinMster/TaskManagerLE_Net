@@ -25,9 +25,9 @@
     var today = TimeProvider.Today();
     var weekEnd = today.AddDays(7);
 
-    // "Open" = still needs doing. Only these go into the due-date groups (a done or cancelled task
-    // can't be "overdue"), and they are what the page shows by default.
-    bool IsOpen(TaskStatus status) => status is not (TaskStatus.Done or TaskStatus.Cancelled);
+    // "Open" = not finished (see TaskStatusExtensions.IsFinished). Only these go into the due-date groups
+    // (a done or cancelled task can't be "overdue"), and they are what the page shows by default.
+    bool IsOpen(TaskStatus status) => !status.IsFinished();
     var openTasks = Model.Tasks.Where(t => IsOpen(t.Status)).ToList();
     var openStatusKeys = string.Join(",", statuses.Where(s => IsOpen(s.Status)).Select(s => StatusKey(s.Status)));
 
@@ -346,7 +346,6 @@ else {
 
                     @foreach (var task in group.Tasks) {
                         var isDone = task.Status == TaskStatus.Done;
-                        var isCancelled = task.Status == TaskStatus.Cancelled;
 
                         <div class="data-row"
                              data-task-item="@StatusKey(task.Status)"
@@ -375,7 +374,7 @@ else {
 
                             <div style="min-width:0">
                                 @* Struck through when done or cancelled, like the board on Project/Detail. *@
-                                <div class="@(isDone || isCancelled ? "is-done" : "")" style="font-weight:600">
+                                <div class="@(task.Status.IsFinished() ? "is-done" : "")" style="font-weight:600">
                                     @task.Name
                                 </div>
                                 @if (!string.IsNullOrWhiteSpace(task.Description)) {

@@ -245,7 +245,7 @@
 
                                 @* Opens the same edit modal as the menu's Edit (no separate edit page). *@
                                 <button type="button"
-                                        class="project-title-link @(isDone || isCancelled ? "is-done" : "")"
+                                        class="project-title-link @(task.Status.IsFinished() ? "is-done" : "")"
                                         style="flex:1;font-weight:600"
                                         onclick="document.getElementById('update-task-modal-@task.Id').showModal()">
                                     @task.Name
