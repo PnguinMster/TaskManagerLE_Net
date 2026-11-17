@@ -1740,6 +1740,16 @@ dialog.modal::backdrop {
     text-decoration: underline;
 }
 
+/* The board's task names are buttons (they open the edit modal); strip the button look so they match the links. */
+button.project-title-link {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
 .container:has(.project-detail-page) {
     max-width: 1400px;
 }

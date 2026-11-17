@@ -50,9 +50,6 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         return View(project);
     }
 
-    [HttpGet]
-    public IActionResult Create() => View(new ProjectItemCreateViewModel());
-
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(ProjectItemCreateViewModel projectItemModel)
@@ -138,19 +135,6 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         return RedirectToAction(nameof(Index));
     }
 
-    [HttpGet]
-    public async Task<IActionResult> Restore()
-    {
-        if (User.IsInRole(Roles.Admin))
-            return View(await services.GetDeletedProjectsAsync());
-
-        string? userId = userManager.GetUserId(User);
-        if (userId is null)
-            return Challenge();
-
-        return View(await services.GetDeletedProjectsForUserAsync(userId));
-    }
-
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Restore(int? projectId, string? returnUrl)
@@ -167,7 +151,7 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
             $"{projectItem.Name} and its tasks are back."));
 
         // Undo from a toast sends the user back where they were.
-        return this.RedirectToLocal(returnUrl, RedirectToAction(nameof(Restore)));
+        return this.RedirectToLocal(returnUrl, RedirectToAction("Index", "Trash"));
     }
 
     [HttpPost]
@@ -184,6 +168,6 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         await services.PurgeProjectAsync(projectItem);
 
         // The Trash page sends a returnUrl.
-        return this.RedirectToLocal(returnUrl, RedirectToAction(nameof(Restore)));
+        return this.RedirectToLocal(returnUrl, RedirectToAction("Index", "Trash"));
     }
 }

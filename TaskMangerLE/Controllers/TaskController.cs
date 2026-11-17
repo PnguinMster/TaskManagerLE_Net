@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using TaskMangerLE.Extensions;
 using TaskMangerLE.Models;
 using TaskMangerLE.Models.Enums;
 using TaskMangerLE.Services;
@@ -13,8 +12,7 @@ public class TaskController(
 	UserManager<ApplicationUser> userManager,
 	TaskService taskService,
 	ProjectService projectService,
-	IAuthorizationService authorizationService,
-	TimeProvider timeProvider) : ItemControllerBase(authorizationService)
+	IAuthorizationService authorizationService) : ItemControllerBase(authorizationService)
 {
 	[HttpGet]
 	// showArchived comes from the query string (?showArchived=true); missing means false, so archived
@@ -30,24 +28,6 @@ public class TaskController(
 			await projectService.GetProjectCardsAsync(userId);
 
 		return View(model);
-	}
-
-	[HttpGet]
-	public async Task<IActionResult> Create(int? projectId)
-	{
-		if (projectId is not { } id)
-			return NotFound();
-
-		ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetProjectAsync(id));
-		if (projectItem is null)
-			return NotFound();
-
-		ViewData["ProjectName"] = projectItem.Name;
-		return View(new TaskItemCreateViewModel
-		{
-			ProjectId = projectItem.Id,
-			DueDate = timeProvider.Today()
-		});
 	}
 
 	[HttpPost]
@@ -182,23 +162,9 @@ public class TaskController(
 		return this.RedirectToLocal(returnUrl, RedirectToAction("Detail", "Project", new { projectId = taskItem.ProjectId }));
 	}
 
-	[HttpGet]
-	public async Task<IActionResult> Restore(int? projectId)
-	{
-		if (projectId is not { } id)
-			return NotFound();
-
-		ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetProjectWithDeletedTasksAsync(id));
-		if (projectItem is null)
-			return NotFound();
-
-		return View(nameof(Restore), projectItem);
-	}
-
 	[HttpPost]
 	[ValidateAntiForgeryToken]
-	[ActionName("Restore")]
-	public async Task<IActionResult> RestoreConfirmed(int? taskId, string? returnUrl)
+	public async Task<IActionResult> Restore(int? taskId, string? returnUrl)
 	{
 		if (taskId is not { } id)
 			return NotFound();
@@ -210,7 +176,7 @@ public class TaskController(
 		await taskService.RestoreTaskAsync(taskItem);
 		this.ShowToast(new ToastMessage(ToastKind.Success, "Task restored", $"{taskItem.Name} is back."));
 
-		return this.RedirectToLocal(returnUrl, RedirectToAction(nameof(Restore), new { projectId = taskItem.ProjectId }));
+		return this.RedirectToLocal(returnUrl, RedirectToAction("Index", "Trash"));
 	}
 
 	[HttpPost]
@@ -224,10 +190,9 @@ public class TaskController(
 		if (taskItem is null)
 			return NotFound();
 
-		int taskProjectId = taskItem.ProjectId;
 		await taskService.PurgeTaskAsync(taskItem);
 
 		// The Trash page sends a returnUrl.
-		return this.RedirectToLocal(returnUrl, RedirectToAction(nameof(Restore), new { projectId = taskProjectId }));
+		return this.RedirectToLocal(returnUrl, RedirectToAction("Index", "Trash"));
 	}
 }

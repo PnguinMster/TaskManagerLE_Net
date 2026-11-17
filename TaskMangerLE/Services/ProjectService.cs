@@ -94,12 +94,6 @@ public class ProjectService(ApplicationDbContext context, TimeProvider timeProvi
     public Task<ProjectItem?> GetProjectWithTasksAsync(int projectId) =>
         context.ProjectItems.Include(p => p.Tasks).FirstOrDefaultAsync(p => p.Id == projectId);
 
-    public Task<List<ProjectItem>> GetProjectsForUserAsync(string userId) =>
-        context.ProjectItems.AsNoTracking().Where(p => p.OwnerId == userId).ToListAsync();
-
-    public Task<List<ProjectItem>> GetAllProjectsAsync() =>
-        context.ProjectItems.AsNoTracking().ToListAsync();
-
     public async Task DeleteProjectAsync(ProjectItem projectItem, string deletedByUserId)
     {
         DateTime deletedAtUtc = timeProvider.GetUtcNow().UtcDateTime;
@@ -111,24 +105,12 @@ public class ProjectService(ApplicationDbContext context, TimeProvider timeProvi
         await context.SaveChangesAsync();
     }
 
-    public Task<List<ProjectItem>> GetDeletedProjectsAsync() =>
-        GetDeletedProjectsQuery().AsNoTracking().OrderByDescending(p => p.DeletedAtUtc).ToListAsync();
-
-    public Task<List<ProjectItem>> GetDeletedProjectsForUserAsync(string userId) =>
-        GetDeletedProjectsQuery().AsNoTracking().Where(p => p.OwnerId == userId)
-            .OrderByDescending(p => p.DeletedAtUtc).ToListAsync();
-
-// Restore page and restore POST. Tasks that were deleted with the project.
+    // Restore POST. Tasks that were deleted with the project.
     public Task<ProjectItem?> GetDeletedProjectWithDeletedTasksAsync(int projectId) =>
         GetDeletedProjectsQuery().Include(p => p.Tasks.Where(t => t.IsDeleted))
             .FirstOrDefaultAsync(p => p.Id == projectId);
 
-    public Task<ProjectItem?> GetProjectWithDeletedTasksAsync(int projectId) =>
-        context.ProjectItems.IgnoreQueryFilters().Where(p => !p.IsDeleted)
-            .Include(p => p.Tasks.Where(t => t.IsDeleted))
-            .FirstOrDefaultAsync(p => p.Id == projectId);
-
-// Purge needs every task, including the deleted ones.
+    // Purge needs every task, including the deleted ones.
     public Task<ProjectItem?> GetDeletedProjectWithAllTasksAsync(int projectId) =>
         GetDeletedProjectsQuery().Include(p => p.Tasks).FirstOrDefaultAsync(p => p.Id == projectId);
 
