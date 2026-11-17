@@ -59,31 +59,6 @@ public class TaskController(
 		return this.RedirectToLocal(returnUrl, RedirectToAction(nameof(Index)));
 	}
 
-	[HttpGet]
-	public async Task<IActionResult> Update(int? taskId)
-	{
-		if (taskId is not { } id)
-			return NotFound();
-
-		TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetTaskWithProjectAsync(id), t => t.Project);
-		if (taskItem is null)
-			return NotFound();
-
-		TaskItemUpdateViewModel taskItemModel = new TaskItemUpdateViewModel
-		{
-			Id = taskItem.Id,
-			ProjectId = taskItem.ProjectId,
-			Name = taskItem.Name,
-			Description = taskItem.Description,
-			Priority = taskItem.Priority,
-			Status = taskItem.Status,
-			DueDate = taskItem.DueDate,
-		};
-
-		ViewData["TaskName"] = taskItem.Name;
-		return View(taskItemModel);
-	}
-
 	[HttpPost]
 	[ValidateAntiForgeryToken]
 	public async Task<IActionResult> Update(TaskItemUpdateViewModel taskItemModel, string? returnUrl)
@@ -92,12 +67,17 @@ public class TaskController(
 		if (taskItem is null)
 			return NotFound();
 
-		if (!ModelState.IsValid)
-			return View(taskItemModel);
+		// Back to the page the modal was on (Tasks or a project's board), whether or not it saved.
+		IActionResult goBack = this.RedirectToLocal(returnUrl,
+			RedirectToAction("Detail", "Project", new { projectId = taskItem.ProjectId }));
+
+		if (!ModelState.IsValid) {
+			ShowValidationErrorToast();
+			return goBack;
+		}
 
 		await taskService.UpdateTaskAsync(taskItem, taskItemModel);
-
-		return this.RedirectToLocal(returnUrl, RedirectToAction("Detail", "Project", new { projectId = taskItem.ProjectId }));
+		return goBack;
 	}
 
 	[HttpPost]

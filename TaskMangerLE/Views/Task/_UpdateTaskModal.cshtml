@@ -23,7 +23,9 @@
 
             <div class="form-group">
                 <label asp-for="Name">Title</label>
-                <input asp-for="Name" class="input" autocomplete="off"/>
+                <input asp-for="Name" class="input"
+                       maxlength="@ItemConstraints.NameMaxLength"
+                       autocomplete="off"/>
                 <span asp-validation-for="Name" class="field-error"></span>
             </div>
 
@@ -32,7 +34,8 @@
                     <label asp-for="Description">Description</label>
                     <span class="muted" style="font-size:12px">Optional</span>
                 </div>
-                <textarea asp-for="Description" class="input"></textarea>
+                <textarea asp-for="Description" class="input"
+                          maxlength="@ItemConstraints.DescriptionMaxLength"></textarea>
                 <span asp-validation-for="Description" class="field-error"></span>
             </div>
 

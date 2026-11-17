@@ -22,7 +22,9 @@
             <div class="form-group">
                 <label asp-for="Name">Title</label>
                 <input asp-for="Name" class="input @(ViewData.ModelState["Name"]?.Errors.Count > 0 ? "input-validation-error" : "")"
-                       placeholder="e.g. Website Redesign" autocomplete="off"/>
+                       placeholder="e.g. Website Redesign"
+                       maxlength="@ItemConstraints.NameMaxLength"
+                       autocomplete="off"/>
                 <span asp-validation-for="Name" class="field-error"></span>
             </div>
 
@@ -32,6 +34,7 @@
                     <span class="muted" style="font-size:12px">Optional</span>
                 </div>
                 <textarea asp-for="Description" class="input"
+                          maxlength="@ItemConstraints.DescriptionMaxLength"
                           placeholder="What is this project about?"></textarea>
                 <span asp-validation-for="Description"></span>
             </div>

@@ -74,29 +74,6 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         return Ok();
     }
 
-    [HttpGet]
-    public async Task<IActionResult> Update(int? projectId)
-    {
-        if (projectId is not { } id)
-            return NotFound();
-
-        ProjectItem? projectItem = await LoadAuthorizedAsync(services.GetProjectAsync(id));
-        if (projectItem is null)
-            return NotFound();
-
-        ProjectItemUpdateViewModel projectItemModel = new ProjectItemUpdateViewModel
-        {
-            Id = projectItem.Id,
-            Name = projectItem.Name,
-            Description = projectItem.Description,
-            DueDate = projectItem.DueDate,
-            Status = projectItem.Status,
-        };
-
-        ViewData["ProjectName"] = projectItem.Name;
-        return View(projectItemModel);
-    }
-
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Update(ProjectItemUpdateViewModel projectItemModel)
@@ -105,8 +82,11 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         if (projectItem is null)
             return NotFound();
 
-        if (!ModelState.IsValid)
-            return View(projectItemModel);
+        // The edit modal is on the Detail page, which is where the redirect below goes either way.
+        if (!ModelState.IsValid) {
+            ShowValidationErrorToast();
+            return RedirectToAction(nameof(Detail), new { projectId = projectItem.Id });
+        }
 
         await services.UpdateProjectAsync(projectItem, projectItemModel);
         return RedirectToAction(nameof(Detail), new { projectId = projectItem.Id });
