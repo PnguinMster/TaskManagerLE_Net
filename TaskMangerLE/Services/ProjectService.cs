@@ -7,11 +7,12 @@ namespace TaskMangerLE.Services;
 
 public class ProjectService(ApplicationDbContext context, TimeProvider timeProvider)
 {
-    public async Task<List<ProjectCardViewModel>> GetProjectCardsAsync(string? userId = null)
+    // Admins see every user's projects, same rule as TrashService.
+    public async Task<List<ProjectCardViewModel>> GetProjectCardsAsync(string userId, bool isAdmin)
     {
         var query = context.ProjectItems.AsNoTracking();
 
-        if (userId is not null)
+        if (!isAdmin)
             query = query.Where(p => p.OwnerId == userId);
 
         // Counted in SQL (like GetProjectDetailAsync), so the tasks themselves are never loaded.

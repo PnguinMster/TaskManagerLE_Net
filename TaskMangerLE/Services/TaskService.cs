@@ -56,11 +56,12 @@ public class TaskService(ApplicationDbContext context, TimeProvider timeProvider
         await context.SaveChangesAsync();
     }
 
-    public async Task<TaskListViewModel> GetTaskListAsync(string userId, bool showArchived)
+    // Admins see every user's tasks, same rule as ProjectService.GetProjectCardsAsync.
+    public async Task<TaskListViewModel> GetTaskListAsync(string userId, bool isAdmin, bool showArchived)
     {
         var tasks = await context.TaskItems
             .AsNoTracking()
-            .Where(t => t.Project.OwnerId == userId)
+            .Where(t => isAdmin || t.Project.OwnerId == userId)
             .Where(t => showArchived || t.Project.Status != ProjectStatus.Archived)
             .OrderBy(t => t.DueDate)
             .ThenBy(t => t.Name)
@@ -79,7 +80,7 @@ public class TaskService(ApplicationDbContext context, TimeProvider timeProvider
 
         int projectCount = await context.ProjectItems
             .AsNoTracking()
-            .CountAsync(p => p.OwnerId == userId && (showArchived || p.Status != ProjectStatus.Archived));
+            .CountAsync(p => (isAdmin || p.OwnerId == userId) && (showArchived || p.Status != ProjectStatus.Archived));
 
         return new TaskListViewModel
         {

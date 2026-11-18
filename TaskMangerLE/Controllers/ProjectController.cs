@@ -15,14 +15,11 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        if (User.IsInRole(Roles.Admin))
-            return View(await services.GetProjectCardsAsync());
-
         string? userId = userManager.GetUserId(User);
         if (userId is null)
             return Challenge();
 
-        return View(await services.GetProjectCardsAsync(userId));
+        return View(await services.GetProjectCardsAsync(userId, User.IsInRole(Roles.Admin)));
     }
 
     [HttpGet]
@@ -43,9 +40,7 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         if (userId is null)
             return Challenge();
 
-        ViewData["AvailableProjects"] = User.IsInRole(Roles.Admin)
-            ? await services.GetProjectCardsAsync()
-            : await services.GetProjectCardsAsync(userId);
+        ViewData["AvailableProjects"] = await services.GetProjectCardsAsync(userId, User.IsInRole(Roles.Admin));
 
         return View(project);
     }

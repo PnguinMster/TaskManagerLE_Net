@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using TaskMangerLE.Models;
 using TaskMangerLE.Models.Enums;
 using TaskMangerLE.Services;
+using TaskMangerLE.Authorization;
 
 namespace TaskMangerLE.Controllers;
 
@@ -23,9 +24,10 @@ public class TaskController(
 		if (userId is null)
 			return Challenge();
 
-		TaskListViewModel model = await taskService.GetTaskListAsync(userId, showArchived);
+		bool isAdmin = User.IsInRole(Roles.Admin);
+		TaskListViewModel model = await taskService.GetTaskListAsync(userId, isAdmin, showArchived);
 		ViewData["AvailableProjects"] =
-			await projectService.GetProjectCardsAsync(userId);
+			await projectService.GetProjectCardsAsync(userId, isAdmin);
 
 		return View(model);
 	}
@@ -45,13 +47,14 @@ public class TaskController(
 			if (userId is null)
 				return Challenge();
 
+			bool isAdmin = User.IsInRole(Roles.Admin);
 			ViewData["AvailableProjects"] =
-				await projectService.GetProjectCardsAsync(userId);
+				await projectService.GetProjectCardsAsync(userId, isAdmin);
 
 			ViewData["CreateTaskModel"] = taskItemModel;
 			// Keep the original page, so fixing the errors and saving still goes back there.
 			ViewData["ReturnUrl"] = returnUrl;
-			return View(nameof(Index), await taskService.GetTaskListAsync(userId, showArchived: false));
+			return View(nameof(Index), await taskService.GetTaskListAsync(userId, isAdmin, showArchived: false));
 		}
 
 		await taskService.AddTaskAsync(taskItemModel);

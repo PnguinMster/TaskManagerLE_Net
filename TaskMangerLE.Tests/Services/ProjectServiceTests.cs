@@ -112,7 +112,7 @@ public sealed class ProjectServiceTests : IDisposable
 		// Act
 		await using ApplicationDbContext context = _db.CreateContext();
 		var service = new ProjectService(context, _time);
-		List<ProjectCardViewModel> cards = await service.GetProjectCardsAsync(Alice);
+		List<ProjectCardViewModel> cards = await service.GetProjectCardsAsync(Alice, isAdmin: false);
 
 		// Assert
 		ProjectCardViewModel card = Assert.Single(cards);

@@ -12,6 +12,7 @@ public class DashboardServices(ApplicationDbContext context, TimeProvider timePr
     private const int RecentProjectsLimit = 3;
     private const int UpcomingTasksLimit = 3;
 
+    // Always the signed-in user's own work, admins included (list pages show admins everything).
     public async Task<DashboardViewModel> GetDashboardAsync(string userId)
     {
         DateOnly today = timeProvider.Today();
