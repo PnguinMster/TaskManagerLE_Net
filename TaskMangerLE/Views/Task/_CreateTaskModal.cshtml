@@ -16,12 +16,9 @@
         </button>
     </div>
 
-    <form asp-controller="Task" asp-action="Create" method="post" data-check-required novalidate>
-        @* Where to go after creating: the page this modal is on (Tasks or a project's Detail page). *@
-        <partial name="_ReturnUrlInput" />
+    @* data-create-item: sent with fetch, see submitCreateForm in site.js. *@
+    <form asp-controller="Task" asp-action="Create" method="post" data-check-required data-create-item="task" novalidate>
         <div class="modal-body">
-            <div asp-validation-summary="ModelOnly" class="field-error"></div>
-
             <div class="form-group">
                 <label asp-for="Name">Title</label>
                 <input asp-for="Name" class="input"

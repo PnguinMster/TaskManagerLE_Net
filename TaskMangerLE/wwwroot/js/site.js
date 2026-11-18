@@ -77,11 +77,13 @@
             setView(loadView());
         });
         
-            document.getElementById("create-project-form")
-                ?.addEventListener("submit", event => {
+            // The create-project and create-task modals (<form data-create-item="project|task">).
+            document.querySelectorAll("form[data-create-item]").forEach(form => {
+                form.addEventListener("submit", event => {
                     event.preventDefault();
-                    submitCreateProject(event.currentTarget);
+                    submitCreateForm(event.currentTarget);
                 });
+            });
 
             // The server pre-fills its own "today" as a fallback (ProjectItemCreateViewModel). Replace it
             // with the browser's date, since "today" depends on the user's timezone.
@@ -96,9 +98,12 @@
                 createDueDate.value = createDueDate.defaultValue;
             }
 
+            // Sends a create modal's form without leaving the page (ProjectController.Create and
+            // TaskController.Create). Success reloads the page the modal is on, so its filters and
+            // ?showArchived stay as they were. A 400 puts the server's errors under each field.
             // A named function so the error toast's Retry button can call it again.
             // FormData is read on each call, so a retry sends whatever is in the form now.
-            async function submitCreateProject(form) {
+            async function submitCreateForm(form) {
                 let response = null;
                 try {
                     response = await fetch(form.action, {
@@ -137,9 +142,9 @@
                 showToast({
                     kind: "error",
                     title: "Could not save changes",
-                    message: "The project wasn't created. Check your connection and try again.",
+                    message: `The ${form.dataset.createItem} wasn't created. Check your connection and try again.`,
                     actionLabel: "Retry",
-                    onAction: () => submitCreateProject(form)
+                    onAction: () => submitCreateForm(form)
                 });
             }
                 
@@ -524,7 +529,7 @@ function setUpRequiredFieldChecks() {
         }
 
         // Capture phase (the `true`) so this runs before any other submit listener on the form,
-        // such as the fetch-based one on the create-project form. stopImmediatePropagation then
+        // such as the fetch-based one on the create forms. stopImmediatePropagation then
         // keeps those from sending a form we already know is incomplete.
         form.addEventListener("submit", event => {
             const emptyInputs = [...inputs].filter(input => input.value.trim() === "");
@@ -544,7 +549,7 @@ function setUpRequiredFieldChecks() {
         // reset() puts each field back to the value the server rendered: empty/defaults for a create
         // form, the saved values for an edit form.
         // The message clearing covers every message in the form, not just the required ones, so errors the
-        // server sent back (see submitCreateProject) go away too.
+        // server sent back (see submitCreateForm) go away too.
         form.closest("dialog")?.addEventListener("close", () => {
             form.reset();
             form.querySelectorAll(".input-validation-error")

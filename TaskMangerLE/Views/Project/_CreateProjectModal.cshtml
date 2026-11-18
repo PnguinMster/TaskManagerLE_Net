@@ -16,7 +16,8 @@
         </button>
     </div>
 
-    <form id="create-project-form" asp-controller="Project" asp-action="Create" method="post" data-check-required novalidate>
+    @* data-create-item: sent with fetch, see submitCreateForm in site.js. *@
+    <form id="create-project-form" asp-controller="Project" asp-action="Create" method="post" data-check-required data-create-item="project" novalidate>
 
         <div class="modal-body">
             <div class="form-group">

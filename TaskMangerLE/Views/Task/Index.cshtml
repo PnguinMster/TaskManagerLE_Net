@@ -3,10 +3,6 @@
 @{
     ViewData["Title"] = "Tasks";
 
-    var createTaskModel =
-        ViewData["CreateTaskModel"] as TaskItemCreateViewModel
-        ?? new TaskItemCreateViewModel();
-
     // Every status, for the Status checkboxes in the Filters panel. The enum's numbers are already in
     // workflow order, so GetValues gives the same order as the board columns on Project/Detail. Labels come
     // from [Display]. The checkbox values (see StatusKey) are what each row's data-task-item holds, so
@@ -473,4 +469,4 @@ else {
         </div>
     </section>
 }
-<partial name="_CreateTaskModal" model="createTaskModel"/>
+<partial name="_CreateTaskModal" model="new TaskItemCreateViewModel()"/>

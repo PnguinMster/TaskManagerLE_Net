@@ -34,7 +34,9 @@ public class TaskController(
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
-	public async Task<IActionResult> Create(TaskItemCreateViewModel taskItemModel, string? returnUrl)
+	// Sent with fetch, like ProjectController.Create: errors go back as JSON so the modal stays open,
+	// and on success site.js reloads the page the modal is on (Tasks or a project's board).
+	public async Task<IActionResult> Create(TaskItemCreateViewModel taskItemModel)
 	{
 		ProjectItem? projectItem = await LoadAuthorizedAsync(
 			projectService.GetProjectAsync(taskItemModel.ProjectId));
@@ -42,24 +44,11 @@ public class TaskController(
 		if (projectItem is null)
 			return NotFound();
 
-		if (!ModelState.IsValid) {
-			string? userId = userManager.GetUserId(User);
-			if (userId is null)
-				return Challenge();
-
-			bool isAdmin = User.IsInRole(Roles.Admin);
-			ViewData["AvailableProjects"] =
-				await projectService.GetProjectCardsAsync(userId, isAdmin);
-
-			ViewData["CreateTaskModel"] = taskItemModel;
-			// Keep the original page, so fixing the errors and saving still goes back there.
-			ViewData["ReturnUrl"] = returnUrl;
-			return View(nameof(Index), await taskService.GetTaskListAsync(userId, isAdmin, showArchived: false));
-		}
+		if (!ModelState.IsValid)
+			return ValidationErrorsResult();
 
 		await taskService.AddTaskAsync(taskItemModel);
-
-		return this.RedirectToLocal(returnUrl, RedirectToAction(nameof(Index)));
+		return Ok();
 	}
 
 	[HttpPost]

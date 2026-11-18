@@ -34,4 +34,19 @@ public abstract class ItemControllerBase(IAuthorizationService authorizationServ
 
         this.ShowToast(new ToastMessage(ToastKind.Error, "Changes not saved", firstError));
     }
+
+    // Create forms are sent with fetch (see submitCreateForm in site.js), so the modal stays open.
+    // This answers with 400 and { errors: { "Name": ["..."] } }, which site.js shows under each field.
+    protected IActionResult ValidationErrorsResult()
+    {
+        var errors = ModelState
+            .Where(entry => entry.Value?.Errors.Count > 0)
+            .ToDictionary(
+                entry => entry.Key,
+                entry => entry.Value!.Errors
+                    .Select(error => error.ErrorMessage)
+                    .ToArray());
+
+        return BadRequest(new { errors });
+    }
 }

@@ -49,17 +49,8 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(ProjectItemCreateViewModel projectItemModel)
     {
-        if (!ModelState.IsValid) {
-            var errors = ModelState
-                .Where(entry => entry.Value?.Errors.Count > 0)
-                .ToDictionary(
-                    entry => entry.Key,
-                    entry => entry.Value!.Errors
-                        .Select(error => error.ErrorMessage)
-                        .ToArray());
-
-            return BadRequest(new { errors });
-        }
+        if (!ModelState.IsValid)
+            return ValidationErrorsResult();
 
         string? userId = userManager.GetUserId(User);
         if (userId is null)
