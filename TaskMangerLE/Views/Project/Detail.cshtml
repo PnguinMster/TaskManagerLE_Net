@@ -305,6 +305,7 @@
 
         <form id="edit-project-form" asp-action="Update" method="post" data-check-required novalidate>
             <input type="hidden" name="Id" value="@Model.Id"/>
+            <partial name="_ReturnUrlInput" />
 
             <div class="modal-body">
                 <div class="form-group">

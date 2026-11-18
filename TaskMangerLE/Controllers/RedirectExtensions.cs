@@ -10,4 +10,8 @@ public static class RedirectExtensions
         controller.Url.IsLocalUrl(returnUrl)
             ? controller.LocalRedirect(returnUrl)
             : fallback;
+
+    // Same rule, but returns the URL itself, for when it's needed twice (e.g. redirect + a toast's Undo link).
+    public static string LocalUrlOr(this Controller controller, string? returnUrl, string fallbackUrl) =>
+        controller.Url.IsLocalUrl(returnUrl) ? returnUrl : fallbackUrl;
 }

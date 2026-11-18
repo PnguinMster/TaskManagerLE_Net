@@ -41,12 +41,6 @@ public class TaskService(ApplicationDbContext context, TimeProvider timeProvider
         await context.SaveChangesAsync();
     }
 
-    public async Task CompleteTaskAsync(TaskItem taskItem)
-    {
-        taskItem.Status = TaskStatus.Done;
-        await context.SaveChangesAsync();
-    }
-
     public async Task ToggleCompletionAsync(TaskItem taskItem)
     {
         taskItem.Status = taskItem.Status == TaskStatus.Done

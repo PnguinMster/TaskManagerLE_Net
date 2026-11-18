@@ -62,25 +62,28 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Update(ProjectItemUpdateViewModel projectItemModel)
+    public async Task<IActionResult> Update(ProjectItemUpdateViewModel projectItemModel, string? returnUrl)
     {
         ProjectItem? projectItem = await LoadAuthorizedAsync(services.GetProjectAsync(projectItemModel.Id));
         if (projectItem is null)
             return NotFound();
 
-        // The edit modal is on the Detail page, which is where the redirect below goes either way.
+        // Back to the page the modal was on, whether or not it saved (same as TaskController.Update).
+        IActionResult goBack = this.RedirectToLocal(returnUrl,
+            RedirectToAction(nameof(Detail), new { projectId = projectItem.Id }));
+
         if (!ModelState.IsValid) {
             ShowValidationErrorToast();
-            return RedirectToAction(nameof(Detail), new { projectId = projectItem.Id });
+            return goBack;
         }
 
         await services.UpdateProjectAsync(projectItem, projectItemModel);
-        return RedirectToAction(nameof(Detail), new { projectId = projectItem.Id });
+        return goBack;
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(int? projectId)
+    public async Task<IActionResult> Delete(int? projectId, string? returnUrl)
     {
         if (projectId is not { } id)
             return NotFound();
@@ -94,11 +97,16 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
             return Challenge();
 
         await services.DeleteProjectAsync(projectItem, deletedByUserId);
+
+        // Back to the page the delete came from, and Undo returns there too (same as TaskController.Delete).
+        // The Detail page sends no returnUrl: that project's page is gone now, so it falls back to Index.
+        string backUrl = this.LocalUrlOr(returnUrl, Url.Action(nameof(Index))!);
+
         this.ShowToast(new ToastMessage(ToastKind.Info, "Project moved to Trash",
             $"{projectItem.Name} and its tasks can be restored from the Trash.",
             ActionLabel: "Undo",
-            ActionUrl: Url.Action(nameof(Restore), new { projectId = id, returnUrl = Url.Action(nameof(Index)) })));
-        return RedirectToAction(nameof(Index));
+            ActionUrl: Url.Action(nameof(Restore), new { projectId = id, returnUrl = backUrl })));
+        return LocalRedirect(backUrl);
     }
 
     [HttpPost]

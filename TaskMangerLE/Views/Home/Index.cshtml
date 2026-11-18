@@ -131,10 +131,12 @@
 
                                 <div class="row dashboard-task">
                                     <form asp-controller="Task"
-                                          asp-action="Complete"
+                                          asp-action="ToggleCompletion"
                                           asp-route-taskId="@task.Id"
                                           method="post"
                                           class="dashboard-complete-form">
+                                        @* Upcoming tasks are all open, so toggling always marks them done. *@
+                                        <partial name="_ReturnUrlInput" />
                                         <input type="checkbox"
                                                class="checkbox"
                                                aria-label="Complete @task.Name"
