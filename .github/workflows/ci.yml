@@ -25,5 +25,10 @@ jobs:
       - name: Build
         run: dotnet build TaskManagerLE.sln --no-restore --configuration Release
 
-      - name: Test
-        run: dotnet test TaskManagerLE.sln --no-build --configuration Release
+      # Two steps instead of one, so the Actions page shows which kind of test failed.
+      # Unit tests run first: they're fast, and if they fail there's no point starting the whole app.
+      - name: Unit tests
+        run: dotnet test TaskManagerLE.Tests --no-build --configuration Release
+
+      - name: Integration tests
+        run: dotnet test TaskManagerLE.IntegrationTests --no-build --configuration Release

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using TaskManagerLE.Authorization;
 using TaskManagerLE.Data;
 using TaskManagerLE.Models;
@@ -53,7 +54,12 @@ var app = builder.Build();
 
 // User Seeding
 using (var scope = app.Services.CreateScope()) {
-    await scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.MigrateAsync();
+    DatabaseFacade database = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database;
+    // Integration tests run on SQLite, which can't run the SQL Server migrations, so build the tables from the model instead.
+    if (app.Environment.IsEnvironment("Testing"))
+        await database.EnsureCreatedAsync();
+    else
+        await database.MigrateAsync();
     await UserSeeder.SeedAsync(scope.ServiceProvider, app.Configuration);
 }
 
