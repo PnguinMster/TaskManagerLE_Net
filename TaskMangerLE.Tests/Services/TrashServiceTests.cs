@@ -16,11 +16,12 @@ public sealed class TrashServiceTests : IDisposable
     private static readonly DateTime Jan1 = new(2026, 1, 1, 9, 0, 0, DateTimeKind.Utc);
     private static readonly DateTime Jan2 = new(2026, 1, 2, 9, 0, 0, DateTimeKind.Utc);
 
-    private readonly TestDatabase _db = new();
     private readonly FakeTimeProvider _time = new();
+    private readonly TestDatabase _db;
 
     public TrashServiceTests()
     {
+        _db = new TestDatabase(_time);
         // Projects need a real owner row: SQLite enforces the foreign key to AspNetUsers.
         using ApplicationDbContext context = _db.CreateContext();
         context.Users.AddRange(

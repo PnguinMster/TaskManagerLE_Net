@@ -14,11 +14,12 @@ public sealed class ProjectServiceTests : IDisposable
 	// The "current time" every test sees. Set to a fixed moment so we can check exact values.
 	private static readonly DateTimeOffset Now = new(2026, 3, 1, 9, 0, 0, TimeSpan.Zero);
 
-	private readonly TestDatabase _db = new();
 	private readonly FakeTimeProvider _time = new(Now);
+	private readonly TestDatabase _db;
 
 	public ProjectServiceTests()
 	{
+		_db = new TestDatabase(_time);
 		using ApplicationDbContext context = _db.CreateContext();
 		context.Users.Add(new ApplicationUser { Id = Alice, UserName = Alice });
 		context.SaveChanges();
