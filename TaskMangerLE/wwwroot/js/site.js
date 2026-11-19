@@ -4,8 +4,27 @@
 
     if (!themeToggle) return;
 
-    const savedTheme = localStorage.getItem("theme");
-    const initialTheme = savedTheme === "light" ? "light" : "dark";
+    const THEME_KEY = "theme";
+
+    // localStorage can throw (blocked storage, private mode), so never let it break the toggle.
+    function loadTheme() {
+        try {
+            const saved = localStorage.getItem(THEME_KEY);
+            return saved === "light" ? "light" : "dark"; // only trust known values
+        } catch {
+            return "dark";
+        }
+    }
+
+    function saveTheme(theme) {
+        try {
+            localStorage.setItem(THEME_KEY, theme);
+        } catch {
+            // Not saving is fine: the user just gets the default next time.
+        }
+    }
+
+    const initialTheme = loadTheme();
 
     function setTheme(theme) {
         root.setAttribute("data-bs-theme", theme);
@@ -22,7 +41,7 @@
             root.getAttribute("data-bs-theme") === "dark" ? "light" : "dark";
 
         setTheme(nextTheme);
-        localStorage.setItem("theme", nextTheme);
+        saveTheme(nextTheme);
     });
 
         document.addEventListener("DOMContentLoaded", () => {
