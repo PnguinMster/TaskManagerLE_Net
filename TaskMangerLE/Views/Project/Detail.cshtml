@@ -27,18 +27,18 @@
 
                 <p class="muted detail-description">
                     @(string.IsNullOrWhiteSpace(Model.Description)
-                        ? "No project description."
+                        ? "No description provided"
                         : Model.Description)
                 </p>
             </div>
 
             <div class="row wrap">
                 <button type="button" class="btn" data-open-modal="update-project-modal">
-                    Edit Project
+                    Edit project
                 </button>
 
                 <button type="button" class="btn btn-primary" data-open-modal="create-task-modal">
-                    + Add Task
+                    + Add task
                 </button>
 
                 <form asp-action="Delete"
@@ -46,7 +46,7 @@
                       method="post"
                       data-confirm-trash="@Model.Name"
                       data-trash-detail="@Model.CompletedTaskCount of @Model.TotalTaskCount tasks done">
-                    <button type="submit" class="btn btn-outline-danger">Delete Project</button>
+                    <button type="submit" class="btn btn-outline-danger">Delete project</button>
                 </form>
             </div>
         </div>

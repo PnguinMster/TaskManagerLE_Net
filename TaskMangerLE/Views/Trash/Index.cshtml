@@ -23,12 +23,12 @@
 @* Same stat cards as the dashboard (Home/Index). *@
 <section class="grid-kpi" aria-label="Trash summary">
     <article class="card">
-        <p class="kpi-label">Deleted Projects</p>
+        <p class="kpi-label">Deleted projects</p>
         <p class="kpi-value text-blue">@Model.ProjectCount</p>
     </article>
 
     <article class="card">
-        <p class="kpi-label">Deleted Tasks</p>
+        <p class="kpi-label">Deleted tasks</p>
         <p class="kpi-value text-purple">@Model.TaskCount</p>
     </article>
 
@@ -50,7 +50,7 @@
             </svg>
         </div>
         <div class="stack" style="gap:8px">
-            <h2 id="empty-trash-title" style="font-size:20px;font-weight:700">Empty Trash permanently?</h2>
+            <h2 id="empty-trash-title" style="font-size:20px;font-weight:700">Empty trash permanently?</h2>
             <p class="muted">
                 This permanently deletes everything in the Trash. These items cannot be restored afterwards.
             </p>
@@ -68,7 +68,7 @@
         </label>
         <div class="actions" style="margin-top:4px">
             <button type="button" class="btn" id="empty-trash-cancel">Cancel</button>
-            <button type="submit" class="btn btn-danger" id="empty-trash-ok" disabled>Empty Trash</button>
+            <button type="submit" class="btn btn-danger" id="empty-trash-ok" disabled>Empty trash</button>
         </div>
     </form>
 </dialog>

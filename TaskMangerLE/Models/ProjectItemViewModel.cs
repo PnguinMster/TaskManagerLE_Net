@@ -5,6 +5,8 @@ namespace TaskMangerLE.Models;
 
 public abstract class ProjectItemViewModelBase
 {
+    // The UI calls this field "Title"; [Display] makes labels and default error messages say so too.
+    [Display(Name = "Title")]
     [Required(ErrorMessage = "Project title is required.")]
     [MaxLength(ItemConstraints.NameMaxLength)]
     public string Name { get; set; } = string.Empty;
