@@ -118,9 +118,7 @@ public class TaskController(
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
-	// offerUndo comes from a hidden field on the Home page, where a completed task drops off the list,
-	// so a stray click would otherwise leave no way back. Tasks and the boards keep showing the task.
-	public async Task<IActionResult> ToggleCompletion(int? taskId, string? returnUrl, bool offerUndo = false)
+	public async Task<IActionResult> ToggleCompletion(int? taskId, string? returnUrl)
 	{
 		if (taskId is not { } id)
 			return NotFound();
@@ -140,7 +138,9 @@ public class TaskController(
 			? returnUrl
 			: Url.Action("Detail", "Project", new { projectId = taskItem.ProjectId })!;
 
-		if (offerUndo && taskItem.Status == TaskStatus.Done)
+		// Completing offers Undo on every page, so a stray click is easy to take back (on Home the
+		// task also drops off the list). Un-completing needs no Undo: just tick the box again.
+		if (taskItem.Status == TaskStatus.Done)
 			this.ShowToast(new ToastMessage(ToastKind.Success, "Task completed",
 				$"{taskItem.Name} is done.",
 				ActionLabel: "Undo",
