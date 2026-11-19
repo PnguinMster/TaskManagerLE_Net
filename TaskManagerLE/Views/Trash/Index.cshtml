@@ -1,0 +1,248 @@
+﻿@model TaskManagerLE.Models.TrashSummaryViewModel
+
+@{
+    ViewData["Title"] = "Trash";
+}
+
+<header class="page-header">
+    <div>
+        <h1>Trash</h1>
+        <p class="muted">Deleted projects and tasks you can still restore</p>
+    </div>
+
+    <div class="row">
+        @* The form tag helper adds the anti-forgery token. No confirm dialog: restoring loses nothing. *@
+        <form asp-action="RestoreAll" asp-controller="Trash" method="post">
+            <button type="submit" class="btn btn-success">Restore all</button>
+        </form>
+        <button type="button" class="btn btn-danger" id="empty-trash-open"
+                data-projects="@Model.ProjectCount" data-tasks="@Model.TaskCount">Empty trash</button>
+    </div>
+</header>
+
+@* Same stat cards as the dashboard (Home/Index). *@
+<section class="grid-kpi" aria-label="Trash summary">
+    <article class="card">
+        <p class="kpi-label">Deleted projects</p>
+        <p class="kpi-value text-blue">@Model.ProjectCount</p>
+    </article>
+
+    <article class="card">
+        <p class="kpi-label">Deleted tasks</p>
+        <p class="kpi-value text-purple">@Model.TaskCount</p>
+    </article>
+
+    <article class="card">
+        <p class="kpi-label">Total in Trash</p>
+        <p class="kpi-value">@Model.TotalCount</p>
+    </article>
+</section>
+
+@* "Empty trash" confirmation. The button stays disabled until the checkbox is ticked (see site.js). *@
+<dialog id="empty-trash-dialog" class="modal modal-sm" role="alertdialog" aria-labelledby="empty-trash-title">
+    @* The form tag helper adds the anti-forgery token for us. *@
+    <form asp-action="EmptyTrash" asp-controller="Trash" method="post" class="confirm">
+        <div class="icon-tile is-rose">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path>
+                <path d="M12 9v4M12 17h.01"></path>
+            </svg>
+        </div>
+        <div class="stack" style="gap:8px">
+            <h2 id="empty-trash-title" style="font-size:20px;font-weight:700">Empty trash permanently?</h2>
+            <p class="muted">
+                This permanently deletes everything in the Trash. These items cannot be restored afterwards.
+            </p>
+        </div>
+        <div class="summary-panel">
+            <span class="muted" style="display:flex">
+                <partial name="_TrashIcon" model="14" />
+            </span>
+            <span style="font-weight:600;flex:1;min-width:0">Items in Trash</span>
+            <span class="muted" style="font-size:13px" id="empty-trash-detail"></span>
+        </div>
+        <label class="row" style="gap:10px">
+            <input type="checkbox" class="checkbox" id="empty-trash-check" name="confirmed" value="true"/>
+            <span>I understand this cannot be undone</span>
+        </label>
+        <div class="actions" style="margin-top:4px">
+            <button type="button" class="btn" id="empty-trash-cancel">Cancel</button>
+            <button type="submit" class="btn btn-danger" id="empty-trash-ok" disabled>Empty trash</button>
+        </div>
+    </form>
+</dialog>
+
+@* "Delete forever" confirmation for a single item. site.js opens it for any form with a
+   data-confirm-purge attribute (name) and data-trash-detail (the "Deleted ..." text). *@
+@{
+    // Built here, not inside model="...", because the double quotes would end the attribute.
+    var purgeDialog = new ConfirmDialogViewModel
+    {
+        IdPrefix = "confirm-purge",
+        Title = "Delete forever?",
+        Message = "will be permanently deleted. This cannot be undone.",
+        ConfirmLabel = "Delete forever",
+        ConfirmButtonClass = "btn-danger",
+        SummaryIconPartial = "_FolderIcon"
+    };
+}
+<partial name="_ConfirmDialog" model="purgeDialog" />
+
+@{
+    // Restore and Delete forever send the user back here instead of the old Restore pages.
+    var trashUrl = Url.Action("Index", "Trash") ?? "/Trash";
+}
+
+@if (Model.Items.Count == 0) {
+    <section class="card card-dashed empty-state">
+        <div class="icon-tile is-lg is-green" aria-hidden="true">
+            <partial name="_TrashIcon" model="28" />
+        </div>
+
+        <h2>Trash is empty</h2>
+
+        <p class="muted">
+            Deleted projects and tasks will show up here so you can restore them.
+        </p>
+    </section>
+}
+else {
+    // Counted from the rows below, not Model.TaskCount: that also counts tasks hidden inside a
+    // deleted project, which have no row of their own (they come back with the project).
+    int projectRows = Model.Items.Count(item => item.IsProject);
+    int taskRows = Model.Items.Count - projectRows;
+
+    @* Same layout as the Tasks and Projects pages: the filter row, then a "Showing X of Y" line. *@
+    <div class="stack" style="margin-bottom:16px">
+        <div class="row wrap">
+            @* The counts start as the server's totals; site.js updates them as you search. *@
+            <div class="pills" role="group" aria-label="Filter trash items">
+                <button type="button"
+                        class="is-active"
+                        data-trash-filter="all"
+                        aria-pressed="true">
+                    All items <span class="pill-count">@Model.Items.Count</span>
+                </button>
+                <button type="button"
+                        data-trash-filter="project"
+                        aria-pressed="false">
+                    Projects <span class="pill-count">@projectRows</span>
+                </button>
+                <button type="button"
+                        data-trash-filter="task"
+                        aria-pressed="false">
+                    Tasks <span class="pill-count">@taskRows</span>
+                </button>
+            </div>
+
+            <div class="sp"></div>
+
+            <input class="input input-inline"
+                   type="search"
+                   placeholder="Search trash…"
+                   aria-label="Search trash"
+                   data-trash-search/>
+
+            @* Reorders the rows in the browser (site.js). Same look as "Sort by" on the Projects page. *@
+            <select class="input input-inline" aria-label="Sort by" data-trash-sort>
+                <option value="newest">Sort by: Newest deleted</option>
+                <option value="oldest">Sort by: Oldest deleted</option>
+                <option value="name">Sort by: Name</option>
+            </select>
+        </div>
+
+        @* Filled in by site.js, so it's always clear when the filters are hiding something. *@
+        <p class="muted small" role="status" data-trash-summary></p>
+    </div>
+
+    @* Card outside, scroller inside: card-flush has overflow:hidden, so it would clip a wider scroller. *@
+    <div class="card card-flush" id="trash-table">
+        <div class="data-scroll">
+            <div class="data-table cols-trash">
+                <div class="data-row data-head">
+                    <span>Type</span>
+                    <span>Item</span>
+                    <span>Deleted</span>
+                    <span></span>
+                </div>
+
+                @foreach (TrashItemViewModel item in Model.Items) {
+                    // Stored in UTC; shown in the server's local time.
+                    DateTime? deletedAt = item.DeletedAtUtc?.ToLocalTime();
+                    string controller = item.IsProject ? "Project" : "Task";
+                    // The two controllers name their id parameter differently (projectId / taskId).
+                    var routeValues = new Dictionary<string, string>
+                    {
+                        [item.IsProject ? "projectId" : "taskId"] = item.Id.ToString(),
+                        ["returnUrl"] = trashUrl
+                    };
+
+                    @* data-trash-name / -date are what "Sort by" orders on. The "o" (ISO 8601) format
+                       sorts correctly as plain text and doesn't depend on the server's culture. *@
+                    <div class="data-row" data-trash-item="@(item.IsProject ? "project" : "task")"
+                         data-trash-name="@item.Name"
+                         data-trash-date="@(item.DeletedAtUtc?.ToString("o") ?? "")">
+                        @if (item.IsProject) {
+                            <span class="badge badge-blue badge-icon">
+                                <partial name="_FolderIcon" model="14" />
+                                Project
+                            </span>
+                        }
+                        else {
+                            <span class="badge badge-purple badge-icon">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M9 11l3 3 8-8"></path>
+                                    <path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"></path>
+                                </svg>
+                                Task
+                            </span>
+                        }
+
+                        <div style="min-width:0">
+                            <div style="font-weight:600">@item.Name</div>
+                            <div class="muted small">
+                                @if (item.IsProject) {
+                                    @(item.TaskCount == 1 ? "1 task inside" : $"{item.TaskCount} tasks inside")
+                                }
+                                else {
+                                    @:in
+                                    <a asp-controller="Project" asp-action="Detail" asp-route-projectId="@item.ProjectId"
+                                      >@item.ProjectName</a>
+                                }
+                            </div>
+                        </div>
+
+                        <span class="muted small">@deletedAt?.ToDateTimeDisplay()</span>
+
+                        <div class="row" style="justify-content:flex-end">
+                            @* The form tag helper adds the anti-forgery token to both forms. *@
+                            <form method="post" asp-controller="@controller" asp-action="Restore"
+                                  asp-all-route-data="routeValues">
+                                <button type="submit" class="btn btn-outline-success">↶ Restore</button>
+                            </form>
+                            <form method="post" asp-controller="@controller"
+                                  asp-action="@(item.IsProject ? "PurgeProject" : "PurgeTask")"
+                                  asp-all-route-data="routeValues"
+                                  data-confirm-purge="@item.Name"
+                                  data-trash-detail="@(deletedAt is { } d ? $"Deleted {d:MMM d}" : "")">
+                                <button type="submit" class="btn btn-outline-danger">Delete forever</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    @* Shown by site.js when the type pills and search hide every row. *@
+    var noResults = new NoResultsViewModel
+    {
+        Id = "trash-no-results",
+        Title = "No items match your filters",
+        Message = "Try another type or searching for something else.",
+        ClearButtonAttribute = "data-trash-clear-filters"
+    };
+    <partial name="_NoResults" model="noResults" />
+}

@@ -1,0 +1,377 @@
+﻿@model TaskManagerLE.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Home";
+}
+
+@if (User.Identity?.IsAuthenticated == true) {
+    // RecentProjects holds the user's projects of any status (soft-deleted ones are filtered out),
+    // so an empty list means no projects at all. Computed once so the subtitle and empty-state card agree.
+    bool hasNoProjects = Model.RecentProjects.Count == 0;
+
+    <div class="page-header">
+        <div>
+            <h1>Welcome back, @User.Identity?.Name</h1>
+            <p class="muted">
+                @(hasNoProjects
+                    ? "Let us set up your first project."
+                    : "Here is where your projects stand today.")
+            </p>
+        </div>
+    </div>
+
+    <section class="grid-kpi" aria-label="Project and task statistics">
+        <article class="card">
+            <p class="kpi-label">Projects in progress</p>
+            <p class="kpi-value text-blue">@Model.ActiveProjectsCount</p>
+        </article>
+
+        <article class="card">
+            <p class="kpi-label">Pending tasks</p>
+            <p class="kpi-value">@Model.PendingTasksCount</p>
+        </article>
+
+        <article class="card">
+            <p class="kpi-label">Overdue tasks</p>
+            <p class="kpi-value text-rose">@Model.OverdueTasksCount</p>
+        </article>
+
+        <article class="card">
+            <p class="kpi-label">Completed projects</p>
+            <p class="kpi-value text-green">@Model.CompletedProjectsCount</p>
+        </article>
+    </section>
+
+    @if (hasNoProjects) {
+        <section class="card card-dashed empty-state">
+            <div class="icon-tile is-lg" aria-hidden="true">
+                <partial name="_FolderIcon" model="28" />
+            </div>
+
+            <h2>Create your first project</h2>
+
+            <p class="muted">
+                Projects hold your tasks and track progress for you. Start with one and add tasks as you go.
+            </p>
+
+            <a asp-controller="Project" asp-action="Index" class="btn btn-primary btn-lg">Go to Projects</a>
+        </section>
+    }
+    else {
+        <section class="dashboard-overview" aria-label="Project and task overview">
+            <section class="dashboard-projects">
+                <div class="section-head">
+                    <h2>Recent projects</h2>
+                    <a asp-controller="Project" asp-action="Index">All Projects →</a>
+                </div>
+
+                <div class="stack">
+                    @foreach (DashboardProjectViewModel project in Model.RecentProjects) {
+                        var (statusLabel, badgeClass, progressClass, textClass) = project.Status.GetStyle();
+
+                        <a class="card card-outline dashboard-project-card"
+                           asp-controller="Project"
+                           asp-action="Detail"
+                           asp-route-projectId="@project.Id">
+                            <div class="row between dashboard-project-heading">
+                                <h3>@project.Name</h3>
+                                <span class="badge @badgeClass">@statusLabel</span>
+                            </div>
+
+                            <p class="muted dashboard-project-description">
+                                @(string.IsNullOrWhiteSpace(project.Description)
+                                    ? "No description provided"
+                                    : project.Description)
+                            </p>
+
+                            <div class="progress-meta">
+                                <span>@project.CompletedTaskCount of @project.TotalTaskCount tasks completed</span>
+                                <span class="@textClass">@project.ProgressPercent%</span>
+                            </div>
+
+                            <div class="progress"
+                                 role="progressbar"
+                                 aria-label="@project.ProgressPercent% of @project.Name tasks completed"
+                                 aria-valuenow="@project.ProgressPercent"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100">
+                                <div class="progress-bar @progressClass"
+                                     style="width:@(project.ProgressPercent)%"></div>
+                            </div>
+                        </a>
+                    }
+                </div>
+            </section>
+
+            <section class="dashboard-task-section">
+                <div class="section-head">
+                    <h2>Tasks Due Soon</h2>
+                    <a asp-controller="Task" asp-action="Index">All Tasks →</a>
+                </div>
+
+                @if (Model.UpcomingTasks.Count == 0) {
+                    <div class="card card-dashed empty-state dashboard-tasks-empty">
+                        <h3>Nothing due soon</h3>
+
+                        <p class="muted">
+                            You have no upcoming tasks. Add a task to one of your projects and it will show up here.
+                        </p>
+
+                        <a asp-controller="Task" asp-action="Index" class="btn btn-primary">Go to Tasks</a>
+                    </div>
+                }
+                else {
+                    <div class="card dashboard-tasks">
+                        <div class="dashboard-task-list">
+                            @foreach (var task in Model.UpcomingTasks) {
+                                <div class="row dashboard-task">
+                                    <form asp-controller="Task"
+                                          asp-action="ToggleCompletion"
+                                          asp-route-taskId="@task.Id"
+                                          method="post"
+                                          class="dashboard-complete-form">
+                                        @* Upcoming tasks are all open, so toggling always marks them done. *@
+                                        <partial name="_ReturnUrlInput" />
+                                        <input type="checkbox"
+                                               class="checkbox"
+                                               aria-label="Complete @task.Name"
+                                               onchange="this.form.submit()">
+                                    </form>
+                                    <span class="dashboard-task-details">
+                                        <span class="dashboard-task-name">@task.Name</span>
+                                        <span class="small dashboard-task-meta">
+                                            <a class="text-blue"
+                                               asp-controller="Project"
+                                               asp-action="Detail"
+                                               asp-route-projectId="@task.ProjectId">@task.ProjectName</a>
+                                        </span>
+                                    </span>
+
+                                    @* Right edge of the row (.dashboard-task-details is flex: 1): due date stacked over priority. *@
+                                    <span class="dashboard-task-aside">
+                                        @* Upcoming tasks are all open (DashboardServices filters them), so IsFinished is false. *@
+                                        <partial name="_DueLabel" model="new DueLabelViewModel(task.DueDate, false)" />
+                                        <partial name="_PriorityBadge" model="task.Priority" />
+                                    </span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </section>
+        </section>
+    }
+}
+else {
+    <section class="hero">
+        <h1>Manage Projects and Tasks Without the Bloat.</h1>
+
+        <p class="muted">
+            Keep your projects organized, break work into manageable tasks, restore anything you delete by mistake,
+            and see what needs your attention—all in one place.
+        </p>
+
+        <div class="row wrap">
+            <a class="btn btn-primary btn-lg"
+               asp-controller="Account"
+               asp-action="Register">
+                Get Started - Register
+            </a>
+            <a class="btn btn-lg"
+               asp-controller="Account"
+               asp-action="Login">
+                Log in
+            </a>
+        </div>
+    </section>
+
+    <section class="features" aria-label="Features">
+        <article class="card stack">
+            <div class="icon-tile is-lg" style="width:50px; height:50px; border-radius:12px" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="1.8"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    <path d="M3 9h18"/>
+                </svg>
+            </div>
+            <h2>Dedicated projects</h2>
+            <p class="muted">
+                Give every project its own space with a description, due date,
+                and a live progress bar.
+            </p>
+        </article>
+
+        <article class="card stack">
+            <div class="icon-tile is-lg is-green" style="width:50px; height:50px; border-radius:12px" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="1.8"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4" y="4" width="16" height="16" rx="3"/>
+                    <path d="m8 12 2.5 2.5L16 9"/>
+                </svg>
+            </div>
+            <h2>Tasks that stay clear</h2>
+            <p class="muted">
+                Break projects into focused tasks, set priorities, and keep due
+                dates easy to find.
+            </p>
+        </article>
+
+        <article class="card stack">
+            <div class="icon-tile is-lg is-amber" style="width:50px; height:50px; border-radius:12px" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="1.8"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19V5"/>
+                    <path d="M4 19h17"/>
+                    <path d="m7 15 4-4 3 2 5-6"/>
+                    <path d="M16 7h3v3"/>
+                </svg>
+            </div>
+            <h2>Progress at a glance</h2>
+            <p class="muted">
+                See what’s complete and what still needs attention as your work
+                moves forward.
+            </p>
+        </article>
+    </section>
+
+    <section class="stack" style="padding:24px 0" aria-labelledby="preview-heading">
+        <h2 id="preview-heading"
+            style="font-size:24px; text-align:center; margin-bottom:4px">
+            See it in action
+        </h2>
+
+        @* Static copy of the logged-in "dashboard-overview" markup above, with sample data.
+           Cards are divs (not links) and checkboxes have no form, because nothing here is real. *@
+        <div class="card dashboard-overview" style="padding:24px; background:var(--pill)">
+            <section class="dashboard-projects">
+                <div class="section-head">
+                    <h2>Recent projects</h2>
+                    <span class="section-link text-blue">All Projects →</span>
+                </div>
+
+                <div class="stack">
+                    <div class="card card-outline dashboard-project-card">
+                        <div class="row between dashboard-project-heading">
+                            <h3>Website Redesign</h3>
+                            <span class="badge badge-blue">In Progress</span>
+                        </div>
+
+                        <p class="muted dashboard-project-description">
+                            Refresh the marketing site with a new design system.
+                        </p>
+
+                        <div class="progress-meta">
+                            <span>5 of 8 tasks completed</span>
+                            <span class="text-blue">63%</span>
+                        </div>
+
+                        <div class="progress" role="progressbar" aria-label="63% of Website Redesign tasks completed"
+                             aria-valuenow="63" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-bar" style="width:63%"></div>
+                        </div>
+                    </div>
+
+                    <div class="card card-outline dashboard-project-card">
+                        <div class="row between dashboard-project-heading">
+                            <h3>Onboarding Flow</h3>
+                            <span class="badge badge-amber">On Hold</span>
+                        </div>
+
+                        <p class="muted dashboard-project-description">
+                            Shorter signup and a guided first-project checklist.
+                        </p>
+
+                        <div class="progress-meta">
+                            <span>2 of 4 tasks completed</span>
+                            <span class="text-amber">50%</span>
+                        </div>
+
+                        <div class="progress" role="progressbar" aria-label="50% of Onboarding Flow tasks completed"
+                             aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-bar is-amber" style="width:50%"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="dashboard-task-section">
+                <div class="section-head">
+                    <h2>Tasks Due Soon</h2>
+                    <span class="section-link text-blue">All Tasks →</span>
+                </div>
+
+                <div class="card dashboard-tasks">
+                    <div class="dashboard-task-list">
+                        <div class="row dashboard-task">
+                            <span class="dashboard-complete-form">
+                                <input type="checkbox" class="checkbox"
+                                       aria-label="Complete Finalize homepage hero copy">
+                            </span>
+                            <span class="dashboard-task-details">
+                                <span class="dashboard-task-name">Finalize homepage hero copy</span>
+                                <span class="small dashboard-task-meta">
+                                    <span class="text-blue">Website Redesign</span>
+                                </span>
+                            </span>
+                            <span class="dashboard-task-aside">
+                                <span class="badge badge-amber">Due today</span>
+                                <partial name="_PriorityBadge" model="TaskPriority.High" />
+                            </span>
+                        </div>
+
+                        <div class="row dashboard-task">
+                            <span class="dashboard-complete-form">
+                                <input type="checkbox" class="checkbox"
+                                       aria-label="Complete Fix signup validation on mobile">
+                            </span>
+                            <span class="dashboard-task-details">
+                                <span class="dashboard-task-name">Fix signup validation on mobile</span>
+                                <span class="small dashboard-task-meta">
+                                    <span class="text-blue">Onboarding Flow</span>
+                                </span>
+                            </span>
+                            <span class="dashboard-task-aside">
+                                <span class="due"><partial name="_CalendarIcon" /> Nov 18</span>
+                                <partial name="_PriorityBadge" model="TaskPriority.High" />
+                            </span>
+                        </div>
+
+                        <div class="row dashboard-task">
+                            <span class="dashboard-complete-form">
+                                <input type="checkbox" class="checkbox"
+                                       aria-label="Complete Wireframe key pages">
+                            </span>
+                            <span class="dashboard-task-details">
+                                <span class="dashboard-task-name">Wireframe key pages</span>
+                                <span class="small dashboard-task-meta">
+                                    <span class="text-blue">Website Redesign</span>
+                                </span>
+                            </span>
+                            <span class="dashboard-task-aside">
+                                <span class="due"><partial name="_CalendarIcon" /> Nov 21</span>
+                                <partial name="_PriorityBadge" model="TaskPriority.Medium" />
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </section>
+
+    <section class="card stack"
+             style="align-items:center; padding:40px 24px; text-align:center">
+        <h2 style="font-size:26px">Ready to get organized?</h2>
+
+        <p class="muted">
+            Create your account and start your first project in minutes.
+        </p>
+
+        <a class="btn btn-primary btn-lg"
+           asp-controller="Account"
+           asp-action="Register">
+            Create your account
+        </a>
+    </section>
+}

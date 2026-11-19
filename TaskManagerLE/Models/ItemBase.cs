@@ -1,0 +1,42 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace TaskManagerLE.Models;
+
+public static class ItemConstraints
+{
+    public const int NameMaxLength = 70;
+    public const int DescriptionMaxLength = 700;
+    public const int UserIdMaxLength = 450;
+}
+
+// Not EF entity type
+public abstract class ItemBase
+{
+    public int Id { get; set; }
+    [MaxLength(ItemConstraints.NameMaxLength)]
+    public string Name { get; set; } = string.Empty;
+    [MaxLength(ItemConstraints.DescriptionMaxLength)]
+    public string Description { get; set; } = string.Empty;
+    public DateOnly DueDate { get; set; }
+    public DateTime UpdatedAtUtc { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAtUtc { get; set; }
+    [MaxLength(ItemConstraints.UserIdMaxLength)]
+    public string? DeletedByUserId { get; set; }
+
+    public void SoftDelete(string deletedByUserId, DateTime deletedAtUtc)
+    {
+        IsDeleted = true;
+        DeletedByUserId = deletedByUserId;
+        DeletedAtUtc = deletedAtUtc;
+    }
+
+    public void Restore()
+    {
+        IsDeleted = false;
+        DeletedByUserId = null;
+        DeletedAtUtc = null;
+    }
+}
