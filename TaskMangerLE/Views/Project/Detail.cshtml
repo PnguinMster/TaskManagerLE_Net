@@ -16,29 +16,23 @@
         var (statusLabel, badgeClass, progressClass, _) = Model.Status.GetStyle();
     }
 
-    <section class="card"
-             aria-labelledby="project-title"
-             style="padding:28px;display:flex;flex-direction:column;gap:24px">
+    <section class="card detail-summary" aria-labelledby="project-title">
 
-        <div class="row"
-             style="justify-content:space-between;flex-wrap:wrap;align-items:flex-start;gap:20px">
-            <div style="flex:1 1 420px">
-                <div class="row" style="flex-wrap:wrap;align-items:center;gap:12px">
-                    <h1 id="project-title"
-                        style="font-size:36px;font-weight:700;line-height:1.15;margin:0">
-                        @Model.Name
-                    </h1>
+        <div class="row wrap between detail-header">
+            <div class="detail-heading">
+                <div class="row wrap">
+                    <h1 id="project-title" class="detail-title">@Model.Name</h1>
                     <span class="badge @badgeClass">@statusLabel</span>
                 </div>
 
-                <p class="muted" style="font-size:16px;margin-top:10px;max-width:720px">
+                <p class="muted detail-description">
                     @(string.IsNullOrWhiteSpace(Model.Description)
                         ? "No project description."
                         : Model.Description)
                 </p>
             </div>
 
-            <div class="row" style="flex-wrap:wrap">
+            <div class="row wrap">
                 <button type="button" class="btn" data-open-modal="update-project-modal">
                     Edit Project
                 </button>
@@ -52,11 +46,7 @@
                       method="post"
                       data-confirm-trash="@Model.Name"
                       data-trash-detail="@Model.CompletedTaskCount of @Model.TotalTaskCount tasks done">
-                    <button type="submit"
-                            class="btn"
-                            style="color:var(--rt)">
-                        Delete Project
-                    </button>
+                    <button type="submit" class="btn btn-outline-danger">Delete Project</button>
                 </form>
             </div>
         </div>
@@ -70,7 +60,7 @@
                 @if (!Model.Status.IsFinished()) {
                     int daysRemaining = Model.DueDate.DayNumber - TimeProvider.Today().DayNumber;
 
-                    <p style="margin-top:6px">
+                    <p class="stat-tile-countdown">
                         @if (daysRemaining > 0) {
                             <span class="badge badge-muted">@(daysRemaining == 1 ? "1 day left" : $"{daysRemaining} days left")</span>
                         }
@@ -105,31 +95,27 @@
         </div>
 
         <div>
-            <div class="row"
-                 style="justify-content:space-between;margin-bottom:8px">
-                <span style="font-weight:600">Progress</span>
+            <div class="row between detail-progress-head">
+                <span class="detail-progress-label">Progress</span>
                 <span class="muted">
-                @Model.CompletedTaskCount/@Model.TotalTaskCount tasks
-                    (@Model.ProgressPercent%)
-            </span>
+                    @Model.CompletedTaskCount/@Model.TotalTaskCount tasks (@Model.ProgressPercent%)
+                </span>
             </div>
 
-            <div class="progress"
+            <div class="progress progress-lg"
                  role="progressbar"
                  aria-label="Project progress"
                  aria-valuemin="0"
                  aria-valuemax="100"
-                 aria-valuenow="@Model.ProgressPercent"
-                 style="height:12px">
-                <div class="progress-bar @progressClass"
-                     style="width:@(Model.ProgressPercent)%;transition:width .6s ease">
-                </div>
+                 aria-valuenow="@Model.ProgressPercent">
+                @* The width is computed per project, so it's the one style that belongs inline. *@
+                <div class="progress-bar @progressClass" style="width:@(Model.ProgressPercent)%"></div>
             </div>
         </div>
     </section>
 
-    <div class="row" style="justify-content:space-between;align-items:center;margin:24px 0 12px">
-        <h2 style="margin:0">Task board</h2>
+    <div class="row between detail-board-head">
+        <h2>Task board</h2>
         @{
             // Same rule as the progress numbers above: cancelled tasks aren't counted as tasks.
             int cancelledTotal = Model.Tasks.Count(task => task.Status == TaskStatus.Cancelled);
@@ -152,8 +138,8 @@
         };
     }
 
-    <div style="overflow-x:auto">
-        <div class="board" style="grid-template-columns:repeat(4,minmax(250px,1fr));min-width:1064px">
+    <div class="data-scroll">
+        <div class="board detail-board">
             @foreach (var column in columns) {
                 var columnTasks = Model.Tasks
                     .Where(task => column.Statuses.Contains(task.Status))
@@ -170,7 +156,7 @@
                         <h3>@columnTitle</h3>
                         <span class="badge badge-muted">@(columnTasks.Count - laneCancelled)</span>
                         @if (laneCancelled > 0) {
-                            <span class="muted" style="font-size:12px">+ @laneCancelled cancelled</span>
+                            <span class="muted lane-note">+ @laneCancelled cancelled</span>
                         }
                     </div>
 
@@ -189,7 +175,7 @@
                                  }"/>
 
                         <article class="card task-card">
-                            <div class="row" style="align-items:flex-start">
+                            <div class="row task-card-head">
                                 @{
                                     bool isDone = task.Status == TaskStatus.Done;
                                     bool isCancelled = task.Status == TaskStatus.Cancelled;
@@ -236,15 +222,14 @@
 
                                 @* Opens the same edit modal as the menu's Edit (no separate edit page). *@
                                 <button type="button"
-                                        class="project-title-link @(task.Status.IsFinished() ? "is-done" : "")"
-                                        style="flex:1;font-weight:600"
+                                        class="project-title-link task-card-title @(task.Status.IsFinished() ? "is-done" : "")"
                                         data-open-modal="update-task-modal-@task.Id">
                                     @task.Name
                                 </button>
                             </div>
 
                             @if (!string.IsNullOrWhiteSpace(task.Description)) {
-                                <p class="muted small" style="margin:4px 0 0">
+                                <p class="muted small task-card-description">
                                     @task.Description
                                 </p>
                             }

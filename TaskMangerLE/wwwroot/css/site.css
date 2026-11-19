@@ -1765,6 +1765,75 @@ button.project-title-link {
     max-width: 1400px;
 }
 
+/* ---------- Project detail page (Project/Detail) ---------- */
+.detail-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 28px;
+}
+
+/* Title + description on the left, buttons on the right; wraps under each other when narrow. */
+.detail-header {
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.detail-heading {
+    flex: 1 1 420px;
+}
+
+.detail-title {
+    font-size: 36px;
+    line-height: 1.15;
+}
+
+.detail-description {
+    font-size: 16px;
+    margin-top: 10px;
+    max-width: 720px;
+}
+
+.stat-tile-countdown {
+    margin-top: 6px;
+}
+
+.detail-progress-head {
+    margin-bottom: 8px;
+}
+
+.detail-progress-label {
+    font-weight: 600;
+}
+
+.detail-board-head {
+    margin: 24px 0 12px;
+}
+
+/* Always four lanes side by side; .data-scroll around it scrolls sideways on narrow screens. */
+.detail-board {
+    grid-template-columns: repeat(4, minmax(250px, 1fr));
+    min-width: 1064px;
+}
+
+.lane-note {
+    font-size: 12px;
+}
+
+/* Checkbox at the top of the card, next to the first line of a long task name. */
+.task-card-head {
+    align-items: flex-start;
+}
+
+.task-card-title {
+    flex: 1;
+    font-weight: 600;
+}
+
+.task-card-description {
+    margin-top: 4px;
+}
+
 .lane-dot.is-review {
     background: var(--pt);
 }
