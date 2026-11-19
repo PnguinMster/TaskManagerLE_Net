@@ -85,18 +85,18 @@
                 });
             });
 
-            // The server pre-fills its own "today" as a fallback (ProjectItemCreateViewModel). Replace it
-            // with the browser's date, since "today" depends on the user's timezone.
-            // Built from local parts: toISOString() would give the UTC date instead.
-            const createDueDate = document.querySelector("#create-project-form [name='DueDate']");
-            if (createDueDate) {
-                const now = new Date();
-                const month = String(now.getMonth() + 1).padStart(2, "0");
-                const day = String(now.getDate()).padStart(2, "0");
+            // The server pre-fills its own "today" as a fallback (ProjectItemCreateViewModel and
+            // TaskItemCreateViewModel). Replace it with the browser's date, since "today" depends on the
+            // user's timezone. Built from local parts: toISOString() would give the UTC date instead.
+            const now = new Date();
+            const month = String(now.getMonth() + 1).padStart(2, "0");
+            const day = String(now.getDate()).padStart(2, "0");
+            const today = `${now.getFullYear()}-${month}-${day}`;
+            document.querySelectorAll("form[data-create-item] [name='DueDate']").forEach(input => {
                 // defaultValue (not just value) so form.reset() on modal close keeps the browser's date.
-                createDueDate.defaultValue = `${now.getFullYear()}-${month}-${day}`;
-                createDueDate.value = createDueDate.defaultValue;
-            }
+                input.defaultValue = today;
+                input.value = today;
+            });
 
             // Sends a create modal's form without leaving the page (ProjectController.Create and
             // TaskController.Create). Success reloads the page the modal is on, so its filters and

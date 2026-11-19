@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using TaskMangerLE.Extensions;
 using TaskMangerLE.Models.Enums;
 using TaskStatus = TaskMangerLE.Models.Enums.TaskStatus;
 
@@ -21,7 +22,15 @@ public abstract class TaskItemViewModelBase
     public DateOnly? DueDate { get; set; }
 }
 
-public class TaskItemCreateViewModel : TaskItemViewModelBase;
+public class TaskItemCreateViewModel : TaskItemViewModelBase
+{
+    // Same as ProjectItemCreateViewModel: the server's today is a fallback for when JavaScript is off.
+    // site.js replaces it with the browser's date, and model binding overwrites it with what the user submits.
+    public TaskItemCreateViewModel()
+    {
+        DueDate = TimeProvider.System.Today();
+    }
+}
 
 public class TaskItemUpdateViewModel : TaskItemViewModelBase
 {
