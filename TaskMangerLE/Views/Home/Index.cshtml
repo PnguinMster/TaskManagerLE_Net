@@ -137,6 +137,8 @@
                                           class="dashboard-complete-form">
                                         @* Upcoming tasks are all open, so toggling always marks them done. *@
                                         <partial name="_ReturnUrlInput" />
+                                        @* The task leaves this list once done, so the toast offers Undo (see ToggleCompletion). *@
+                                        <input type="hidden" name="offerUndo" value="true" />
                                         <input type="checkbox"
                                                class="checkbox"
                                                aria-label="Complete @task.Name"

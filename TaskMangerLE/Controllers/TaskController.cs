@@ -5,6 +5,7 @@ using TaskMangerLE.Models;
 using TaskMangerLE.Models.Enums;
 using TaskMangerLE.Services;
 using TaskMangerLE.Authorization;
+using TaskStatus = TaskMangerLE.Models.Enums.TaskStatus;
 
 namespace TaskMangerLE.Controllers;
 
@@ -113,7 +114,9 @@ public class TaskController(
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
-	public async Task<IActionResult> ToggleCompletion(int? taskId, string? returnUrl)
+	// offerUndo comes from a hidden field on the Home page, where a completed task drops off the list,
+	// so a stray click would otherwise leave no way back. Tasks and the boards keep showing the task.
+	public async Task<IActionResult> ToggleCompletion(int? taskId, string? returnUrl, bool offerUndo = false)
 	{
 		if (taskId is not { } id)
 			return NotFound();
@@ -125,9 +128,44 @@ public class TaskController(
 		if (taskItem is null)
 			return NotFound();
 
+		TaskStatus previousStatus = taskItem.Status;
 		await taskService.ToggleCompletionAsync(taskItem);
 
-		return this.RedirectToLocal(returnUrl, RedirectToAction("Detail", "Project", new { projectId = taskItem.ProjectId }));
+		// Checked once here, then used for both the redirect and Undo (same as Delete).
+		string backUrl = Url.IsLocalUrl(returnUrl)
+			? returnUrl
+			: Url.Action("Detail", "Project", new { projectId = taskItem.ProjectId })!;
+
+		if (offerUndo && taskItem.Status == TaskStatus.Done)
+			this.ShowToast(new ToastMessage(ToastKind.Success, "Task completed",
+				$"{taskItem.Name} is done.",
+				ActionLabel: "Undo",
+				ActionUrl: Url.Action(nameof(UndoCompletion), new { taskId = id, previousStatus, returnUrl = backUrl })));
+
+		return LocalRedirect(backUrl);
+	}
+
+	[HttpPost]
+	[ValidateAntiForgeryToken]
+	public async Task<IActionResult> UndoCompletion(int? taskId, TaskStatus previousStatus, string? returnUrl)
+	{
+		if (taskId is not { } id)
+			return NotFound();
+
+		// Model binding accepts any number for an enum, so check it's a real status.
+		if (!Enum.IsDefined(previousStatus))
+			return BadRequest();
+
+		TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetTaskWithProjectAsync(id), t => t.Project);
+		if (taskItem is null)
+			return NotFound();
+
+		// Only undo if it is still done. If it was changed since (e.g. edited in another tab),
+		// that newer change wins.
+		if (taskItem.Status == TaskStatus.Done)
+			await taskService.UndoCompletionAsync(taskItem, previousStatus);
+
+		return this.RedirectToLocal(returnUrl, RedirectToAction("Index", "Home"));
 	}
 
 	[HttpPost]

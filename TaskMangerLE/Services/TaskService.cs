@@ -50,6 +50,14 @@ public class TaskService(ApplicationDbContext context, TimeProvider timeProvider
         await context.SaveChangesAsync();
     }
 
+    // Undo for a completion: puts back the status the task had before (e.g. In progress), which
+    // toggling again wouldn't do, since that always goes to To do.
+    public async Task UndoCompletionAsync(TaskItem taskItem, TaskStatus previousStatus)
+    {
+        taskItem.Status = previousStatus;
+        await context.SaveChangesAsync();
+    }
+
     // Admins see every user's tasks, same rule as ProjectService.GetProjectCardsAsync.
     public async Task<TaskListViewModel> GetTaskListAsync(string userId, bool isAdmin, bool showArchived)
     {
