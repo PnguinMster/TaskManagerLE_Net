@@ -1,4 +1,4 @@
-@model TaskManagerLE.Models.TaskItemCreateViewModel
+@model TaskItemCreateViewModel
 
 <dialog id="create-task-modal" class="modal"
         aria-labelledby="create-task-title">
@@ -52,7 +52,7 @@
                 <div class="field">
                     <label asp-for="Status"></label>
                     <select asp-for="Status"
-                            asp-items="Html.GetEnumSelectList<TaskManagerLE.Models.Enums.TaskStatus>()"
+                            asp-items="Html.GetEnumSelectList<TaskStatus>()"
                             class="input"></select>
                     <span asp-validation-for="Status" class="field-error"></span>
                 </div>
@@ -62,7 +62,7 @@
                 <div class="field">
                     <label asp-for="Priority"></label>
                     <select asp-for="Priority"
-                            asp-items="Html.GetEnumSelectList<TaskManagerLE.Models.Enums.TaskPriority>()"
+                            asp-items="Html.GetEnumSelectList<TaskPriority>()"
                             class="input"></select>
                     <span asp-validation-for="Priority" class="field-error"></span>
                 </div>
