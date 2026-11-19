@@ -594,6 +594,22 @@ function setUpRequiredFieldChecks() {
     }
 }
 
+// Opening and closing modals, with data attributes instead of inline onclick:
+//   <button data-open-modal="create-task-modal">  opens the <dialog> with that id
+//   <button data-close-modal>                      closes the <dialog> it sits in (Cancel and the X, see _ModalCloseButton)
+// One delegated listener (same idea as setUpTrashDialog) covers every button on the page.
+function setUpModalButtons() {
+    document.addEventListener("click", event => {
+        const openButton = event.target.closest?.("[data-open-modal]");
+        if (openButton) {
+            document.getElementById(openButton.dataset.openModal)?.showModal();
+            return;
+        }
+
+        event.target.closest?.("[data-close-modal]")?.closest("dialog")?.close();
+    });
+}
+
 // A board lane's "+ Add task" button (<button data-add-task-status="1">) opens the create-task modal
 // with Status already set to that lane's status. The number is the TaskStatus enum value, which is
 // also what the Status <select> options use. The header's "New task" button has no attribute, so it
@@ -1102,6 +1118,7 @@ showServerToasts();
 setUpClickOutsideToClose();
 setUpRowMenus();
 setUpRequiredFieldChecks();
+setUpModalButtons();
 setUpAddTaskButtons();
 setUpProjectFilters();
 setUpTaskFilters();

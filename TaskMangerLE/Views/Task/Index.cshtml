@@ -63,9 +63,7 @@
         </p>
     </div>
 
-    <button type="button"
-            class="btn btn-primary"
-            onclick="document.getElementById('create-task-modal').showModal()">
+    <button type="button" class="btn btn-primary" data-open-modal="create-task-modal">
         + New Task
     </button>
 </header>
@@ -302,8 +300,7 @@
                 Tasks from all your projects show up here, grouped by when they're due.
             </p>
 
-            <button type="button" class="btn btn-primary"
-                    onclick="document.getElementById('create-task-modal').showModal()">
+            <button type="button" class="btn btn-primary" data-open-modal="create-task-modal">
                 + New Task
             </button>
         }
@@ -408,8 +405,7 @@ else {
 
                                 <div class="task-card-menu-panel">
                                     @* Opens the edit modal rendered below the table (same as Project/Detail). *@
-                                    <button type="button"
-                                            onclick="document.getElementById('update-task-modal-@task.Id').showModal()">
+                                    <button type="button" data-open-modal="update-task-modal-@task.Id">
                                         Edit
                                     </button>
 
