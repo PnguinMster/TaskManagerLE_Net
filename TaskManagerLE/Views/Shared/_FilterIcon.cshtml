@@ -1,0 +1,10 @@
+@* Filter icon (three lines getting shorter), on the Filters button of the Projects and Tasks pages.
+   The model is the size in px: <partial name="_FilterIcon" model="16" />.
+   Decorative (aria-hidden), so the text around it has to say what it means. *@
+@model int
+<svg width="@Model" height="@Model" viewBox="0 0 24 24"
+     fill="none" stroke="currentColor" stroke-width="2"
+     stroke-linecap="round" stroke-linejoin="round"
+     aria-hidden="true">
+    <path d="M4 6h16M7 12h10M10 18h4"></path>
+</svg>

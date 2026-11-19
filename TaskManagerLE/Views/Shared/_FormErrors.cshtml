@@ -4,7 +4,7 @@
    Used as <partial name="_FormErrors" /> at the top of a form.
    A page with two forms gives the second one its own key, so an error only shows on the form it belongs to:
    <partial name="_FormErrors" view-data='new ViewDataDictionary(ViewData) { { "FormErrorKey", "ChangePassword" } }' />
-   (see Account/Profile.cshtml and AccountController.AddChangePasswordError). *@
+   (see Account/Profile.cshtml and AccountController.AddChangePasswordErrors). *@
 @{
     var errorKey = ViewData["FormErrorKey"] as string ?? string.Empty;
     var formErrors = ViewData.ModelState[errorKey]?.Errors

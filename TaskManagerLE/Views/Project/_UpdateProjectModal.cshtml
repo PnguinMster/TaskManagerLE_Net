@@ -1,7 +1,8 @@
 @model ProjectItemUpdateViewModel
 
-@* Same layout as _UpdateTaskModal. The model is only what gets posted back; the extra text
-   (CreatedAtUtc, OwnerName, TrashDetail) comes in through ViewData, see Project/Detail.cshtml. *@
+@* Same layout as _CreateProjectModal (and _UpdateTaskModal). The model is only what gets posted back; the extra text
+   (CreatedAtUtc, OwnerName, TrashDetail) comes in through ViewData, see Project/Detail.cshtml.
+   Label text comes from [Display] on the view model (Name shows as "Title", DueDate as "Due date"). *@
 <dialog id="update-project-modal" class="modal"
         aria-labelledby="update-project-title">
     <div class="modal-header">
@@ -12,28 +13,28 @@
     @* data-fetch-form: sent with fetch, see submitModalForm in site.js. *@
     <form asp-controller="Project" asp-action="Update" method="post" data-check-required novalidate
           data-fetch-form data-not-saved="The project wasn't saved.">
-        <input asp-for="Id" type="hidden"/>
+        <input asp-for="Id" type="hidden" />
 
         <div class="modal-body">
             <div class="field">
-                <label asp-for="Name">Title</label>
+                <label asp-for="Name"></label>
                 <input asp-for="Name" class="input"
                        maxlength="@ItemConstraints.NameMaxLength"
-                       autocomplete="off"/>
+                       autocomplete="off" />
                 <span asp-validation-for="Name" class="field-error"></span>
             </div>
 
             <div class="field">
                 <div class="row between">
-                    <label asp-for="Description">Description</label>
-                    <span class="muted" style="font-size:12px">Optional</span>
+                    <label asp-for="Description"></label>
+                    <span class="field-hint">Optional</span>
                 </div>
                 <textarea asp-for="Description" class="input"
                           maxlength="@ItemConstraints.DescriptionMaxLength"></textarea>
                 <span asp-validation-for="Description" class="field-error"></span>
             </div>
 
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px">
+            <div class="field-grid">
                 <div class="field">
                     <label asp-for="Status"></label>
                     <select asp-for="Status"
@@ -43,14 +44,14 @@
                 </div>
 
                 <div class="field">
-                    <label asp-for="DueDate">Due date</label>
-                    <input asp-for="DueDate" type="date" class="input"/>
+                    <label asp-for="DueDate"></label>
+                    <input asp-for="DueDate" type="date" class="input" />
                     <span asp-validation-for="DueDate" class="field-error"></span>
                 </div>
             </div>
 
             @if (ViewData["CreatedAtUtc"] is DateTime createdAtUtc) {
-                <p class="muted" style="font-size:13px;margin:0">
+                <p class="modal-note">
                     Created @createdAtUtc.ToLocalTime().ToLongDisplay() by @ViewData["OwnerName"]
                 </p>
             }
@@ -64,8 +65,7 @@
                 Delete project
             </button>
 
-            <span style="flex:1"></span>
-
+            <span class="sp"></span>
             <button type="button" class="btn" data-close-modal>Cancel</button>
             <button type="submit" class="btn btn-primary">Save changes</button>
         </div>

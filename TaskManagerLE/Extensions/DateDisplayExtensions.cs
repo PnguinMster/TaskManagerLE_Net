@@ -5,11 +5,13 @@ namespace TaskManagerLE.Extensions;
 // (Machine formats like "yyyy-MM-dd" in data-* attributes for site.js are not display formats.)
 public static class DateDisplayExtensions
 {
-    private const string ShortFormat = "MMM d";              // "Nov 20": due dates on cards and rows
+    private const string ShortFormat = "MMM d";              // "Nov 20": due dates on cards and rows, "Deleted Nov 20"
     private const string LongFormat = "MMM d, yyyy";         // "Nov 20, 2026": headings, "Created ..." lines
     private const string DateTimeFormat = "MMM d, h:mm tt";  // "Nov 20, 3:45 PM": when something happened
 
     public static string ToShortDisplay(this DateOnly date) => date.ToString(ShortFormat);
+
+    public static string ToShortDisplay(this DateTime dateTime) => dateTime.ToString(ShortFormat);
 
     public static string ToLongDisplay(this DateOnly date) => date.ToString(LongFormat);
 

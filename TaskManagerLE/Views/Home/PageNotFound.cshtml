@@ -20,16 +20,14 @@
         We could not find the page you were looking for. It may have been moved, or the link might be wrong.
     </p>
 
-    @if (!string.IsNullOrEmpty(originalPath))
-    {
+    @if (!string.IsNullOrEmpty(originalPath)) {
         <div class="code-box">@originalPath</div>
     }
 
-    <div class="row wrap" style="justify-content: center; margin-top: 8px;">
+    <div class="row wrap error-actions">
         <a asp-controller="Home" asp-action="Index" class="btn btn-primary btn-lg">Go to Home</a>
 
-        @if (User.Identity?.IsAuthenticated == true)
-        {
+        @if (User.Identity?.IsAuthenticated == true) {
             <a asp-controller="Project" asp-action="Index" class="btn btn-lg">View projects</a>
         }
     </div>

@@ -1,6 +1,7 @@
-@* Styled confirmation popup. site.js (setUpTrashDialog) opens it for forms with the matching
-   data-confirm-* attribute, fills every [data-trash-name] with the item's name and
-   #<IdPrefix>-detail with the form's data-trash-detail, and submits the form on OK. *@
+@* Styled confirmation popup. site.js (setUpConfirmDialog) opens it for forms with the matching
+   data-confirm-* attribute, fills every [data-confirm-name] with the item's name and
+   #<IdPrefix>-detail with the form's data-trash-detail, and submits the form on OK.
+   The "Empty Trash" dialog (Trash/Index) copies this markup and classes, so keep the two in step. *@
 @model ConfirmDialogViewModel
 
 <dialog id="@(Model.IdPrefix)-dialog" class="modal modal-sm" role="alertdialog" aria-labelledby="@(Model.IdPrefix)-title">
@@ -8,21 +9,21 @@
         <div class="icon-tile is-rose">
             <partial name="_TrashIcon" model="24" />
         </div>
-        <div class="stack" style="gap:8px">
-            <h2 id="@(Model.IdPrefix)-title" style="font-size:20px;font-weight:700">@Model.Title</h2>
+        <div class="stack tight">
+            <h2 id="@(Model.IdPrefix)-title" class="confirm-title">@Model.Title</h2>
             <p class="muted">
-                <b style="color:var(--text);font-weight:600" data-trash-name></b>
+                <b class="confirm-name" data-confirm-name></b>
                 @Model.Message
             </p>
         </div>
         <div class="summary-panel">
-            <span class="muted" style="display:flex">
+            <span class="muted summary-icon">
                 <partial name="@Model.SummaryIconPartial" model="14" />
             </span>
-            <span style="font-weight:600;flex:1;min-width:0" data-trash-name></span>
-            <span class="muted" style="font-size:13px" id="@(Model.IdPrefix)-detail"></span>
+            <span class="summary-name" data-confirm-name></span>
+            <span class="muted summary-detail" id="@(Model.IdPrefix)-detail"></span>
         </div>
-        <div class="actions" style="margin-top:4px">
+        <div class="actions">
             <button type="button" class="btn" id="@(Model.IdPrefix)-cancel">Cancel</button>
             <button type="button" class="btn @Model.ConfirmButtonClass" id="@(Model.IdPrefix)-ok">@Model.ConfirmLabel</button>
         </div>

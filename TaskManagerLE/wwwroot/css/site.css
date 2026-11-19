@@ -129,6 +129,11 @@ button {
     color: var(--muted);
 }
 
+/* Normal text colour inside muted text, e.g. the email in "We sent a link to ...". */
+.text-strong {
+    color: var(--text);
+}
+
 .small {
     font-size: 13px;
 }
@@ -137,15 +142,6 @@ button {
    (e.g. .data-row is a grid, .empty-state is flex) stays visible even when hidden = true. */
 [hidden] {
     display: none !important;
-}
-
-.visually-hidden {
-    position: absolute !important;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
 }
 
 /* ---------- Layout helpers ---------- */
@@ -172,10 +168,36 @@ button {
     justify-content: space-between;
 }
 
+/* Row with its items centred horizontally. */
+.row.center {
+    justify-content: center;
+}
+
+/* Row with its items pushed to the right (e.g. a Save button under a form). */
+.row.end {
+    justify-content: flex-end;
+}
+
+/* Row whose items line up at the top instead of the middle (for items of different heights). */
+.row.top {
+    align-items: flex-start;
+}
+
 .stack {
     display: flex;
     flex-direction: column;
     gap: 12px;
+}
+
+/* Tighter stack for a title right above its message (confirm dialogs). */
+.stack.tight {
+    gap: 8px;
+}
+
+/* Stack whose items and text are centred (e.g. the icon + heading block on Check email). */
+.stack.center {
+    align-items: center;
+    text-align: center;
 }
 
 .sp {
@@ -198,17 +220,6 @@ button {
 .grid-cards > .card {
     padding: 20px;
     margin: 0;
-}
-
-.split {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 24px;
-    align-items: flex-start;
-}
-
-.split > * {
-    flex: 1 1 420px;
 }
 
 .page-header {
@@ -298,10 +309,6 @@ button {
     margin-left: auto;
 }
 
-.nav-toggle {
-    display: none;
-}
-
 .icon-btn {
     width: 44px;
     height: 44px;
@@ -347,78 +354,134 @@ button {
     font-size: 22px;
 }
 
+/* ---------- User menu (account <details> in the navbar, _LoginPartial) ---------- */
 .user-menu {
     position: relative;
 }
 
-.user-trigger {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    height: 44px;
-    padding: 0 8px;
-    border: 0;
-    background: transparent;
-    font-weight: 500;
-    border-radius: var(--radius-sm);
+.user-menu > summary {
+    list-style: none;
 }
 
-.user-trigger:hover {
-    background: var(--card-hover);
-}
-
-.menu {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    z-index: 20;
-    width: 280px;
-    padding: 8px;
-    background: var(--card);
-    border: 1px solid var(--divider);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-pop);
-}
-
-.menu[hidden] {
+.user-menu > summary::-webkit-details-marker {
     display: none;
 }
 
-.menu-head {
-    display: flex;
+.user-menu-trigger {
+    display: inline-flex;
     align-items: center;
-    gap: 12px;
-    padding: 10px 12px 12px;
-}
-
-.menu hr {
+    gap: 8px;
+    padding: 6px 8px;
     border: 0;
-    border-top: 1px solid var(--divider);
-    margin: 6px 0;
-}
-
-.menu-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-    height: 44px;
-    padding: 0 12px;
-    border: 0;
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: transparent;
     color: var(--text);
-    font-weight: 500;
-    text-align: left;
+    cursor: pointer;
+    font: inherit;
 }
 
-.menu-item:hover {
+.user-menu-trigger:hover,
+.user-menu[open] .user-menu-trigger {
     background: var(--card-hover);
+}
+
+.user-menu-trigger-name {
+    max-width: 192px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.user-menu-chevron {
+    color: var(--muted);
+    transition: transform 0.15s ease;
+}
+
+.user-menu[open] .user-menu-chevron {
+    transform: rotate(180deg);
+}
+
+.user-menu-panel {
+    position: absolute;
+    z-index: 1000;
+    top: calc(100% + 12px);
+    right: 0;
+    width: min(256px, calc(100vw - 32px));
+    padding: 8px;
+    border: 1px solid var(--divider);
+    border-radius: var(--radius-sm);
+    background: var(--card);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .2);
+}
+
+.user-menu-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+}
+
+.user-menu-identity {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 3px;
+}
+
+.user-menu-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text);
+    /*font-weight: 600;*/
+}
+
+.user-menu-email {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.user-menu-divider {
+    height: 1px;
+    margin: 4px 0;
+    background: var(--divider);
+}
+
+.user-menu-panel form {
+    margin: 0;
+}
+
+.user-menu-item {
+    display: block;
+    width: 100%;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
     text-decoration: none;
 }
 
-.menu-item .sp {
-    flex: 1;
+.user-menu-item:hover {
+    background: var(--card-hover);
+    color: var(--text);
+    text-decoration: none;
+}
+
+.user-menu-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-menu-item-icon {
+    flex: none;
 }
 
 /* ---------- Buttons ---------- */
@@ -522,10 +585,6 @@ button {
     margin: 8px;
 }
 
-.card-hover:hover {
-    background: var(--card-hover);
-}
-
 /* Visible outline for project cards; --border is too faint against dark cards. */
 .card-outline {
     border-color: var(--divider);
@@ -543,11 +602,6 @@ button {
 .card-dashed {
     border-style: dashed;
     border-color: var(--divider);
-}
-
-.card-title {
-    font-size: 17px;
-    font-weight: 600;
 }
 
 .kpi-label {
@@ -579,6 +633,10 @@ button {
     font-size: 18px;
     font-weight: 600;
     margin-top: 2px;
+}
+
+.stat-tile-countdown {
+    margin-top: 6px;
 }
 
 .badge {
@@ -659,16 +717,31 @@ button {
     transition: width .6s ease;
 }
 
+/* Bar colours per project status, picked in ProjectStatusExtensions.GetStyle (same colour as the badge). */
+.progress-bar.is-blue {
+    background: var(--bt);
+}
+
+.progress-bar.is-purple {
+    background: var(--pt);
+}
+
 .progress-bar.is-green {
     background: var(--green);
 }
 
-/* 100% complete */
 .progress-bar.is-amber {
     background: #f59e0b;
 }
 
-/* due soon */
+.progress-bar.is-rose {
+    background: var(--rt);
+}
+
+.progress-bar.is-muted {
+    background: var(--muted);
+}
+
 .progress-lg {
     height: 12px;
 }
@@ -704,6 +777,15 @@ button {
     font-weight: 500;
 }
 
+/* Icon-only pill (grid/list view toggle). Two classes beat ".pills > button" (class + element). */
+.pills > .pill-icon {
+    width: 44px;
+    height: 36px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+}
+
 .pills > a:hover {
     text-decoration: none;
     color: var(--text);
@@ -725,24 +807,6 @@ button {
     background: color-mix(in srgb, currentColor 16%, transparent);
 }
 
-.stat-tile {
-    padding: 14px 16px;
-    border: 1px solid var(--divider);
-    border-radius: 12px;
-    background: color-mix(in srgb, var(--text) 3.5%, var(--card));
-}
-
-.stat-tile .label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--muted);
-}
-
-.stat-tile .value {
-    font-size: 18px;
-    font-weight: 600;
-}
-
 /* ---------- Forms ---------- */
 .field {
     display: flex;
@@ -753,6 +817,19 @@ button {
 .field label {
     font-size: 13px;
     font-weight: 600;
+}
+
+/* Two fields side by side (create/edit modals); drops to one column when there is no room. */
+.field-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+/* Small note next to a label, e.g. "Optional". */
+.field-hint {
+    color: var(--muted);
+    font-size: 12px;
 }
 
 .input {
@@ -870,12 +947,11 @@ strong {
     transform: translate(-50%, -60%) rotate(45deg);
 }
 
+/* completed task title */
 .is-done {
     text-decoration: line-through;
     color: var(--muted);
 }
-
-/* completed task title */
 
 /* ---------- Lists (tasks, projects, trash) ---------- */
 .data-scroll {
@@ -940,14 +1016,77 @@ strong {
     --cols: minmax(220px, 2.2fr) 120px minmax(160px, 1.4fr) 80px 170px;
 }
 
+.cols-projects .stack {
+    gap: 0;
+}
+
 .cols-trash {
     --cols: 110px minmax(240px, 2.4fr) 160px 280px;
+}
+
+/* Main cell of a row (name + sub-line). min-width: 0 lets a long name shrink and truncate. */
+.cell-main {
+    min-width: 0;
+}
+
+/* The item name in a table row. */
+.cell-title {
+    font-weight: 600;
 }
 
 .truncate {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* One card in the Projects grid: header, progress, then the footer pinned to the bottom. */
+.project-card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* Pushes the footer to the bottom, so cards of different heights line up in a grid row. */
+.project-card-footer {
+    margin-top: auto;
+}
+
+.project-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.project-actions form {
+    margin: 0;
+}
+
+.project-title-link {
+    color: var(--text);
+    text-decoration: none;
+}
+
+.project-title-link:hover {
+    text-decoration: underline;
+}
+
+/* The board's task names are buttons (they open the edit modal); strip the button look so they match the links. */
+button.project-title-link {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+/* After :hover on purpose: same specificity, so a finished title keeps its line-through on hover. */
+.project-title-link.is-done {
+    color: var(--muted);
+    text-decoration: line-through;
 }
 
 /* ---------- Kanban (project details) ---------- */
@@ -979,6 +1118,10 @@ strong {
     flex: 1;
 }
 
+.lane-note {
+    font-size: 12px;
+}
+
 .lane-dot {
     width: 10px;
     height: 10px;
@@ -990,17 +1133,36 @@ strong {
     background: var(--blue);
 }
 
+.lane-dot.is-review {
+    background: var(--pt);
+}
+
 .lane-dot.is-done {
     background: var(--green);
 }
 
 .task-card {
+    position: relative;
     padding: 14px 14px 14px 16px;
     border-color: var(--divider);
 }
 
 .task-card:hover {
     background: color-mix(in srgb, var(--text) 2.5%, var(--card));
+}
+
+/* Checkbox at the top of the card, next to the first line of a long task name. */
+.task-card-head {
+    align-items: flex-start;
+}
+
+.task-card-title {
+    flex: 1;
+    font-weight: 600;
+}
+
+.task-card-description {
+    margin-top: 4px;
 }
 
 .task-card .task-meta {
@@ -1020,10 +1182,146 @@ strong {
     white-space: nowrap; /* keep "Nov 20" on one line in narrow rows, like .badge does */
 }
 
+/* ---------- Task menus ("..." <details> on board cards and Tasks rows) ---------- */
+.task-card-menu {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+}
+
+/* Every menu sits at z-index 2, and with equal z-index the later one in the page paints on top,
+   so the next row's dots showed through an open panel. Lift the open one above its neighbours. */
+.task-card-menu[open] {
+    z-index: 10;
+}
+
+.task-card-menu summary {
+    display: grid;
+    width: 32px;
+    height: 32px;
+    place-items: center;
+    border-radius: 8px;
+    color: var(--muted);
+    cursor: pointer;
+    list-style: none;
+}
+
+.task-card-menu summary::-webkit-details-marker {
+    display: none;
+}
+
+.task-card-menu summary:hover,
+.task-card-menu[open] summary {
+    background: var(--card-hover);
+    color: var(--text);
+}
+
+.task-card-menu-panel {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    width: 160px;
+    padding: 6px;
+    background: var(--card);
+    border: 1px solid var(--divider);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-pop);
+}
+
+.task-card-menu-panel a,
+.task-card-menu-panel button {
+    display: block;
+    width: 100%;
+    padding: 9px 10px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.task-card-menu-panel a:hover,
+.task-card-menu-panel button:hover {
+    background: var(--card-hover);
+}
+
+/* Only the destructive action is red. It's the button inside the delete <form>; Edit is a link on
+   the Tasks page and a plain button on a project's Detail page, and both stay the normal text color. */
+.task-card-menu-panel form button {
+    color: var(--rt);
+}
+
+/* On the Tasks page the menu sits in its grid cell instead of the card corner.
+   Declared after .task-card-menu so it wins at equal specificity. */
+.task-row-menu {
+    position: relative;
+    top: auto;
+    right: auto;
+    justify-self: end;
+}
+
+/* ---------- Project detail page (Project/Detail) ---------- */
+/* The detail page needs room for four lanes, so it gets a wider container. */
+.container:has(.project-detail-page) {
+    max-width: 1400px;
+}
+
+.detail-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 28px;
+}
+
+/* Title + description on the left, buttons on the right; wraps under each other when narrow. */
+.detail-header {
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.detail-heading {
+    flex: 1 1 420px;
+}
+
+.detail-title {
+    font-size: 36px;
+    line-height: 1.15;
+}
+
+.detail-description {
+    font-size: 16px;
+    margin-top: 10px;
+    max-width: 720px;
+}
+
+.detail-progress-head {
+    margin-bottom: 8px;
+}
+
+.detail-progress-label {
+    font-weight: 600;
+}
+
+.detail-board-head {
+    margin: 24px 0 12px;
+}
+
+/* Always four lanes side by side; .data-scroll around it scrolls sideways on narrow screens.
+   Declared after .board so it wins at equal specificity. */
+.detail-board {
+    grid-template-columns: repeat(4, minmax(250px, 1fr));
+    min-width: 1064px;
+}
+
 /* ---------- Modals & confirmations (<dialog class="modal">) ---------- */
 dialog.modal {
     width: calc(100% - 32px);
     max-width: 520px;
+    margin: 8vh auto auto;
     padding: 0;
     color: var(--text);
     /* A dialog still inherits from the element it is written inside (even though it is drawn
@@ -1033,10 +1331,6 @@ dialog.modal {
     border: 1px solid var(--divider);
     border-radius: 16px;
     box-shadow: var(--shadow-pop);
-}
-
-dialog.modal.modal-lg {
-    max-width: 560px;
 }
 
 dialog.modal.modal-sm {
@@ -1067,17 +1361,18 @@ dialog.modal::backdrop {
     padding: 24px;
 }
 
+/* Small muted line in a modal, e.g. "Created ... by ..." in the edit modals. */
+.modal-note {
+    color: var(--muted);
+    font-size: 13px;
+}
+
 .modal-footer {
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 16px 24px;
     border-top: 1px solid var(--divider);
-}
-
-.modal-footer .btn-text-danger {
-    margin-right: auto;
-    color: var(--rt);
 }
 
 .confirm {
@@ -1087,11 +1382,24 @@ dialog.modal::backdrop {
     padding: 28px;
 }
 
+/* Heading of a confirm dialog ("Move to Trash?"). */
+.confirm-title {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+/* The item's name inside the muted question text. */
+.confirm-name {
+    color: var(--text);
+    font-weight: 600;
+}
+
 .confirm .actions {
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
     gap: 12px;
+    margin-top: 4px;
 }
 
 .icon-tile {
@@ -1129,6 +1437,13 @@ dialog.modal::backdrop {
     border-radius: 21px;
 }
 
+/* Home page feature tiles. After .is-lg/.is-xl so it wins if a tile has both. */
+.icon-tile.is-md {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+}
+
 .summary-panel {
     display: flex;
     align-items: center;
@@ -1137,6 +1452,25 @@ dialog.modal::backdrop {
     border: 1px solid var(--divider);
     border-radius: 12px;
     background: var(--pill);
+}
+
+/* Icon at the start of a .summary-panel; flex removes the gap under the inline svg. */
+.summary-icon {
+    display: flex;
+    color: var(--muted);
+}
+
+/* Item name in a .summary-panel; takes the free space and may shrink. */
+.summary-name {
+    font-weight: 600;
+    flex: 1;
+    min-width: 0;
+}
+
+/* Extra info at the end of a .summary-panel (e.g. "3 tasks"). */
+.summary-detail {
+    color: var(--muted);
+    font-size: 13px;
 }
 
 /* ---------- Toasts ---------- */
@@ -1250,6 +1584,12 @@ dialog.modal::backdrop {
     font-size: 16px;
 }
 
+/* Button row on the 403/404/500 pages (used with "row wrap"). */
+.error-actions {
+    justify-content: center;
+    margin-top: 8px;
+}
+
 .code-box {
     font: 13px ui-monospace, SFMono-Regular, Menlo, monospace;
     color: var(--muted);
@@ -1309,93 +1649,36 @@ dialog.modal::backdrop {
     gap: 16px;
 }
 
-/* ---------- Responsive ---------- */
-@media (max-width: 760px) {
-    .container {
-        padding: 20px 16px;
-        gap: 20px;
-    }
-
-    .navbar {
-        padding: 0 8px 0 16px;
-    }
-
-    .brand {
-        margin-right: 0;
-    }
-
-    .nav-toggle {
-        display: grid;
-    }
-
-    .nav-links {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        z-index: 30;
-        flex-direction: column;
-        align-items: stretch;
-        padding: 8px;
-        background: var(--card);
-        border-bottom: 1px solid var(--border);
-    }
-
-    .nav-links.is-open {
-        display: flex;
-    }
-
-    .nav-link {
-        display: flex;
-        align-items: center;
-        height: 48px;
-        font-size: 16px;
-    }
-
-    .user-trigger .name {
-        display: none;
-    }
-
-    .grid-kpi {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    h1 {
-        font-size: 24px;
-    }
-
-    .hero {
-        padding: 40px 0 32px;
-    }
-
-    .hero h1 {
-        font-size: 36px;
-    }
-
-    .error-page {
-        padding-top: 48px;
-    }
-
-    .input-inline, select.input.input-inline {
-        width: 100%;
-        min-width: 0;
-    }
-
-    .toasts {
-        right: 16px;
-        bottom: 16px;
-    }
+/* ---------- Home landing (logged-out home page) ---------- */
+/* The "what it looks like" block under the features. */
+.preview-section {
+    padding: 24px 0;
 }
 
-@media (prefers-reduced-motion: reduce) {
-    * {
-        transition: none !important;
-        animation: none !important;
-    }
+.preview-heading {
+    font-size: 24px;
+    text-align: center;
+    margin-bottom: 4px;
 }
 
-/* ---------- Dashboard ---------- */
+/* Inset frame around the sample dashboard. After .card so its background wins. */
+.preview-frame {
+    padding: 24px;
+    background: var(--pill);
+}
+
+/* The closing "Ready to get organized?" card. After .card so its padding wins. */
+.cta-card {
+    align-items: center;
+    padding: 40px 24px;
+    text-align: center;
+}
+
+.cta-card h2 {
+    font-size: 26px;
+}
+
+/* ---------- Dashboard (Home/Index when logged in) ---------- */
 .dashboard-overview {
     display: flex;
     flex-wrap: wrap;
@@ -1409,7 +1692,14 @@ dialog.modal::backdrop {
     flex-direction: column;
     gap: 12px;
     flex: 1 1 420px;
+}
+
+.dashboard-projects {
     min-width: min(100%, 320px);
+}
+
+.dashboard-task-section {
+    min-width: 0;
 }
 
 .dashboard-overview .section-head h2 {
@@ -1514,155 +1804,7 @@ dialog.modal::backdrop {
     gap: 6px;
 }
 
-.dashboard-task-section {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    min-width: 0;
-}
-
-.user-account {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: inherit;
-}
-
-.user-menu {
-    position: relative;
-}
-
-.user-menu > summary {
-    list-style: none;
-}
-
-.user-menu > summary::-webkit-details-marker {
-    display: none;
-}
-
-.user-menu-trigger {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 8px;
-    border: 0;
-    border-radius: var(--radius-sm);
-    background: transparent;
-    color: var(--text);
-    cursor: pointer;
-    font: inherit;
-}
-
-.user-menu-trigger:hover,
-.user-menu[open] .user-menu-trigger {
-    background: var(--card-hover);
-}
-
-.user-menu-trigger-name {
-    max-width: 192px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.user-menu-chevron {
-    color: var(--muted);
-    transition: transform 0.15s ease;
-}
-
-.user-menu[open] .user-menu-chevron {
-    transform: rotate(180deg);
-}
-
-.user-menu-panel {
-    position: absolute;
-    z-index: 1000;
-    top: calc(100% + 12px);
-    right: 0;
-    width: min(256px, calc(100vw - 32px));
-    padding: 8px;
-    border: 1px solid var(--divider);
-    border-radius: var(--radius-sm);
-    background: var(--card);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, .2);
-}
-
-.user-menu-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px;
-}
-
-.user-menu-identity {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    gap: 3px;
-}
-
-.user-menu-name,
-.user-menu-email {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.user-menu-name {
-    color: var(--text);
-    /*font-weight: 600;*/
-}
-
-.user-menu-email {
-    color: var(--muted);
-    font-size: 14px;
-}
-
-.user-menu-divider {
-    height: 1px;
-    margin: 4px 0;
-    background: var(--divider);
-}
-
-.user-menu-panel form {
-    margin: 0;
-}
-
-.user-menu-item {
-    display: block;
-    width: 100%;
-    padding: 10px 12px;
-    border: 0;
-    border-radius: var(--radius-sm);
-    background: transparent;
-    color: var(--text);
-    cursor: pointer;
-    font: inherit;
-    text-align: left;
-    text-decoration: none;
-}
-
-.user-menu-item:hover {
-    background: var(--card-hover);
-    color: var(--text);
-    text-decoration: none;
-}
-
-.user-menu-logout {
-    color: var(--muted);
-}
-
-.user-menu-profile,
-.user-menu-logout {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.user-menu-item-icon {
-    flex: none;
-}
-
+/* ---------- Profile (Account/Profile) ---------- */
 .profile-page {
     display: flex;
     flex-direction: column;
@@ -1685,233 +1827,7 @@ dialog.modal::backdrop {
     box-sizing: border-box;
 }
 
-.grid-cards[hidden],
-#project-list[hidden] {
-    display: none;
-}
-
-
-.cols-projects .stack {
-    gap: 0;
-}
-
-.progress-bar.is-blue {
-    background: var(--bt);
-}
-
-.progress-bar.is-purple {
-    background: var(--pt);
-}
-
-.progress-bar.is-rose {
-    background: var(--rt);
-}
-
-.progress-bar.is-muted {
-    background: var(--muted);
-}
-
-.project-actions {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 8px;
-    white-space: nowrap;
-}
-
-.project-actions form {
-    margin: 0;
-}
-
-.project-title-link {
-    color: var(--text);
-    text-decoration: none;
-}
-
-.project-title-link:hover {
-    text-decoration: underline;
-}
-
-/* The board's task names are buttons (they open the edit modal); strip the button look so they match the links. */
-button.project-title-link {
-    padding: 0;
-    border: 0;
-    background: none;
-    font: inherit;
-    text-align: left;
-    cursor: pointer;
-}
-
-.container:has(.project-detail-page) {
-    max-width: 1400px;
-}
-
-/* ---------- Project detail page (Project/Detail) ---------- */
-.detail-summary {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    padding: 28px;
-}
-
-/* Title + description on the left, buttons on the right; wraps under each other when narrow. */
-.detail-header {
-    align-items: flex-start;
-    gap: 20px;
-}
-
-.detail-heading {
-    flex: 1 1 420px;
-}
-
-.detail-title {
-    font-size: 36px;
-    line-height: 1.15;
-}
-
-.detail-description {
-    font-size: 16px;
-    margin-top: 10px;
-    max-width: 720px;
-}
-
-.stat-tile-countdown {
-    margin-top: 6px;
-}
-
-.detail-progress-head {
-    margin-bottom: 8px;
-}
-
-.detail-progress-label {
-    font-weight: 600;
-}
-
-.detail-board-head {
-    margin: 24px 0 12px;
-}
-
-/* Always four lanes side by side; .data-scroll around it scrolls sideways on narrow screens. */
-.detail-board {
-    grid-template-columns: repeat(4, minmax(250px, 1fr));
-    min-width: 1064px;
-}
-
-.lane-note {
-    font-size: 12px;
-}
-
-/* Checkbox at the top of the card, next to the first line of a long task name. */
-.task-card-head {
-    align-items: flex-start;
-}
-
-.task-card-title {
-    flex: 1;
-    font-weight: 600;
-}
-
-.task-card-description {
-    margin-top: 4px;
-}
-
-.lane-dot.is-review {
-    background: var(--pt);
-}
-
-.project-title-link.is-done {
-    color: var(--muted);
-    text-decoration: line-through;
-}
-
-dialog.modal {
-    margin: 8vh auto auto;
-}
-
-.task-card {
-    position: relative;
-}
-
-.task-card-menu {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    z-index: 2;
-}
-
-/* Every menu sits at z-index 2, and with equal z-index the later one in the page paints on top,
-   so the next row's dots showed through an open panel. Lift the open one above its neighbours. */
-.task-card-menu[open] {
-    z-index: 10;
-}
-
-.task-card-menu summary {
-    display: grid;
-    width: 32px;
-    height: 32px;
-    place-items: center;
-    border-radius: 8px;
-    color: var(--muted);
-    cursor: pointer;
-    list-style: none;
-}
-
-.task-card-menu summary::-webkit-details-marker {
-    display: none;
-}
-
-.task-card-menu summary:hover,
-.task-card-menu[open] summary {
-    background: var(--card-hover);
-    color: var(--text);
-}
-
-.task-card-menu-panel {
-    position: absolute;
-    top: calc(100% + 4px);
-    right: 0;
-    width: 160px;
-    padding: 6px;
-    background: var(--card);
-    border: 1px solid var(--divider);
-    border-radius: 10px;
-    box-shadow: var(--shadow-pop);
-}
-
-.task-card-menu-panel a,
-.task-card-menu-panel button {
-    display: block;
-    width: 100%;
-    padding: 9px 10px;
-    border: 0;
-    border-radius: 7px;
-    background: transparent;
-    color: var(--text);
-    font: inherit;
-    text-align: left;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.task-card-menu-panel a:hover,
-.task-card-menu-panel button:hover {
-    background: var(--card-hover);
-}
-
-/* Only the destructive action is red. It's the button inside the delete <form>; Edit is a link on
-   the Tasks page and a plain button on a project's Detail page, and both stay the normal text color. */
-.task-card-menu-panel form button {
-    color: var(--rt);
-}
-
-.task-row-menu {
-    position: relative;
-    top: auto;
-    right: auto;
-    justify-self: end;
-}
-
-/* ---------- Tasks page: Filters panel and chips ---------- */
+/* ---------- Filters (Projects and Tasks pages: Filters panel and chips) ---------- */
 /* A <details> like .task-card-menu: the summary is the button, the body pops up under it. */
 .filter-panel {
     position: relative;
@@ -2083,4 +1999,83 @@ a.filter-chip:hover {
 .filter-chip-remove:hover,
 a.filter-chip:hover .filter-chip-remove {
     background: color-mix(in srgb, var(--bt) 20%, transparent);
+}
+
+/* "Clear all" text button: as tall as the chips beside it. After .btn so it wins at equal specificity. */
+.filter-clear-all {
+    height: 32px;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 760px) {
+    .container {
+        padding: 20px 16px;
+        gap: 20px;
+    }
+
+    .navbar {
+        padding: 0 8px 0 16px;
+    }
+
+    .brand {
+        margin-right: 0;
+    }
+
+    .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 30;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 8px;
+        background: var(--card);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        height: 48px;
+        font-size: 16px;
+    }
+
+    .grid-kpi {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+
+    .hero {
+        padding: 40px 0 32px;
+    }
+
+    .hero h1 {
+        font-size: 36px;
+    }
+
+    .error-page {
+        padding-top: 48px;
+    }
+
+    .input-inline, select.input.input-inline {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .toasts {
+        right: 16px;
+        bottom: 16px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+        animation: none !important;
+    }
 }

@@ -20,6 +20,12 @@ function saveSetting(key, value) {
     }
 }
 
+// Compares two names for "Sort by: Name" style ordering. sensitivity "base" ignores case and accents,
+// so "apple" and "Apple" sort together instead of every capital coming first.
+function compareText(a, b) {
+    return a.localeCompare(b, undefined, { sensitivity: "base" });
+}
+
 // The light/dark button in the header (_Layout).
 function setUpThemeToggle() {
     const root = document.documentElement;
@@ -216,8 +222,7 @@ function setUpTrashFilters() {
         filterItems();
     }
 
-    const byName = (a, b) =>
-        a.dataset.trashName.localeCompare(b.dataset.trashName, undefined, { sensitivity: "base" });
+    const byName = (a, b) => compareText(a.dataset.trashName, b.dataset.trashName);
     // data-trash-date is an ISO date string, so plain text order is date order.
     const sorters = {
         newest: (a, b) => b.dataset.trashDate.localeCompare(a.dataset.trashDate) || byName(a, b),
@@ -250,26 +255,28 @@ function setUpTrashFilters() {
     filterItems(); // fill in the summary line on load
 }
 
-// Styled "move to trash" confirmations.
-// A <form data-confirm-trash="Project name"> shows the project dialog from _Layout and a
-// <form data-confirm-task-trash="Task name"> shows the task dialog, instead of submitting
-// right away. Either form can add data-trash-detail="..." for the grey text in the summary row.
+// Styled confirmations (_ConfirmDialog), instead of submitting a form right away:
+//   <form data-confirm-trash="Project name">       the "Move project to Trash?" dialog from _Layout
+//   <form data-confirm-task-trash="Task name">     the "Move task to Trash?" dialog from _Layout
+//   <form data-confirm-purge="Item name">          the "Delete forever?" dialog on the Trash page
+// The attribute's value fills every [data-confirm-name] in the dialog. Any of these forms can add
+// data-trash-detail="..." for the grey text in the summary row.
 //
 // idPrefix:      the dialog's element ids are "<idPrefix>-dialog", "-detail", "-ok", "-cancel".
 // formAttribute: the data attribute (as written in HTML) that marks forms for this dialog.
-function setUpTrashDialog(idPrefix, formAttribute) {
+function setUpConfirmDialog(idPrefix, formAttribute) {
     const dialog = document.getElementById(`${idPrefix}-dialog`);
     if (!dialog) return;
 
     // "data-confirm-task-trash" -> "confirmTaskTrash", the name dataset uses.
     const datasetKey = formAttribute.slice("data-".length)
         .replace(/-./g, match => match[1].toUpperCase());
-    const nameElements = dialog.querySelectorAll("[data-trash-name]");
+    const nameElements = dialog.querySelectorAll("[data-confirm-name]");
     const detailElement = document.getElementById(`${idPrefix}-detail`);
     let pendingForm = null;
 
     // One delegated listener covers every matching form on the page.
-    document.addEventListener("submit", (event) => {
+    document.addEventListener("submit", event => {
         const form = event.target.closest?.(`form[${formAttribute}]`);
         if (!form) return;
 
@@ -294,7 +301,7 @@ function setUpTrashDialog(idPrefix, formAttribute) {
     dialog.addEventListener("close", () => { pendingForm = null; });
 }
 
-// "Empty trash" confirmation (Trash page only). The confirm button is disabled until the
+// "Empty Trash" confirmation (Trash page only). The confirm button is disabled until the
 // checkbox is ticked, so a stray click can't hard delete everything.
 function setUpEmptyTrashDialog() {
     const openButton = document.getElementById("empty-trash-open");
@@ -578,7 +585,7 @@ function setUpRequiredFieldChecks() {
 // Opening and closing modals, with data attributes instead of inline onclick:
 //   <button data-open-modal="create-task-modal">  opens the <dialog> with that id
 //   <button data-close-modal>                      closes the <dialog> it sits in (Cancel and the X, see _ModalCloseButton)
-// One delegated listener (same idea as setUpTrashDialog) covers every button on the page.
+// One delegated listener (same idea as setUpConfirmDialog) covers every button on the page.
 function setUpModalButtons() {
     document.addEventListener("click", event => {
         const openButton = event.target.closest?.("[data-open-modal]");
@@ -588,6 +595,30 @@ function setUpModalButtons() {
         }
 
         event.target.closest?.("[data-close-modal]")?.closest("dialog")?.close();
+    });
+}
+
+// <input data-submit-on-change> sends its form as soon as it changes (a task's done checkbox,
+// "Include archived projects"), instead of an inline onchange. One delegated listener covers them all.
+// requestSubmit() fires the submit event like a real button press, so the other submit listeners
+// (the confirm dialogs, data-check-required) still get their say; they only act on forms that carry
+// their own attribute. submit() is the fallback for old browsers without requestSubmit.
+function setUpSubmitOnChange() {
+    document.addEventListener("change", event => {
+        // closest("form") also works if the attribute ends up on the <form> itself.
+        const form = event.target.closest?.("[data-submit-on-change]")?.closest("form");
+        if (!form) return;
+
+        if (form.requestSubmit) form.requestSubmit();
+        else form.submit();
+    });
+}
+
+// <button data-history-back> goes back one page, like the browser's Back button (the error page's
+// "Go back"), instead of an inline onclick.
+function setUpHistoryBack() {
+    document.addEventListener("click", event => {
+        if (event.target.closest?.("[data-history-back]")) history.back();
     });
 }
 
@@ -874,8 +905,7 @@ function setUpFilters({
 function setUpProjectFilters() {
     const items = [...document.querySelectorAll("[data-project-item]")];
 
-    const byName = (a, b) =>
-        a.dataset.projectName.localeCompare(b.dataset.projectName, undefined, { sensitivity: "base" });
+    const byName = (a, b) => compareText(a.dataset.projectName, b.dataset.projectName);
 
     // Each sorter is a compare function. A yyyy-MM-dd string sorts correctly as plain text.
     const sorters = {
@@ -935,8 +965,7 @@ function setUpTaskFilters() {
             color: row => row.dataset.taskDueColor
         },
         project: {
-            compare: (a, b) => a.dataset.taskProjectName.localeCompare(
-                b.dataset.taskProjectName, undefined, { sensitivity: "base" }),
+            compare: (a, b) => compareText(a.dataset.taskProjectName, b.dataset.taskProjectName),
             label: row => row.dataset.taskProjectName
         },
         priority: {
@@ -1026,11 +1055,13 @@ setUpClickOutsideToClose();
 setUpRowMenus();
 setUpRequiredFieldChecks();
 setUpModalButtons();
+setUpSubmitOnChange();
+setUpHistoryBack();
 setUpAddTaskButtons();
 setUpProjectFilters();
 setUpTaskFilters();
 setUpTrashFilters();
 setUpEmptyTrashDialog();
-setUpTrashDialog("confirm-trash", "data-confirm-trash");
-setUpTrashDialog("confirm-task-trash", "data-confirm-task-trash");
-setUpTrashDialog("confirm-purge", "data-confirm-purge");
+setUpConfirmDialog("confirm-trash", "data-confirm-trash");
+setUpConfirmDialog("confirm-task-trash", "data-confirm-task-trash");
+setUpConfirmDialog("confirm-purge", "data-confirm-purge");

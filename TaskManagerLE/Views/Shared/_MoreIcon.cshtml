@@ -1,0 +1,11 @@
+@* "⋯" icon for a row or card actions menu (Tasks page rows, Project/Detail task cards).
+   The model is the size in px: <partial name="_MoreIcon" model="18" />.
+   Decorative (aria-hidden), so the <summary> it sits in needs an aria-label. *@
+@model int
+<svg width="@Model" height="@Model" viewBox="0 0 24 24"
+     fill="currentColor"
+     aria-hidden="true">
+    <circle cx="5" cy="12" r="1.5"></circle>
+    <circle cx="12" cy="12" r="1.5"></circle>
+    <circle cx="19" cy="12" r="1.5"></circle>
+</svg>

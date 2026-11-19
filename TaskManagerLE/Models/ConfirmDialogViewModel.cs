@@ -4,7 +4,7 @@ namespace TaskManagerLE.Models;
 // `required` makes the compiler insist every caller sets each one.
 public class ConfirmDialogViewModel
 {
-    // Element ids are "<IdPrefix>-dialog", "-title", "-detail", "-ok", "-cancel" (site.js, setUpTrashDialog).
+    // Element ids are "<IdPrefix>-dialog", "-title", "-detail", "-ok", "-cancel" (site.js, setUpConfirmDialog).
     public required string IdPrefix { get; init; }
     public required string Title { get; init; }
 

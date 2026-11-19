@@ -6,6 +6,7 @@ namespace TaskManagerLE.Models;
 
 public abstract class TaskItemViewModelBase
 {
+    [Display(Name = "Project")]
     public int ProjectId { get; set; }
 
     // The UI calls this field "Title"; [Display] makes labels and default error messages say so too.

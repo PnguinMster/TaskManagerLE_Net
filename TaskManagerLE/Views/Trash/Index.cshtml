@@ -12,11 +12,11 @@
 
     <div class="row">
         @* The form tag helper adds the anti-forgery token. No confirm dialog: restoring loses nothing. *@
-        <form asp-action="RestoreAll" asp-controller="Trash" method="post">
+        <form asp-controller="Trash" asp-action="RestoreAll" method="post">
             <button type="submit" class="btn btn-success">Restore all</button>
         </form>
         <button type="button" class="btn btn-danger" id="empty-trash-open"
-                data-projects="@Model.ProjectCount" data-tasks="@Model.TaskCount">Empty trash</button>
+                data-projects="@Model.ProjectCount" data-tasks="@Model.TaskCount">Empty Trash</button>
     </div>
 </header>
 
@@ -38,37 +38,35 @@
     </article>
 </section>
 
-@* "Empty trash" confirmation. The button stays disabled until the checkbox is ticked (see site.js). *@
+@* "Empty Trash" confirmation. Same markup and classes as _ConfirmDialog, so the two look the same,
+   but written out here because it needs a checkbox and a real form (the browser posts it, no site.js
+   submit). The button stays disabled until the checkbox is ticked (see setUpEmptyTrashDialog in site.js). *@
 <dialog id="empty-trash-dialog" class="modal modal-sm" role="alertdialog" aria-labelledby="empty-trash-title">
     @* The form tag helper adds the anti-forgery token for us. *@
-    <form asp-action="EmptyTrash" asp-controller="Trash" method="post" class="confirm">
+    <form asp-controller="Trash" asp-action="EmptyTrash" method="post" class="confirm">
         <div class="icon-tile is-rose">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path>
-                <path d="M12 9v4M12 17h.01"></path>
-            </svg>
+            <partial name="_WarningIcon" model="24" />
         </div>
-        <div class="stack" style="gap:8px">
-            <h2 id="empty-trash-title" style="font-size:20px;font-weight:700">Empty trash permanently?</h2>
+        <div class="stack tight">
+            <h2 id="empty-trash-title" class="confirm-title">Empty Trash permanently?</h2>
             <p class="muted">
                 This permanently deletes everything in the Trash. These items cannot be restored afterwards.
             </p>
         </div>
         <div class="summary-panel">
-            <span class="muted" style="display:flex">
+            <span class="muted summary-icon">
                 <partial name="_TrashIcon" model="14" />
             </span>
-            <span style="font-weight:600;flex:1;min-width:0">Items in Trash</span>
-            <span class="muted" style="font-size:13px" id="empty-trash-detail"></span>
+            <span class="summary-name">Items in Trash</span>
+            <span class="muted summary-detail" id="empty-trash-detail"></span>
         </div>
-        <label class="row" style="gap:10px">
-            <input type="checkbox" class="checkbox" id="empty-trash-check" name="confirmed" value="true"/>
+        <label class="filter-check">
+            <input type="checkbox" class="checkbox" id="empty-trash-check" name="confirmed" value="true" />
             <span>I understand this cannot be undone</span>
         </label>
-        <div class="actions" style="margin-top:4px">
+        <div class="actions">
             <button type="button" class="btn" id="empty-trash-cancel">Cancel</button>
-            <button type="submit" class="btn btn-danger" id="empty-trash-ok" disabled>Empty trash</button>
+            <button type="submit" class="btn btn-danger" id="empty-trash-ok" disabled>Empty Trash</button>
         </div>
     </form>
 </dialog>
@@ -90,7 +88,10 @@
 <partial name="_ConfirmDialog" model="purgeDialog" />
 
 @{
-    // Restore and Delete forever send the user back here instead of the old Restore pages.
+    // Restore and Delete forever send the user back to the Trash page itself. Other forms use
+    // _ReturnUrlInput (the current URL), but here the returnUrl rides along with the id in
+    // asp-all-route-data, and the clean Trash URL is enough: the filters run in the browser, so
+    // there is no query string worth keeping.
     var trashUrl = Url.Action("Index", "Trash") ?? "/Trash";
 }
 
@@ -113,11 +114,12 @@ else {
     int projectRows = Model.Items.Count(item => item.IsProject);
     int taskRows = Model.Items.Count - projectRows;
 
-    @* Same layout as the Tasks and Projects pages: the filter row, then a "Showing X of Y" line. *@
-    <div class="stack" style="margin-bottom:16px">
+    @* Same layout as the Tasks and Projects pages: the filter row, then a "Showing X of Y" line.
+       The page container's gap spaces it from the table, as on the Projects page. *@
+    <div class="stack">
         <div class="row wrap">
             @* The counts start as the server's totals; site.js updates them as you search. *@
-            <div class="pills" role="group" aria-label="Filter trash items">
+            <div class="pills" role="group" aria-label="Filter Trash items">
                 <button type="button"
                         class="is-active"
                         data-trash-filter="all"
@@ -140,9 +142,9 @@ else {
 
             <input class="input input-inline"
                    type="search"
-                   placeholder="Search trash…"
-                   aria-label="Search trash"
-                   data-trash-search/>
+                   placeholder="Search Trash…"
+                   aria-label="Search Trash"
+                   data-trash-search />
 
             @* Reorders the rows in the browser (site.js). Same look as "Sort by" on the Projects page. *@
             <select class="input input-inline" aria-label="Sort by" data-trash-sort>
@@ -191,17 +193,13 @@ else {
                         }
                         else {
                             <span class="badge badge-purple badge-icon">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                    <path d="M9 11l3 3 8-8"></path>
-                                    <path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"></path>
-                                </svg>
+                                <partial name="_TaskIcon" model="14" />
                                 Task
                             </span>
                         }
 
-                        <div style="min-width:0">
-                            <div style="font-weight:600">@item.Name</div>
+                        <div class="cell-main">
+                            <div class="cell-title">@item.Name</div>
                             <div class="muted small">
                                 @if (item.IsProject) {
                                     @(item.TaskCount == 1 ? "1 task inside" : $"{item.TaskCount} tasks inside")
@@ -216,17 +214,16 @@ else {
 
                         <span class="muted small">@deletedAt?.ToDateTimeDisplay()</span>
 
-                        <div class="row" style="justify-content:flex-end">
+                        <div class="row end">
                             @* The form tag helper adds the anti-forgery token to both forms. *@
                             <form method="post" asp-controller="@controller" asp-action="Restore"
                                   asp-all-route-data="routeValues">
                                 <button type="submit" class="btn btn-outline-success">↶ Restore</button>
                             </form>
-                            <form method="post" asp-controller="@controller"
-                                  asp-action="Purge"
+                            <form method="post" asp-controller="@controller" asp-action="Purge"
                                   asp-all-route-data="routeValues"
                                   data-confirm-purge="@item.Name"
-                                  data-trash-detail="@(deletedAt is { } d ? $"Deleted {d:MMM d}" : "")">
+                                  data-trash-detail="@(deletedAt is { } d ? $"Deleted {d.ToShortDisplay()}" : "")">
                                 <button type="submit" class="btn btn-outline-danger">Delete forever</button>
                             </form>
                         </div>

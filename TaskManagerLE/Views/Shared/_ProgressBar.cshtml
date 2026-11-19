@@ -1,0 +1,24 @@
+@* Task progress for a project: "3 of 5 tasks done" with the percentage, then the bar.
+   Used on project cards and list rows (Projects page) and the home page cards.
+   <partial name="_ProgressBar" model="new ProgressBarViewModel(done, total, percent, status, name)" /> *@
+@model ProgressBarViewModel
+
+@{
+    // Same colours as the status badge (ProjectStatusExtensions.GetStyle). The label and badge aren't needed here.
+    var (_, _, progressClass, textClass) = Model.Status.GetStyle();
+}
+
+<div class="progress-meta">
+    <span>@Model.CompletedTaskCount of @Model.TotalTaskCount tasks done</span>
+    <span class="@textClass">@Model.Percent%</span>
+</div>
+
+<div class="progress"
+     role="progressbar"
+     aria-label="@Model.Percent% of @Model.ProjectName tasks done"
+     aria-valuemin="0"
+     aria-valuemax="100"
+     aria-valuenow="@Model.Percent">
+    @* The width is computed per project, so it's the one style that belongs inline. *@
+    <div class="progress-bar @progressClass" style="width:@(Model.Percent)%"></div>
+</div>

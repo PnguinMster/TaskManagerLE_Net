@@ -1,6 +1,7 @@
 @model TaskItemCreateViewModel
 
-<dialog id="create-task-modal" class="modal"
+<dialog id="create-task-modal"
+        class="modal"
         aria-labelledby="create-task-title">
     <div class="modal-header">
         <h2 id="create-task-title">New task</h2>
@@ -13,37 +14,33 @@
           data-fetch-form data-create-form data-not-saved="The task wasn't created.">
         <div class="modal-body">
             <div class="field">
-                <label asp-for="Name">Title</label>
+                <label asp-for="Name"></label>
                 <input asp-for="Name" class="input"
                        placeholder="e.g. Draft the project brief"
                        maxlength="@ItemConstraints.NameMaxLength"
-                       autocomplete="off"/>
+                       autocomplete="off" />
                 <span asp-validation-for="Name" class="field-error"></span>
             </div>
 
             <div class="field">
                 <div class="row between">
-                    <label asp-for="Description">Description</label>
-                    <span class="muted" style="font-size:12px">Optional</span>
+                    <label asp-for="Description"></label>
+                    <span class="field-hint">Optional</span>
                 </div>
                 <textarea asp-for="Description" class="input"
-                          maxlength="@ItemConstraints.DescriptionMaxLength"
-                          placeholder="Add details for this task"></textarea>
+                          placeholder="Add details for this task"
+                          maxlength="@ItemConstraints.DescriptionMaxLength"></textarea>
                 <span asp-validation-for="Description" class="field-error"></span>
             </div>
 
-            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+            <div class="field-grid">
                 <div class="field">
-                    <label asp-for="ProjectId">Project</label>
+                    <label asp-for="ProjectId"></label>
+                    @* The select tag helper marks the <option> whose value matches ProjectId as selected. *@
                     <select asp-for="ProjectId" class="input">
                         @foreach (ProjectCardViewModel project in
                                       (IReadOnlyList<ProjectCardViewModel>)ViewData["AvailableProjects"]!) {
-                            if (project.Id == Model.ProjectId) {
-                                <option value="@project.Id" selected>@project.Name</option>
-                            }
-                            else {
-                                <option value="@project.Id">@project.Name</option>
-                            }
+                            <option value="@project.Id">@project.Name</option>
                         }
                     </select>
                     <span asp-validation-for="ProjectId" class="field-error"></span>
@@ -58,7 +55,7 @@
                 </div>
             </div>
 
-            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+            <div class="field-grid">
                 <div class="field">
                     <label asp-for="Priority"></label>
                     <select asp-for="Priority"
@@ -68,15 +65,16 @@
                 </div>
 
                 <div class="field">
-                    <label asp-for="DueDate">Due date</label>
-                    <input asp-for="DueDate" type="date" class="input"/>
+                    <label asp-for="DueDate"></label>
+                    <input asp-for="DueDate" type="date" class="input" />
                     <span asp-validation-for="DueDate" class="field-error"></span>
                 </div>
             </div>
         </div>
 
         <div class="modal-footer">
-            <span style="flex:1"></span>
+            <span class="sp"></span>
+
             <button type="button" class="btn" data-close-modal>Cancel</button>
             <button type="submit" class="btn btn-primary">Create task</button>
         </div>

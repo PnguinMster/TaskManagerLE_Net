@@ -5,9 +5,11 @@
 }
 
 <div class="profile-page">
-    <header class="page-header stack" style="align-items: flex-start;">
-        <h1>Profile</h1>
-        <p class="muted">Manage your account details and profile settings.</p>
+    <header class="page-header">
+        <div>
+            <h1>Profile</h1>
+            <p class="muted">Manage your account details and profile settings.</p>
+        </div>
     </header>
 
     <div class="card stack">
@@ -21,30 +23,30 @@
             </div>
         </div>
 
-        <form asp-action="Profile" method="post" class="stack" data-check-required novalidate>
+        <form asp-controller="Account" asp-action="Profile" method="post" class="stack" data-check-required novalidate>
             <partial name="_FormErrors" />
 
             <div class="grid-kpi">
                 <div class="field">
                     <label asp-for="NewUserName"></label>
-                    <input asp-for="NewUserName" class="input" autocomplete="username"/>
+                    <input asp-for="NewUserName" class="input" autocomplete="username" />
                     <span asp-validation-for="NewUserName" class="field-error"></span>
                 </div>
 
                 <div class="field">
                     <label asp-for="NewEmail"></label>
-                    <input asp-for="NewEmail" class="input" autocomplete="email"/>
+                    <input asp-for="NewEmail" class="input" autocomplete="email" />
                     <span asp-validation-for="NewEmail" class="field-error"></span>
                 </div>
             </div>
 
             <div class="field">
                 <label asp-for="CurrentPassword"></label>
-                <input asp-for="CurrentPassword" class="input" autocomplete="current-password" placeholder="Enter current password"/>
+                <input asp-for="CurrentPassword" class="input" autocomplete="current-password" placeholder="Enter current password" />
                 <span asp-validation-for="CurrentPassword" class="field-error"></span>
             </div>
 
-            <div class="row" style="justify-content: flex-end;">
+            <div class="row end">
                 <button type="submit" class="btn btn-primary">Save changes</button>
             </div>
         </form>
@@ -54,21 +56,21 @@
         <h2>Change password</h2>
         <p class="muted">Enter your current password, then choose a new one.</p>
 
-        <form asp-action="ChangePassword" method="post" class="stack" data-check-required novalidate>
+        <form asp-controller="Account" asp-action="ChangePassword" method="post" class="stack" data-check-required novalidate>
             @* Its own key, so these errors don't also show on the details card above. *@
             <partial name="_FormErrors"
                      view-data='new ViewDataDictionary(ViewData) { { "FormErrorKey", nameof(ProfileViewModel.ChangePassword) } }' />
 
             <div class="field">
                 <label asp-for="ChangePassword.CurrentPassword"></label>
-                <input asp-for="ChangePassword.CurrentPassword" class="input" autocomplete="current-password" placeholder="Enter current password"/>
+                <input asp-for="ChangePassword.CurrentPassword" class="input" autocomplete="current-password" placeholder="Enter current password" />
                 <span asp-validation-for="ChangePassword.CurrentPassword" class="field-error"></span>
             </div>
 
             <div class="grid-kpi">
                 <div class="field">
                     <label asp-for="ChangePassword.NewPassword"></label>
-                    <input asp-for="ChangePassword.NewPassword" class="input" autocomplete="new-password" placeholder="Create a new password"/>
+                    <input asp-for="ChangePassword.NewPassword" class="input" autocomplete="new-password" placeholder="Create a new password" />
                     <span asp-validation-for="ChangePassword.NewPassword" class="field-error"></span>
                     <small class="muted">
                         At least 8 characters, with an uppercase letter, a lowercase letter and a number.
@@ -77,12 +79,12 @@
 
                 <div class="field">
                     <label asp-for="ChangePassword.ConfirmNewPassword"></label>
-                    <input asp-for="ChangePassword.ConfirmNewPassword" class="input" autocomplete="new-password" placeholder="Enter your new password again"/>
+                    <input asp-for="ChangePassword.ConfirmNewPassword" class="input" autocomplete="new-password" placeholder="Enter your new password again" />
                     <span asp-validation-for="ChangePassword.ConfirmNewPassword" class="field-error"></span>
                 </div>
             </div>
 
-            <div class="row" style="justify-content: flex-end;">
+            <div class="row end">
                 <button type="submit" class="btn btn-primary">Update password</button>
             </div>
         </form>

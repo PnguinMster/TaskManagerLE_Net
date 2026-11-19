@@ -65,11 +65,10 @@
             <div class="pills" role="group" aria-label="View">
                 <button id="grid-view"
                         data-view="grid"
-                        class="is-active"
+                        class="pill-icon is-active"
                         type="button"
                         aria-label="Grid view"
-                        aria-pressed="true"
-                        style="width:44px;height:36px;padding:0;display:grid;place-items:center">
+                        aria-pressed="true">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                          stroke="currentColor" stroke-width="2"
                          stroke-linecap="round" stroke-linejoin="round"
@@ -80,11 +79,12 @@
                         <rect x="14" y="14" width="7" height="7" rx="1"></rect>
                     </svg>
                 </button>
-                <button id="list-view" type="button"
+                <button id="list-view"
                         data-view="list"
+                        class="pill-icon"
+                        type="button"
                         aria-label="List view"
-                        aria-pressed="false"
-                        style="width:44px;height:36px;padding:0;display:grid;place-items:center">
+                        aria-pressed="false">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                          stroke="currentColor" stroke-width="2"
                          stroke-linecap="round" stroke-linejoin="round"
@@ -97,8 +97,6 @@
         <button type="button" class="btn btn-primary" data-open-modal="create-project-modal">
             + New project
         </button>
-
-        <partial name="_CreateProjectModal" model="new ProjectItemCreateViewModel { DueDate = today }"/>
     </div>
 </header>
 
@@ -143,20 +141,14 @@ else {
                    class="input input-inline"
                    type="search"
                    placeholder="Search projects…"
-                   aria-label="Search projects"/>
+                   aria-label="Search projects" />
         </div>
 
         <div class="row wrap">
             @* The same <details> panel and classes as the Tasks page. *@
             <details class="filter-panel">
                 <summary class="btn">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2"
-                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M4 6h16"></path>
-                        <path d="M7 12h10"></path>
-                        <path d="M10 18h4"></path>
-                    </svg>
+                    <partial name="_FilterIcon" model="16" />
                     Filters
                     <span class="filter-count" data-filter-count hidden></span>
                 </summary>
@@ -172,7 +164,7 @@ else {
                                         <input type="checkbox"
                                                value="@StatusKey(status)"
                                                checked="@IsOpen(status)"
-                                               data-project-status-option/>
+                                               data-project-status-option />
                                         <span>@status.GetDisplayName()</span>
                                     </label>
                                 }
@@ -188,7 +180,7 @@ else {
                                                name="project-due"
                                                value="@due.Value"
                                                checked="@(due.Value == "any")"
-                                               data-project-due-option/>
+                                               data-project-due-option />
                                         <span>@due.Label</span>
                                     </label>
                                 }
@@ -205,7 +197,7 @@ else {
 
             <div class="filter-chips" data-filter-chips></div>
 
-            <button type="button" class="btn btn-text text-blue" style="height:32px" data-project-clear-filters data-clear-all hidden>
+            <button type="button" class="btn btn-text text-blue filter-clear-all" data-project-clear-filters data-clear-all hidden>
                 Clear all
             </button>
 
@@ -224,17 +216,20 @@ else {
 
     <div id="project-grid" class="grid-cards">
         @foreach (var project in projects) {
-            var (statusLabel, badgeClass, progressClass, textClass) = project.Status.GetStyle();
-            <div class="card card-outline"
-                 data-project-item="@project.Status.ToString().ToLowerInvariant()"
+            // The progress colours come from _ProgressBar, so only the badge parts are needed here.
+            var (statusLabel, badgeClass, _, _) = project.Status.GetStyle();
+            var progress = new ProgressBarViewModel(project.CompletedTaskCount, project.TotalTaskCount,
+                project.ProgressPercent, project.Status, project.Name);
+
+            <div class="card card-outline project-card"
+                 data-project-item="@StatusKey(project.Status)"
                  data-project-due="@project.GetDueGroup(today).ToString().ToLowerInvariant()"
                  data-project-text="@project.Name @project.Description"
                  data-project-name="@project.Name"
                  data-project-date="@project.DueDate.ToString("yyyy-MM-dd")"
-                 data-project-progress="@project.ProgressPercent"
-                 style="display:flex;flex-direction:column;gap:14px">
+                 data-project-progress="@project.ProgressPercent">
 
-                <div class="row between" style="align-items:flex-start">
+                <div class="row between top">
                     <h3>@project.Name</h3>
                     <span class="badge @badgeClass">@statusLabel</span>
                 </div>
@@ -246,20 +241,12 @@ else {
                 </p>
 
                 <div>
-                    <div class="progress-meta">
-                        <span>@project.CompletedTaskCount/@project.TotalTaskCount tasks</span>
-                        <span class="@textClass">@project.ProgressPercent%</span>
-                    </div>
-
-                    <div class="progress">
-                        <div class="progress-bar @progressClass"
-                             style="width:@(project.ProgressPercent)%">
-                        </div>
-                    </div>
+                    <partial name="_ProgressBar" model="progress" />
                 </div>
 
-                <div class="row" style="margin-top:auto">
-                    <span class="muted small" style="flex:1">
+                @* project-card-footer has margin-top: auto, so the footer sits at the bottom of every card in a row. *@
+                <div class="row project-card-footer">
+                    <span class="muted small sp">
                         <partial name="_DueLabel" model="new DueLabelViewModel(project.DueDate, project.IsFinished)" />
                     </span>
                     <a asp-controller="Project"
@@ -276,7 +263,7 @@ else {
                         <partial name="_ReturnUrlInput" />
                         <button type="submit"
                                 class="icon-btn"
-                                aria-label="Move @project.Name to trash">
+                                aria-label="Move @project.Name to Trash">
                             <partial name="_TrashIcon" model="18" />
                         </button>
                     </form>
@@ -297,43 +284,38 @@ else {
                 </div>
 
                 @foreach (var project in projects) {
-                    var (statusLabel, badgeClass, progressClass, textClass) = project.Status.GetStyle();
+                    var (statusLabel, badgeClass, _, _) = project.Status.GetStyle();
+                    var progress = new ProgressBarViewModel(project.CompletedTaskCount, project.TotalTaskCount,
+                        project.ProgressPercent, project.Status, project.Name);
 
                     <div class="data-row"
-                         data-project-item="@project.Status.ToString().ToLowerInvariant()"
+                         data-project-item="@StatusKey(project.Status)"
                          data-project-due="@project.GetDueGroup(today).ToString().ToLowerInvariant()"
                          data-project-text="@project.Name @project.Description"
                          data-project-name="@project.Name"
                          data-project-date="@project.DueDate.ToString("yyyy-MM-dd")"
                          data-project-progress="@project.ProgressPercent">
-                        <span class="stack">
-                            <strong class="truncate">
-                                <a asp-action="Detail" asp-route-projectId="@project.Id" class="project-title-link">@project.Name</a>
-                            </strong>
+                        @* cell-main (min-width: 0) lets long names and descriptions shrink and truncate instead of
+                           stretching the column. *@
+                        <span class="stack cell-main">
+                            <span class="cell-title truncate">
+                                <a asp-controller="Project"
+                                   asp-action="Detail"
+                                   asp-route-projectId="@project.Id"
+                                   class="project-title-link">@project.Name</a>
+                            </span>
                             <span class="muted small truncate">
-                                <p class="muted">
-                                    @(string.IsNullOrWhiteSpace(project.Description)
-                                        ? "No description provided"
-                                        : project.Description)
-                                </p>
+                                @(string.IsNullOrWhiteSpace(project.Description)
+                                    ? "No description provided"
+                                    : project.Description)
                             </span>
                         </span>
 
-                        <span style="display:flex">
-                            <span class="badge @badgeClass">@statusLabel</span>
-                        </span>
+                        @* A direct child of .data-row, so the ".data-row > .badge" rule keeps it at its own width. *@
+                        <span class="badge @badgeClass">@statusLabel</span>
 
                         <div>
-                            <div class="progress-meta">
-                                <span>@project.CompletedTaskCount/@project.TotalTaskCount tasks</span>
-                                <span class="@textClass">@project.ProgressPercent%</span>
-                            </div>
-
-                            <div class="progress">
-                                <div class="progress-bar @progressClass"
-                                     style="width:@(project.ProgressPercent)%">
-                                </div>
-                            </div>
+                            <partial name="_ProgressBar" model="progress" />
                         </div>
 
                         <span class="muted small">
@@ -351,10 +333,11 @@ else {
                                   asp-route-projectId="@project.Id"
                                   method="post"
                                   data-confirm-trash="@project.Name"
-                          data-trash-detail="@project.CompletedTaskCount of @project.TotalTaskCount tasks done">
+                                  data-trash-detail="@project.CompletedTaskCount of @project.TotalTaskCount tasks done">
                                 <partial name="_ReturnUrlInput" />
-                                <button type="submit" class="icon-btn"
-                                        aria-label="Move @project.Name to trash">
+                                <button type="submit"
+                                        class="icon-btn"
+                                        aria-label="Move @project.Name to Trash">
                                     <partial name="_TrashIcon" model="18" />
                                 </button>
                             </form>
@@ -398,4 +381,8 @@ else {
         })();
     </script>
 }
+
+@* Outside the @if so the empty-state "+ New project" button can open it too (same as Task/Index).
+   site.js finds it by id, so its place on the page doesn't matter. *@
+<partial name="_CreateProjectModal" model="new ProjectItemCreateViewModel { DueDate = today }" />
 

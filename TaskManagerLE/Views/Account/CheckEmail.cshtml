@@ -3,30 +3,37 @@
     ViewData["Title"] = "Check your email";
 }
 
-<div class="card auth-card row">
-    <div class="icon-tile is-lg" aria-hidden="true">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2" stroke-linecap="round"
-             stroke-linejoin="round">
-            <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-            <path d="M3 7l9 6 9-6"></path>
-        </svg>
+<div class="card auth-card">
+    @* Only this block is centered: centering the whole card would shrink the footer's divider line to the
+       width of its text. *@
+    <div class="stack center">
+        <div class="icon-tile is-lg" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                 stroke-linejoin="round">
+                <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+                <path d="M3 7l9 6 9-6"></path>
+            </svg>
+        </div>
+
+        <h1>Check your email</h1>
+
+        <p class="muted">
+            We sent a password reset link to
+            <strong class="text-strong">@Model</strong>. It may take a few minutes to arrive.
+        </p>
     </div>
-
-    <h1>Check your email</h1>
-
-    <p class="muted" style="text-align: center">
-        We sent a password reset link to
-        <strong style="color: var(--text)">@Model</strong>. It may take a few minutes to arrive.
-    </p>
 
     <a asp-controller="Account" asp-action="Login"
        class="btn btn-primary btn-lg btn-block">
-        Back to Log In
+        Back to log in
     </a>
 
-    <p class="muted">
+    <p class="foot">
         Did not get it?
-        <a asp-controller="Account" asp-action="ForgotPassword">Resend email</a>
+        <a asp-controller="Account" asp-action="ForgotPassword"
+           class="link-strong">
+            Resend email
+        </a>
     </p>
 </div>

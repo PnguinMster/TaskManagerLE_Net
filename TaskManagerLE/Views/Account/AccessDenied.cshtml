@@ -20,24 +20,21 @@
         You do not have permission to view this page. It may belong to another account.
     </p>
 
-    @if (!string.IsNullOrEmpty(blockedPath))
-    {
+    @if (!string.IsNullOrEmpty(blockedPath)) {
         <div class="code-box">@blockedPath</div>
     }
 
-    <div class="row wrap" style="justify-content: center; margin-top: 8px;">
+    <div class="row wrap error-actions">
         <a asp-controller="Home" asp-action="Index" class="btn btn-primary btn-lg">Go to Home</a>
 
-        @if (User.Identity?.IsAuthenticated == true)
-        {
+        @if (User.Identity?.IsAuthenticated == true) {
             @* Logout is a POST with an anti-forgery token, so this has to be a form, not a link. *@
             <form asp-controller="Account" asp-action="Logout" method="post">
                 <input type="hidden" name="returnUrl" value="@Url.Action("Login", "Account")" />
                 <button type="submit" class="btn btn-lg">Log in with another account</button>
             </form>
         }
-        else
-        {
+        else {
             <a asp-controller="Account" asp-action="Login" class="btn btn-lg">Log in</a>
         }
     </div>
