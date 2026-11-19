@@ -185,7 +185,7 @@
                 </div>
 
                 <div class="filter-panel-footer">
-                    <button type="button" class="btn btn-text" style="color:var(--bt)" data-clear-filters>Reset</button>
+                    <button type="button" class="btn btn-text text-blue" data-clear-filters>Reset</button>
                     @* site.js writes the live count here ("Show 6 tasks"). *@
                     <button type="button" class="btn btn-primary" data-close-filters>Show tasks</button>
                 </div>
@@ -208,7 +208,7 @@
             </a>
         }
 
-        <button type="button" class="btn btn-text" style="color:var(--bt);height:32px" data-clear-filters data-clear-all hidden>
+        <button type="button" class="btn btn-text text-blue" style="height:32px" data-clear-filters data-clear-all hidden>
             Clear all
         </button>
 
@@ -374,8 +374,7 @@ else {
 
                             <a asp-controller="Project"
                                asp-action="Detail"
-                               asp-route-projectId="@task.ProjectId"
-                               style="color:var(--bt);text-decoration:none;font-weight:500">
+                               asp-route-projectId="@task.ProjectId">
                                 @task.ProjectName
                             </a>
 

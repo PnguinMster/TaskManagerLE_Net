@@ -209,7 +209,7 @@ else {
                                 else {
                                     @:in
                                     <a asp-controller="Project" asp-action="Detail" asp-route-projectId="@item.ProjectId"
-                                       style="color:var(--bt);text-decoration:none;font-weight:500">@item.ProjectName</a>
+                                      >@item.ProjectName</a>
                                 }
                             </div>
                         </div>
@@ -227,7 +227,7 @@ else {
                                   asp-all-route-data="routeValues"
                                   data-confirm-purge="@item.Name"
                                   data-trash-detail="@(deletedAt is { } d ? $"Deleted {d:MMM d}" : "")">
-                                <button type="submit" class="btn" style="color:var(--rt)">Delete forever</button>
+                                <button type="submit" class="btn btn-outline-danger">Delete forever</button>
                             </form>
                         </div>
                     </div>

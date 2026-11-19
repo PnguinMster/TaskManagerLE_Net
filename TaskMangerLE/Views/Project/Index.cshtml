@@ -197,7 +197,7 @@ else {
                     </div>
 
                     <div class="filter-panel-footer">
-                        <button type="button" class="btn btn-text" style="color:var(--bt)" data-project-clear-filters>Reset</button>
+                        <button type="button" class="btn btn-text text-blue" data-project-clear-filters>Reset</button>
                         <button type="button" class="btn btn-primary" data-close-filters>Show projects</button>
                     </div>
                 </div>
@@ -205,7 +205,7 @@ else {
 
             <div class="filter-chips" data-filter-chips></div>
 
-            <button type="button" class="btn btn-text" style="color:var(--bt);height:32px" data-project-clear-filters data-clear-all hidden>
+            <button type="button" class="btn btn-text text-blue" style="height:32px" data-project-clear-filters data-clear-all hidden>
                 Clear all
             </button>
 
@@ -234,7 +234,7 @@ else {
                  data-project-progress="@project.ProgressPercent"
                  style="display:flex;flex-direction:column;gap:14px">
 
-                <div class="row" style="justify-content:space-between;align-items:flex-start">
+                <div class="row between" style="align-items:flex-start">
                     <h3>@project.Name</h3>
                     <span class="badge @badgeClass">@statusLabel</span>
                 </div>

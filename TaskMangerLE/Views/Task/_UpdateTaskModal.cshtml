@@ -25,7 +25,7 @@
             </div>
 
             <div class="field">
-                <div class="row" style="justify-content:space-between">
+                <div class="row between">
                     <label asp-for="Description">Description</label>
                     <span class="muted" style="font-size:12px">Optional</span>
                 </div>
@@ -82,7 +82,7 @@
         <div class="modal-footer">
             @* form="..." ties this button to the delete form below. HTML doesn't allow a form inside
                another form, so the delete form can't sit here in the footer. *@
-            <button type="submit" class="btn" style="color:var(--rt)"
+            <button type="submit" class="btn btn-outline-danger"
                     form="delete-task-form-@Model.Id">
                 Delete task
             </button>
