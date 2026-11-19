@@ -10,13 +10,14 @@ public class ProfileViewModel
     public DateTime MemberSinceUtc { get; set; }
 
     [Required]
-    [StringLength(30, MinimumLength = 3)]
+    [StringLength(UserConstraints.UserNameMaxLength, MinimumLength = UserConstraints.UserNameMinLength,
+        ErrorMessage = "Username must be between {2} and {1} characters.")]
     [Display(Name = "Username")]
     public string NewUserName { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Enter your email address.")]
     [EmailAddress(ErrorMessage = "Enter a valid email address.")]
-    [MaxLength(256, ErrorMessage = "Email can be at most 256 characters.")]
+    [MaxLength(UserConstraints.EmailMaxLength, ErrorMessage = "Email can be at most {1} characters.")]
     [Display(Name = "Email")]
     public string NewEmail { get; set; } = string.Empty;
 

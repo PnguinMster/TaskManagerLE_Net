@@ -1,17 +1,20 @@
 using System.Text;
 using System.Text.Encodings.Web;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.EntityFrameworkCore.Query.Internal;
 using TaskManagerLE.Authorization;
 using TaskManagerLE.Models;
 using TaskManagerLE.Models.Enums;
 
 namespace TaskManagerLE.Controllers;
 
+// Signed-in by default, like the other controllers. The pages a signed-out visitor needs
+// (log in, register, reset password, ...) opt out with [AllowAnonymous].
+[Authorize]
 public class AccountController(
     SignInManager<ApplicationUser> signInManager,
     UserManager<ApplicationUser> userManager,
@@ -25,14 +28,7 @@ public class AccountController(
         if (user is null)
             return Challenge();
 
-        return View(new ProfileViewModel
-        {
-            UserName = user.UserName ?? string.Empty,
-            Email = user.Email ?? string.Empty,
-            NewUserName = user.UserName ?? string.Empty,
-            NewEmail = user.Email ?? string.Empty,
-            MemberSinceUtc = user.CreatedAtUtc // See note below if this property has a different name.
-        });
+        return ProfileView(user);
     }
 
     [HttpPost]
@@ -43,18 +39,13 @@ public class AccountController(
         if (user is null)
             return Challenge();
 
-        if (!ModelState.IsValid) {
-            model.UserName = user.UserName ?? string.Empty;
-            model.Email = user.Email ?? string.Empty;
-            return View(model);
-        }
+        if (!ModelState.IsValid)
+            return ProfileView(user, model);
 
         var passwordValid = await userManager.CheckPasswordAsync(user, model.CurrentPassword);
         if (!passwordValid) {
             ModelState.AddModelError(nameof(model.CurrentPassword), "The current password is incorrect.");
-            model.UserName = user.UserName ?? string.Empty;
-            model.Email = user.Email ?? string.Empty;
-            return View(model);
+            return ProfileView(user, model);
         }
 
         var newUserName = model.NewUserName.Trim();
@@ -69,19 +60,15 @@ public class AccountController(
             var emailOwner = await userManager.FindByEmailAsync(newEmail);
             if (emailOwner is not null && emailOwner.Id != user.Id) {
                 ModelState.AddModelError(nameof(model.NewEmail), "That email address is already in use.");
-                model.UserName = user.UserName ?? string.Empty;
-                model.Email = user.Email ?? string.Empty;
-                return View(model);
+                return ProfileView(user, model);
             }
         }
 
         if (userNameChanged) {
             var result = await userManager.SetUserNameAsync(user, newUserName);
             if (!result.Succeeded) {
-                AddIdentityErrors(result);
-                model.UserName = user.UserName ?? string.Empty;
-                model.Email = user.Email ?? string.Empty;
-                return View(model);
+                AddIdentityErrors(result, userNameField: nameof(ProfileViewModel.NewUserName));
+                return ProfileView(user, model);
             }
         }
 
@@ -135,16 +122,19 @@ public class AccountController(
 
         if (!string.IsNullOrEmpty(model.CurrentPassword)
             && !await userManager.CheckPasswordAsync(user, model.CurrentPassword)) {
-            AddChangePasswordError(nameof(ChangePasswordViewModel.CurrentPassword), "The current password is incorrect.");
+            ModelState.AddModelError(
+                $"{nameof(ProfileViewModel.ChangePassword)}.{nameof(ChangePasswordViewModel.CurrentPassword)}",
+                "The current password is incorrect.");
         }
 
+        // The password fields are never sent back to the browser, only the error messages.
         if (!ModelState.IsValid)
-            return ChangePasswordFailed(user, model);
+            return ProfileView(user, changePassword: model);
 
         var result = await userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
         if (!result.Succeeded) {
             AddChangePasswordErrors(result);
-            return ChangePasswordFailed(user, model);
+            return ProfileView(user, changePassword: model);
         }
 
         // Changing the password rotates the security stamp; refreshing keeps this user signed in.
@@ -153,51 +143,80 @@ public class AccountController(
         return RedirectToAction(nameof(Profile));
     }
 
-    // Re-show the Profile page with the errors. The password fields are never sent back to the browser.
-    private ViewResult ChangePasswordFailed(ApplicationUser user, ChangePasswordViewModel model)
+    // Shows the Profile page. posted is the details form as the user sent it, re-shown with its errors;
+    // without it, the edit fields start at the current values. The read-only parts of the page (current
+    // name, email, member since) aren't posted back, so they're always filled from the user.
+    private ViewResult ProfileView(
+        ApplicationUser user,
+        ProfileViewModel? posted = null,
+        ChangePasswordViewModel? changePassword = null)
     {
-        return View(nameof(Profile), new ProfileViewModel
+        var model = posted ?? new ProfileViewModel
         {
-            UserName = user.UserName ?? string.Empty,
-            Email = user.Email ?? string.Empty,
             NewUserName = user.UserName ?? string.Empty,
-            NewEmail = user.Email ?? string.Empty,
-            MemberSinceUtc = user.CreatedAtUtc,
-            ChangePassword = model
-        });
+            NewEmail = user.Email ?? string.Empty
+        };
+
+        model.UserName = user.UserName ?? string.Empty;
+        model.Email = user.Email ?? string.Empty;
+        model.MemberSinceUtc = user.CreatedAtUtc;
+        if (changePassword is not null)
+            model.ChangePassword = changePassword;
+
+        return View(nameof(Profile), model);
     }
 
-    // Attach each Identity error to the field the user can fix, using the form's prefixed field key.
-    private void AddChangePasswordErrors(IdentityResult result)
+    // Form-level errors use the key "ChangePassword", not string.Empty: the details card on the same
+    // page shows string.Empty errors, and a password error must only show on the password card.
+    private void AddChangePasswordErrors(IdentityResult result) =>
+        AddIdentityErrors(result,
+            passwordField: nameof(ChangePasswordViewModel.NewPassword),
+            currentPasswordField: nameof(ChangePasswordViewModel.CurrentPassword),
+            prefix: nameof(ProfileViewModel.ChangePassword));
+
+    // Identity reports problems as error codes (e.g. "PasswordTooShort"). Attaching each one to the
+    // matching field key lets the asp-validation-for span under that field display it. Each form passes
+    // the names of the fields it has; codes with no matching field go to the form-level summary.
+    // prefix is for a form nested inside a bigger view model (keys become "Prefix.Field").
+    private void AddIdentityErrors(
+        IdentityResult result,
+        string? userNameField = null,
+        string? emailField = null,
+        string? passwordField = null,
+        string? currentPasswordField = null,
+        string prefix = "")
     {
         foreach (var error in result.Errors) {
-            var field = error.Code switch
+            string? field = error.Code switch
             {
-                nameof(IdentityErrorDescriber.PasswordMismatch) => nameof(ChangePasswordViewModel.CurrentPassword),
-                var code when code.StartsWith("Password") => nameof(ChangePasswordViewModel.NewPassword),
-                _ => string.Empty // unknown errors go to the form-level alert at the top of the card
+                nameof(IdentityErrorDescriber.PasswordMismatch) when currentPasswordField is not null => currentPasswordField,
+                // All the password-rule codes start with "Password" (PasswordTooShort, PasswordRequiresDigit, ...).
+                var code when code.StartsWith("Password") => passwordField,
+                nameof(IdentityErrorDescriber.DuplicateUserName) or nameof(IdentityErrorDescriber.InvalidUserName) => userNameField,
+                nameof(IdentityErrorDescriber.DuplicateEmail) or nameof(IdentityErrorDescriber.InvalidEmail) => emailField,
+                _ => null
             };
-            AddChangePasswordError(field, error.Description);
+
+            string key = (prefix, field) switch
+            {
+                ("", null) => string.Empty,
+                ("", _) => field,
+                (_, null) => prefix,
+                _ => $"{prefix}.{field}"
+            };
+
+            // The form's attributes already reported this field (e.g. blank or bad format); skip
+            // Identity's duplicate of that. Password is exempt: it can break several rules at once.
+            if (field is not null && field != passwordField
+                && ModelState.GetFieldValidationState(key) == ModelValidationState.Invalid)
+                continue;
+
+            ModelState.AddModelError(key, error.Description);
         }
     }
 
-    // Form-level errors (no field) use the key "ChangePassword", not string.Empty: the details card on the
-    // same page shows string.Empty errors, and a password error must only show on the password card.
-    private void AddChangePasswordError(string field, string message)
-    {
-        var key = field == string.Empty
-            ? nameof(ProfileViewModel.ChangePassword)
-            : $"{nameof(ProfileViewModel.ChangePassword)}.{field}";
-        ModelState.AddModelError(key, message);
-    }
-
-    private void AddIdentityErrors(IdentityResult result)
-    {
-        foreach (var error in result.Errors)
-            ModelState.AddModelError(string.Empty, error.Description);
-    }
-
     [HttpGet]
+    [AllowAnonymous] // opened from the email, possibly in a browser that isn't signed in
     public async Task<IActionResult> ConfirmEmailChange(
         string userId,
         string email,
@@ -237,6 +256,7 @@ public class AccountController(
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public IActionResult Login()
     {
         if (User.Identity?.IsAuthenticated == true)
@@ -246,56 +266,46 @@ public class AccountController(
     }
 
     [HttpPost]
+    [AllowAnonymous]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Login(LoginViewModel loginModel)
+    public async Task<IActionResult> Login(LoginViewModel model)
     {
         if (!ModelState.IsValid)
-            return View(loginModel);
+            return View(model);
 
-        // Determine if logging using Email or Username
+        // An "@" means the user typed an email; otherwise it's a username.
         // Trim so a pasted value with stray spaces still matches.
-        var usernameOrEmail = loginModel.UsernameOrEmail.Trim();
+        var usernameOrEmail = model.UsernameOrEmail.Trim();
 
         ApplicationUser? user = usernameOrEmail.Contains('@')
             ? await userManager.FindByEmailAsync(usernameOrEmail)
             : await userManager.FindByNameAsync(usernameOrEmail);
 
         if (user is null)
-            return LoginFailed(loginModel, "Invalid username or password. Please try again.");
+            return LoginFailed(model, "Invalid username or password. Please try again.");
 
-        var signInResult = await signInManager.PasswordSignInAsync(user.UserName!, loginModel.Password, loginModel.RememberMe, lockoutOnFailure: true);
+        var signInResult = await signInManager.PasswordSignInAsync(user.UserName!, model.Password, model.RememberMe, lockoutOnFailure: true);
 
         if (signInResult.Succeeded)
             return RedirectToAction(nameof(Index), "Home");
 
-
-        // General invalid login
+        // Same message for a wrong username and a wrong password, so the form doesn't reveal which accounts exist.
         var errorMessage = signInResult.IsLockedOut
             ? "Account locked. Try again later."
             : "Invalid username or password. Please try again.";
-        /*
-         // Testing invalid login
-        if (result.IsLockedOut)
-            ModelState.AddModelError(string.Empty, "Account locked. Try again later.");
-        else if (result.IsNotAllowed)
-            ModelState.AddModelError(string.Empty, "Not allowed: email not confirmed!");
-        else if (result.RequiresTwoFactor)
-            ModelState.AddModelError(string.Empty, "Two-factor required.");
-        else
-            ModelState.AddModelError(string.Empty, "Wrong username or password.");
-            */
 
-        return LoginFailed(loginModel, errorMessage);
+        return LoginFailed(model, errorMessage);
     }
 
     // string.Empty = an error for the whole form; Login.cshtml shows it above the inputs.
-    private ViewResult LoginFailed(LoginViewModel loginModel, string message)
+    private ViewResult LoginFailed(LoginViewModel model, string message)
     {
         ModelState.AddModelError(string.Empty, message);
-        return View(nameof(Login), loginModel);
+        return View(nameof(Login), model);
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public IActionResult Register()
     {
         if (User.Identity?.IsAuthenticated == true)
@@ -305,37 +315,37 @@ public class AccountController(
     }
 
     [HttpPost]
+    [AllowAnonymous]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Register(RegisterViewModel registerModel)
+    public async Task<IActionResult> Register(RegisterViewModel model)
     {
-        // User
         ApplicationUser user = new ApplicationUser
         {
-            UserName = registerModel.UserName,
-            Email = registerModel.Email,
+            UserName = model.UserName,
+            Email = model.Email,
             CreatedAtUtc = timeProvider.GetUtcNow().UtcDateTime,
         };
 
         // Run Identity's checks before the IsValid test so every problem shows at once,
         // not just the ones the form's own attributes caught.
-        await AddIdentityValidationErrorsAsync(user, registerModel.Password);
+        await AddIdentityValidationErrorsAsync(user, model.Password);
 
         if (!ModelState.IsValid)
-            return View(registerModel);
+            return View(model);
 
         // CreateAsync validates again, which still covers two people picking the same name at once.
-        var registerResult = await userManager.CreateAsync(user, registerModel.Password);
+        var registerResult = await userManager.CreateAsync(user, model.Password);
 
         if (!registerResult.Succeeded) {
             AddRegisterErrors(registerResult);
-            return View(registerModel);
+            return View(model);
         }
 
         IdentityResult roleResult = await userManager.AddToRoleAsync(user, Roles.User);
         if (!roleResult.Succeeded) {
             await userManager.DeleteAsync(user);
             ModelState.AddModelError(string.Empty, "We couldn't finish setting up your account. Please try again later.");
-            return View(registerModel);
+            return View(model);
         }
 
         await signInManager.SignInAsync(user, isPersistent: false);
@@ -349,38 +359,21 @@ public class AccountController(
             AddRegisterErrors(await validator.ValidateAsync(userManager, user));
 
         // An empty password is already reported by [Required]; don't pile rule errors on top.
-        if (!string.IsNullOrEmpty(password))
-        {
+        if (!string.IsNullOrEmpty(password)) {
             foreach (var validator in userManager.PasswordValidators)
                 AddRegisterErrors(await validator.ValidateAsync(userManager, user, password));
         }
     }
 
-    // Identity reports problems as error codes (e.g. "PasswordTooShort"). Attaching each one to the
-    // matching field key lets the asp-validation-for span under that field display it.
-    private void AddRegisterErrors(IdentityResult result)
-    {
-        foreach (var error in result.Errors)
-        {
-            var field = error.Code switch
-            {
-                var code when code.StartsWith("Password") => nameof(RegisterViewModel.Password),
-                "DuplicateUserName" or "InvalidUserName" => nameof(RegisterViewModel.UserName),
-                "DuplicateEmail" or "InvalidEmail" => nameof(RegisterViewModel.Email),
-                _ => string.Empty // unknown errors fall back to the summary at the top
-            };
+    private void AddRegisterErrors(IdentityResult result) =>
+        AddIdentityErrors(result,
+            userNameField: nameof(RegisterViewModel.UserName),
+            emailField: nameof(RegisterViewModel.Email),
+            passwordField: nameof(RegisterViewModel.Password));
 
-            // The form's attributes already reported this field (e.g. blank or bad format);
-            // skip Identity's duplicate of that. Password is exempt: it can have several rule errors.
-            if (field != nameof(RegisterViewModel.Password) && field != string.Empty
-                && ModelState.GetFieldValidationState(field) == ModelValidationState.Invalid)
-                continue;
-
-            ModelState.AddModelError(field, error.Description);
-        }
-    }
-
+    // Logging out a tab that is already signed out should still work, not bounce to the login page.
     [HttpPost]
+    [AllowAnonymous]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout(string? returnUrl = null)
     {
@@ -390,9 +383,11 @@ public class AccountController(
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public IActionResult ForgotPassword() => View(new ForgotPasswordViewModel());
 
     [HttpPost]
+    [AllowAnonymous]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
     {
@@ -421,9 +416,11 @@ public class AccountController(
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public IActionResult CheckEmail(string email) => View(email);
 
     [HttpGet]
+    [AllowAnonymous]
     public IActionResult ResetPassword(string? email, string? code)
     {
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(code))
@@ -444,6 +441,7 @@ public class AccountController(
     }
 
     [HttpPost]
+    [AllowAnonymous]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
     {
@@ -453,7 +451,7 @@ public class AccountController(
         // and a "doesn't match" error show together instead of one hiding the other.
         if (user is not null && !string.IsNullOrEmpty(model.Password)) {
             foreach (var validator in userManager.PasswordValidators)
-                AddRegisterErrors(await validator.ValidateAsync(userManager, user, model.Password));
+                AddResetPasswordErrors(await validator.ValidateAsync(userManager, user, model.Password));
         }
 
         if (!ModelState.IsValid)
@@ -470,10 +468,14 @@ public class AccountController(
         if (result.Errors.Any(e => e.Code == nameof(IdentityErrorDescriber.InvalidToken)))
             ModelState.AddModelError(string.Empty, "This reset link is invalid or has expired. Please request a new one.");
         else
-            AddRegisterErrors(result); // password-rule errors go under the Password field, like on Register
+            AddResetPasswordErrors(result);
 
         return View(model);
     }
+
+    // Password-rule errors go under the Password field, like on Register.
+    private void AddResetPasswordErrors(IdentityResult result) =>
+        AddIdentityErrors(result, passwordField: nameof(ResetPasswordViewModel.Password));
 
     private RedirectToActionResult ResetPasswordDone()
     {
@@ -482,6 +484,7 @@ public class AccountController(
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public IActionResult AccessDenied(string? returnUrl = null)
     {
         Response.StatusCode = StatusCodes.Status403Forbidden;
