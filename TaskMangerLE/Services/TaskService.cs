@@ -10,15 +10,13 @@ public class TaskService(ApplicationDbContext context, TimeProvider timeProvider
 {
     public async Task AddTaskAsync(TaskItemCreateViewModel taskItemModel)
     {
-        DateOnly dueDate = taskItemModel.DueDate ?? throw new ArgumentException("A due date is required", nameof(taskItemModel));
-
         TaskItem taskItem = new TaskItem
         {
             Name = taskItemModel.Name,
             Description = taskItemModel.Description ?? string.Empty,
             Priority = taskItemModel.Priority,
             Status = taskItemModel.Status,
-            DueDate = dueDate,
+            DueDate = taskItemModel.DueDate,
             ProjectId = taskItemModel.ProjectId,
         };
 
@@ -28,13 +26,11 @@ public class TaskService(ApplicationDbContext context, TimeProvider timeProvider
 
     public async Task UpdateTaskAsync(TaskItem taskItem, TaskItemUpdateViewModel taskItemModel)
     {
-        DateOnly dueDate = taskItemModel.DueDate ?? throw new ArgumentException("A due date is required", nameof(taskItemModel));
-
         taskItem.Name = taskItemModel.Name;
         taskItem.Description = taskItemModel.Description ?? string.Empty;
         taskItem.Priority = taskItemModel.Priority;
         taskItem.Status = taskItemModel.Status;
-        taskItem.DueDate = dueDate;
+        taskItem.DueDate = taskItemModel.DueDate;
         // The controller has already checked the user owns this project.
         taskItem.ProjectId = taskItemModel.ProjectId;
 

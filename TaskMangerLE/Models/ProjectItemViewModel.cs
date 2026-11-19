@@ -13,6 +13,7 @@ public abstract class ProjectItemViewModelBase
     [MaxLength(ItemConstraints.DescriptionMaxLength)]
     // string? (not string) so MVC doesn't treat it as implicitly [Required]; the form says "Optional".
     public string? Description { get; set; }
+    [Display(Name = "Due date")]
     public DateOnly DueDate { get; set; }
     [EnumDataType(typeof(ProjectStatus))] public ProjectStatus Status { get; set; }
 }

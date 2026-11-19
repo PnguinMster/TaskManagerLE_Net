@@ -17,9 +17,8 @@ public abstract class TaskItemViewModelBase
     public string? Description { get; set; }
     [EnumDataType(typeof(TaskPriority))] public TaskPriority Priority { get; set; }
     [EnumDataType(typeof(TaskStatus))] public TaskStatus Status { get; set; }
-    [Required]
-    [Display(Name = "Due Date")]
-    public DateOnly? DueDate { get; set; }
+    [Display(Name = "Due date")]
+    public DateOnly DueDate { get; set; }
 }
 
 public class TaskItemCreateViewModel : TaskItemViewModelBase
