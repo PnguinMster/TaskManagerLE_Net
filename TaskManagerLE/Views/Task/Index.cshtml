@@ -121,7 +121,7 @@
                                     <input type="checkbox"
                                            value="@StatusKey(status)"
                                            checked="@IsOpen(status)"
-                                           data-status-option/>
+                                           data-task-status-option/>
                                     <span>@status.GetDisplayName()</span>
                                 </label>
                             }
@@ -134,7 +134,7 @@
                         <div class="filter-options">
                             @foreach (var priority in Enum.GetValues<TaskPriority>()) {
                                 <label class="filter-option">
-                                    <input type="checkbox" value="@priority" data-priority-option/>
+                                    <input type="checkbox" value="@priority" data-task-priority-option/>
                                     <span>@priority</span>
                                 </label>
                             }
@@ -151,7 +151,7 @@
                                            name="task-due"
                                            value="@due.Value"
                                            checked="@(due.Value == "any")"
-                                           data-due-option/>
+                                           data-task-due-option/>
                                     <span>@due.Label</span>
                                 </label>
                             }
@@ -163,7 +163,7 @@
                         <legend>Project</legend>
                         @foreach (var project in projects) {
                             <label class="filter-check">
-                                <input type="checkbox" class="checkbox" value="@project.ProjectId" data-project-option/>
+                                <input type="checkbox" class="checkbox" value="@project.ProjectId" data-task-project-option/>
                                 <span>@project.ProjectName</span>
                             </label>
                         }
@@ -185,7 +185,7 @@
                 </div>
 
                 <div class="filter-panel-footer">
-                    <button type="button" class="btn btn-text text-blue" data-clear-filters>Reset</button>
+                    <button type="button" class="btn btn-text text-blue" data-task-clear-filters>Reset</button>
                     @* site.js writes the live count here ("Show 6 tasks"). *@
                     <button type="button" class="btn btn-primary" data-close-filters>Show tasks</button>
                 </div>
@@ -208,13 +208,13 @@
             </a>
         }
 
-        <button type="button" class="btn btn-text text-blue" style="height:32px" data-clear-filters data-clear-all hidden>
+        <button type="button" class="btn btn-text text-blue" style="height:32px" data-task-clear-filters data-clear-all hidden>
             Clear all
         </button>
 
         <div class="sp"></div>
 
-        <select class="input input-inline" aria-label="Group by" data-group-by>
+        <select class="input input-inline" aria-label="Group by" data-task-group-by>
             <option value="due">Group by: Due date</option>
             <option value="project">Group by: Project</option>
             <option value="priority">Group by: Priority</option>
@@ -442,7 +442,7 @@ else {
         Id = "task-no-results",
         Title = "No tasks match your filters",
         Message = "Try removing a filter or searching for something else.",
-        ClearButtonAttribute = "data-clear-filters"
+        ClearButtonAttribute = "data-task-clear-filters"
     };
     <partial name="_NoResults" model="noResults" />
 }

@@ -8,6 +8,6 @@ public class NoResultsViewModel
     public required string Title { get; init; }
     public required string Message { get; init; }
 
-    // The data attribute site.js listens for on the Clear filters button (e.g. "data-clear-filters").
+    // The data attribute site.js listens for on the Clear filters button (e.g. "data-task-clear-filters").
     public required string ClearButtonAttribute { get; init; }
 }

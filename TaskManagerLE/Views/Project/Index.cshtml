@@ -139,7 +139,7 @@ else {
 
             <div class="sp"></div>
 
-            <input id="project-search"
+            <input data-project-search
                    class="input input-inline"
                    type="search"
                    placeholder="Search projects…"
@@ -375,8 +375,8 @@ else {
     };
     <partial name="_NoResults" model="noResults" />
 
-    @* Applies the saved grid/list choice before the first paint. site.js loads at the end of <body> and
-       waits for DOMContentLoaded, which would briefly show the default (grid) first. Grid is already the
+    @* Applies the saved grid/list choice before the first paint. site.js loads after this, at the end of <body>,
+       which could briefly show the default (grid) first. Grid is already the
        default markup, so only "list" needs work. Keep the "projectView" key in sync with site.js. *@
     <script>
         (function () {
