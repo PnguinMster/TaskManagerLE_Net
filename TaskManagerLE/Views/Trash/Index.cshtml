@@ -223,7 +223,7 @@ else {
                                 <button type="submit" class="btn btn-outline-success">↶ Restore</button>
                             </form>
                             <form method="post" asp-controller="@controller"
-                                  asp-action="@(item.IsProject ? "PurgeProject" : "PurgeTask")"
+                                  asp-action="Purge"
                                   asp-all-route-data="routeValues"
                                   data-confirm-purge="@item.Name"
                                   data-trash-detail="@(deletedAt is { } d ? $"Deleted {d:MMM d}" : "")">

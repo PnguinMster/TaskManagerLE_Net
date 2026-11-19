@@ -9,7 +9,7 @@ using TaskManagerLE.Authorization;
 namespace TaskManagerLE.Controllers;
 
 [Authorize]
-public class ProjectController(ProjectService services, UserManager<ApplicationUser> userManager, IAuthorizationService authorizationService)
+public class ProjectController(ProjectService projectService, UserManager<ApplicationUser> userManager, IAuthorizationService authorizationService)
     : ItemControllerBase(authorizationService)
 {
     [HttpGet]
@@ -19,7 +19,7 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         if (userId is null)
             return Challenge();
 
-        return View(await services.GetProjectCardsAsync(userId, User.IsInRole(Roles.Admin)));
+        return View(await projectService.GetProjectCardsAsync(userId, User.IsInRole(Roles.Admin)));
     }
 
     [HttpGet]
@@ -28,11 +28,11 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         if (projectId is not { } id)
             return NotFound();
 
-        ProjectItem? projectItem = await LoadAuthorizedAsync(services.GetProjectAsync(id));
+        ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetProjectAsync(id));
         if (projectItem is null)
             return NotFound();
 
-        ProjectDetailViewModel? project = await services.GetProjectDetailAsync(id);
+        ProjectDetailViewModel? project = await projectService.GetProjectDetailAsync(id);
         if (project is null)
             return NotFound();
 
@@ -40,14 +40,14 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         if (userId is null)
             return Challenge();
 
-        ViewData["AvailableProjects"] = await services.GetProjectCardsAsync(userId, User.IsInRole(Roles.Admin));
+        ViewData["AvailableProjects"] = await projectService.GetProjectCardsAsync(userId, User.IsInRole(Roles.Admin));
 
         return View(project);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(ProjectItemCreateViewModel projectItemModel)
+    public async Task<IActionResult> Create(ProjectItemCreateViewModel model)
     {
         if (!ModelState.IsValid)
             return ValidationErrorsResult();
@@ -56,11 +56,11 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         if (userId is null)
             return Challenge();
 
-        await services.AddProjectAsync(projectItemModel, userId);
+        await projectService.AddProjectAsync(model, userId);
 
         // TempData is saved with any response, so the toast shows after site.js reloads the page.
         this.ShowToast(new ToastMessage(ToastKind.Success, "Project created",
-            $"{projectItemModel.Name} was added."));
+            $"{model.Name} was added."));
         return Ok();
     }
 
@@ -68,16 +68,16 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
     [ValidateAntiForgeryToken]
     // Sent with fetch, like Create: errors go back as JSON and on success site.js reloads the page
     // the modal is on.
-    public async Task<IActionResult> Update(ProjectItemUpdateViewModel projectItemModel)
+    public async Task<IActionResult> Update(ProjectItemUpdateViewModel model)
     {
-        ProjectItem? projectItem = await LoadAuthorizedAsync(services.GetProjectAsync(projectItemModel.Id));
+        ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetProjectAsync(model.Id));
         if (projectItem is null)
             return NotFound();
 
         if (!ModelState.IsValid)
             return ValidationErrorsResult();
 
-        await services.UpdateProjectAsync(projectItem, projectItemModel);
+        await projectService.UpdateProjectAsync(projectItem, model);
         this.ShowToast(new ToastMessage(ToastKind.Success, "Project saved", $"{projectItem.Name} was updated."));
         return Ok();
     }
@@ -89,7 +89,7 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         if (projectId is not { } id)
             return NotFound();
 
-        ProjectItem? projectItem = await LoadAuthorizedAsync(services.GetProjectWithTasksAsync(id));
+        ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetProjectWithTasksAsync(id));
         if (projectItem is null)
             return NotFound();
 
@@ -97,7 +97,7 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         if (deletedByUserId is null)
             return Challenge();
 
-        await services.DeleteProjectAsync(projectItem, deletedByUserId);
+        await projectService.DeleteProjectAsync(projectItem, deletedByUserId);
 
         // Back to the page the delete came from, and Undo returns there too (same as TaskController.Delete).
         // The Detail page sends no returnUrl: that project's page is gone now, so it falls back to Index.
@@ -117,11 +117,11 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
         if (projectId is not { } id)
             return NotFound();
 
-        ProjectItem? projectItem = await LoadAuthorizedAsync(services.GetDeletedProjectWithDeletedTasksAsync(id));
+        ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetDeletedProjectWithDeletedTasksAsync(id));
         if (projectItem is null)
             return NotFound();
 
-        await services.RestoreProjectAsync(projectItem);
+        await projectService.RestoreProjectAsync(projectItem);
         this.ShowToast(new ToastMessage(ToastKind.Success, "Project restored",
             $"{projectItem.Name} and its tasks are back."));
 
@@ -131,16 +131,16 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> PurgeProject(int? projectId, string? returnUrl)
+    public async Task<IActionResult> Purge(int? projectId, string? returnUrl)
     {
         if (projectId is not { } id)
             return NotFound();
 
-        ProjectItem? projectItem = await LoadAuthorizedAsync(services.GetDeletedProjectWithAllTasksAsync(id));
+        ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetDeletedProjectWithAllTasksAsync(id));
         if (projectItem is null)
             return NotFound();
 
-        await services.PurgeProjectAsync(projectItem);
+        await projectService.PurgeProjectAsync(projectItem);
 
         // No Undo: the rows are gone from the database.
         this.ShowToast(new ToastMessage(ToastKind.Info, "Project deleted",

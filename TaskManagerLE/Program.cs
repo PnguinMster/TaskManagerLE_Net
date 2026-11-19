@@ -14,7 +14,7 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<ProjectService>();
 builder.Services.AddScoped<TaskService>();
 builder.Services.AddScoped<TrashService>();
-builder.Services.AddScoped<DashboardServices>();
+builder.Services.AddScoped<DashboardService>();
 
 // Email: logs to the console for now. Registered before AddIdentity so Identity's no-op default doesn't win.
 builder.Services.AddTransient<IEmailSender, LoggingEmailSender>();

@@ -37,10 +37,10 @@ public class TaskController(
     [ValidateAntiForgeryToken]
     // Sent with fetch, like ProjectController.Create: errors go back as JSON so the modal stays open,
     // and on success site.js reloads the page the modal is on (Tasks or a project's board).
-    public async Task<IActionResult> Create(TaskItemCreateViewModel taskItemModel)
+    public async Task<IActionResult> Create(TaskItemCreateViewModel model)
     {
         ProjectItem? projectItem = await LoadAuthorizedAsync(
-            projectService.GetProjectAsync(taskItemModel.ProjectId));
+            projectService.GetProjectAsync(model.ProjectId));
 
         if (projectItem is null)
             return NotFound();
@@ -48,9 +48,9 @@ public class TaskController(
         if (!ModelState.IsValid)
             return ValidationErrorsResult();
 
-        await taskService.AddTaskAsync(taskItemModel);
+        await taskService.AddTaskAsync(model);
         this.ShowToast(new ToastMessage(ToastKind.Success, "Task created",
-            $"{taskItemModel.Name} was added to {projectItem.Name}."));
+            $"{model.Name} was added to {projectItem.Name}."));
         return Ok();
     }
 
@@ -58,17 +58,17 @@ public class TaskController(
     [ValidateAntiForgeryToken]
     // Sent with fetch, like Create: errors go back as JSON and on success site.js reloads the page
     // the modal is on (Tasks or a project's board).
-    public async Task<IActionResult> Update(TaskItemUpdateViewModel taskItemModel)
+    public async Task<IActionResult> Update(TaskItemUpdateViewModel model)
     {
-        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetTaskWithProjectAsync(taskItemModel.Id), t => t.Project);
+        TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetTaskWithProjectAsync(model.Id), t => t.Project);
         if (taskItem is null)
             return NotFound();
 
         // Moving to another project: that project must be the user's too (same ownership rule as everywhere),
         // or a crafted form could put a task into someone else's project.
         ProjectItem? targetProject = null;
-        if (taskItemModel.ProjectId != taskItem.ProjectId) {
-            targetProject = await LoadAuthorizedAsync(projectService.GetProjectAsync(taskItemModel.ProjectId));
+        if (model.ProjectId != taskItem.ProjectId) {
+            targetProject = await LoadAuthorizedAsync(projectService.GetProjectAsync(model.ProjectId));
             if (targetProject is null)
                 return NotFound();
         }
@@ -76,7 +76,7 @@ public class TaskController(
         if (!ModelState.IsValid)
             return ValidationErrorsResult();
 
-        await taskService.UpdateTaskAsync(taskItem, taskItemModel);
+        await taskService.UpdateTaskAsync(taskItem, model);
 
         // The task leaves the board it was on, so say where it went. TempData is saved with any
         // response, not just redirects, so the toast shows after site.js reloads the page.
@@ -191,7 +191,7 @@ public class TaskController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> PurgeTask(int? taskId, string? returnUrl)
+    public async Task<IActionResult> Purge(int? taskId, string? returnUrl)
     {
         if (taskId is not { } id)
             return NotFound();

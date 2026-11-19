@@ -7,7 +7,7 @@ using TaskManagerLE.Services;
 
 namespace TaskManagerLE.Controllers;
 
-public class HomeController(DashboardServices services, UserManager<ApplicationUser> userManager) : Controller
+public class HomeController(DashboardService dashboardService, UserManager<ApplicationUser> userManager) : Controller
 {
     [HttpGet]
     public async Task<IActionResult> Index()
@@ -17,7 +17,7 @@ public class HomeController(DashboardServices services, UserManager<ApplicationU
         if (userId is null)
             return View(new DashboardViewModel { IsAuthenticated = false });
 
-        DashboardViewModel model = await services.GetDashboardAsync(userId);
+        DashboardViewModel model = await dashboardService.GetDashboardAsync(userId);
         return View(model);
     }
 

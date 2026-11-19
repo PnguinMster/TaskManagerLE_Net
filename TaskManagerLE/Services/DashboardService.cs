@@ -7,7 +7,7 @@ using TaskStatus = TaskManagerLE.Models.Enums.TaskStatus;
 
 namespace TaskManagerLE.Services;
 
-public class DashboardServices(ApplicationDbContext context, TimeProvider timeProvider)
+public class DashboardService(ApplicationDbContext context, TimeProvider timeProvider)
 {
     private const int RecentProjectsLimit = 3;
     private const int UpcomingTasksLimit = 3;
