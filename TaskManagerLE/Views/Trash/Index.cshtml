@@ -181,8 +181,11 @@ else {
                     };
 
                     @* data-trash-name / -date are what "Sort by" orders on. The "o" (ISO 8601) format
-                       sorts correctly as plain text and doesn't depend on the server's culture. *@
+                       sorts correctly as plain text and doesn't depend on the server's culture.
+                       data-trash-text is what the search box looks at (like data-task-text on Tasks),
+                       so button labels such as "Restore" don't match every row. *@
                     <div class="data-row" data-trash-item="@(item.IsProject ? "project" : "task")"
+                         data-trash-text="@item.Name @item.ProjectName"
                          data-trash-name="@item.Name"
                          data-trash-date="@(item.DeletedAtUtc?.ToString("o") ?? "")">
                         @if (item.IsProject) {

@@ -26,6 +26,15 @@ function compareText(a, b) {
     return a.localeCompare(b, undefined, { sensitivity: "base" });
 }
 
+// Reorders elements on the page with a compare function (the "Sort by" selects on Projects and Trash).
+// Items with different parents (the Projects grid cards and list rows) are sorted within each parent.
+// append() moves the existing elements, so anything before them, like a table's header row, stays first.
+function sortInPlace(items, compare) {
+    for (const parent of new Set(items.map(item => item.parentElement))) {
+        parent.append(...items.filter(item => item.parentElement === parent).sort(compare));
+    }
+}
+
 // The light/dark button in the header (_Layout).
 function setUpThemeToggle() {
     const root = document.documentElement;
@@ -173,12 +182,13 @@ async function submitModalForm(form) {
 }
 
 // Trash page: the type pills (All / Projects / Tasks), the search box and "Sort by".
-// Each row carries data-trash-item="project|task", data-trash-name and data-trash-date (ISO date).
+// Each row carries data-trash-item="project|task", data-trash-text (what the search looks at),
+// data-trash-name and data-trash-date (ISO date).
 function setUpTrashFilters() {
     const filters = document.querySelectorAll("[data-trash-filter]");
     const search = document.querySelector("[data-trash-search]");
     const sortSelect = document.querySelector("[data-trash-sort]");
-    const items = document.querySelectorAll("[data-trash-item]");
+    const items = [...document.querySelectorAll("[data-trash-item]")];
     const summary = document.querySelector("[data-trash-summary]");
     const table = document.getElementById("trash-table");
     const noResults = document.getElementById("trash-no-results");
@@ -189,7 +199,7 @@ function setUpTrashFilters() {
     let activeFilter = "all";
 
     const matchesType = (item, type) => type === "all" || item.dataset.trashItem === type;
-    const matchesSearch = (item, searchText) => item.textContent.toLowerCase().includes(searchText);
+    const matchesSearch = (item, searchText) => item.dataset.trashText.toLowerCase().includes(searchText);
 
     function filterItems() {
         const searchText = search.value.trim().toLowerCase();
@@ -200,16 +210,12 @@ function setUpTrashFilters() {
 
         // Each pill counts the rows it would show with the current search.
         filters.forEach(button => {
-            const count = [...items].filter(item =>
+            const count = items.filter(item =>
                 matchesType(item, button.dataset.trashFilter) && matchesSearch(item, searchText)).length;
             button.querySelector(".pill-count").textContent = String(count);
         });
 
-        // Same "Showing X of Y" line and empty card as the Tasks page.
-        const shown = [...items].filter(item => !item.hidden).length;
-        table.hidden = shown === 0;
-        noResults.hidden = shown > 0;
-        summary.textContent = `Showing ${shown} of ${items.length} items`;
+        showResultCount({ items, noun: "item", summary, noResults, resultsElement: table });
     }
 
     function setFilter(type) {
@@ -230,11 +236,7 @@ function setUpTrashFilters() {
         name: byName
     };
 
-    function sortItems() {
-        const sorter = sorters[sortSelect.value] ?? sorters.newest;
-        // append() moves the existing rows, so the header row stays first.
-        items[0]?.parentElement.append(...[...items].sort(sorter));
-    }
+    const sortItems = () => sortInPlace(items, sorters[sortSelect.value] ?? sorters.newest);
 
     filters.forEach(button => {
         button.addEventListener("click", () => setFilter(button.dataset.trashFilter));
@@ -696,6 +698,17 @@ function makeFilterChip(filter, onRemove) {
     return chip;
 }
 
+// After a filter change on Projects, Tasks or Trash: writes "Showing X of Y <noun>s", shows the
+// _NoResults box when nothing is left, and hides resultsElement (a table) if one is given.
+// Returns how many items are shown.
+function showResultCount({ items, noun, summary, noResults, resultsElement = null }) {
+    const shown = items.filter(item => !item.hidden).length;
+    if (resultsElement) resultsElement.hidden = shown === 0;
+    noResults.hidden = shown > 0;
+    summary.textContent = `Showing ${shown} of ${items.length} ${noun}s`;
+    return shown;
+}
+
 // The Due filter on the Projects and Tasks pages. "group" is the server's lowercase DueGroup
 // (overdue / today / thisweek / later / finished), so both pages use the server's one rule.
 // "due" is the chosen radio value. "finished" only matches "any": a done item is never overdue or due soon.
@@ -840,10 +853,7 @@ function setUpFilters({
         highlightQuickView();
         renderChips(activeFilters());
 
-        const shown = countedItems.filter(item => !item.hidden).length;
-        if (resultsElement) resultsElement.hidden = shown === 0;
-        noResults.hidden = shown > 0;
-        shownSummary.textContent = `Showing ${shown} of ${countedItems.length} ${noun}s`;
+        const shown = showResultCount({ items: countedItems, noun, summary: shownSummary, noResults, resultsElement });
         closeButton.textContent = shown === 1 ? `Show 1 ${noun}` : `Show ${shown} ${noun}s`;
 
         const saved = { statuses, due, order: orderSelect.value, search: searchBox.value };
@@ -920,15 +930,8 @@ function setUpProjectFilters() {
             Number(b.dataset.projectProgress) - Number(a.dataset.projectProgress) || byName(a, b)
     };
 
-    // The grid cards and the list rows have different parents, so sort each parent's items on
-    // its own. append() moves existing elements, so the list's header row stays first.
-    function applySort(sortBy) {
-        const sorter = sorters[sortBy] ?? sorters.due;
-        for (const parent of new Set(items.map(item => item.parentElement))) {
-            const sorted = [...parent.querySelectorAll(":scope > [data-project-item]")].sort(sorter);
-            parent.append(...sorted);
-        }
-    }
+    // sortInPlace sorts the grid cards and the list rows separately (they have different parents).
+    const applySort = sortBy => sortInPlace(items, sorters[sortBy] ?? sorters.due);
 
     setUpFilters({
         prefix: "project",
