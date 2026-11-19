@@ -85,8 +85,8 @@
                 });
             });
 
-            // The server pre-fills its own "today" as a fallback (ProjectItemCreateViewModel and
-            // TaskItemCreateViewModel). Replace it with the browser's date, since "today" depends on the
+            // The server pre-fills its own "today" as a fallback (the pages that render the create
+            // modals set DueDate). Replace it with the browser's date, since "today" depends on the
             // user's timezone. Built from local parts: toISOString() would give the UTC date instead.
             const now = new Date();
             const month = String(now.getMonth() + 1).padStart(2, "0");

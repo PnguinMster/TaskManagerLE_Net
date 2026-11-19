@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using TaskMangerLE.Extensions;
 using TaskMangerLE.Models.Enums;
 
 namespace TaskMangerLE.Models;
@@ -18,16 +17,9 @@ public abstract class ProjectItemViewModelBase
     [EnumDataType(typeof(ProjectStatus))] public ProjectStatus Status { get; set; }
 }
 
-public class ProjectItemCreateViewModel : ProjectItemViewModelBase
-{
-    // Fallback for when JavaScript is off: pre-fill the server's today so the date input doesn't show
-    // DateOnly's default (0001-01-01). site.js replaces it with the browser's date, and model binding
-    // overwrites it with whatever the user submits.
-    public ProjectItemCreateViewModel()
-    {
-        DueDate = TimeProvider.System.Today();
-    }
-}
+// The page that renders the create modal sets DueDate to the injected TimeProvider's today
+// (see Project/Index.cshtml), so the date input doesn't start at DateOnly's default (0001-01-01).
+public class ProjectItemCreateViewModel : ProjectItemViewModelBase;
 
 public class ProjectItemUpdateViewModel : ProjectItemViewModelBase
 {

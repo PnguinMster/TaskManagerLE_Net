@@ -12,7 +12,11 @@ using TaskMangerLE.Models.Enums;
 
 namespace TaskMangerLE.Controllers;
 
-public class AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, IEmailSender emailSender) : Controller
+public class AccountController(
+    SignInManager<ApplicationUser> signInManager,
+    UserManager<ApplicationUser> userManager,
+    IEmailSender emailSender,
+    TimeProvider timeProvider) : Controller
 {
     [HttpGet]
     public async Task<IActionResult> Profile()
@@ -305,7 +309,7 @@ public class AccountController(SignInManager<ApplicationUser> signInManager, Use
         {
             UserName = registerModel.UserName,
             Email = registerModel.Email,
-            CreatedAtUtc = DateTime.UtcNow,
+            CreatedAtUtc = timeProvider.GetUtcNow().UtcDateTime,
         };
 
         // Run Identity's checks before the IsValid test so every problem shows at once,

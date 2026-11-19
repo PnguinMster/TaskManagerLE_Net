@@ -12,10 +12,11 @@ public static class UserSeeder
     {
         var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var timeProvider = serviceProvider.GetRequiredService<TimeProvider>();
         ILogger logger = serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger(nameof(UserSeeder));
 
         await SeedRolesAsync(roleManager);
-        await SeedAdminAsync(userManager, config, logger);
+        await SeedAdminAsync(userManager, config, timeProvider, logger);
     }
 
     private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
@@ -28,7 +29,8 @@ public static class UserSeeder
         }
     }
 
-    private static async Task SeedAdminAsync(UserManager<ApplicationUser> userManager, IConfiguration config, ILogger logger)
+    private static async Task SeedAdminAsync(UserManager<ApplicationUser> userManager, IConfiguration config,
+        TimeProvider timeProvider, ILogger logger)
     {
         string? username = config[$"{AdminSection}:UserName"];
         string? email = config[$"{AdminSection}:Email"];
@@ -47,7 +49,7 @@ public static class UserSeeder
                 UserName = username,
                 Email = email,
                 EmailConfirmed = true,
-                CreatedAtUtc = DateTime.UtcNow,
+                CreatedAtUtc = timeProvider.GetUtcNow().UtcDateTime,
             };
 
             EnsureSucceeded(await userManager.CreateAsync(admin, password), $"create admin user '{email}'");

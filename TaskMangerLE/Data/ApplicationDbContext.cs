@@ -4,7 +4,9 @@ using TaskMangerLE.Models;
 
 namespace TaskMangerLE.Data;
 
-public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
+// TimeProvider comes from DI like any service: AddDbContext builds the context through the container.
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, TimeProvider timeProvider)
+    : IdentityDbContext<ApplicationUser>(options)
 {
     public DbSet<ProjectItem> ProjectItems { get; set; }
     public DbSet<TaskItem> TaskItems { get; set; }
@@ -19,7 +21,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        DateTime now = DateTime.UtcNow;
+        DateTime now = timeProvider.GetUtcNow().UtcDateTime;
         foreach (var entityEntry in ChangeTracker.Entries<ItemBase>()) {
             if (entityEntry.State == EntityState.Added) {
                 entityEntry.Entity.CreatedAtUtc = now;
