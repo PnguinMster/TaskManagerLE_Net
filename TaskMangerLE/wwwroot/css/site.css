@@ -1520,18 +1520,6 @@ dialog.modal::backdrop {
     color: inherit;
 }
 
-.user-initials {
-    display: inline-grid;
-    place-items: center;
-    width: 2rem;
-    height: 2rem;
-    border-radius: 50%;
-    background: var(--blue);
-    color: white;
-    font-size: 0.75rem;
-    font-weight: 700;
-}
-
 .user-menu {
     position: relative;
 }
@@ -1654,13 +1642,6 @@ dialog.modal::backdrop {
 
 .user-menu-logout {
     color: var(--muted);
-}
-
-.user-menu-header .user-initials {
-    font-size: 1rem;
-    width: 2.75rem;
-    height: 2.75rem;
-    flex: none;
 }
 
 .user-menu-profile,

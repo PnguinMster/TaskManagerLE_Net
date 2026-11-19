@@ -3,24 +3,13 @@
 @{
     var userName = User.Identity?.Name ?? "";
     var email = User.FindFirstValue(ClaimTypes.Email) ?? "";
-    var initials = string.Concat(
-        userName
-            .Split('@', StringSplitOptions.RemoveEmptyEntries)
-            .FirstOrDefault()?
-            .Split('.', ' ', '_', '-')
-            .Where(part => part.Length > 0)
-            .Take(2)
-            .Select(part => char.ToUpperInvariant(part[0])) ?? []);
-
-    if (string.IsNullOrWhiteSpace(initials)) {
-        initials = "?";
-    }
+    var initials = userName.ToInitials();
 }
 
 @if (User.Identity?.IsAuthenticated == true) {
     <details class="user-menu">
         <summary class="user-menu-trigger" aria-label="Open account menu">
-            <span class="user-initials" aria-hidden="true">@initials</span>
+            <span class="avatar" aria-hidden="true">@initials</span>
             <span class="user-menu-trigger-name">@userName</span>
             <svg class="user-menu-chevron" width="16" height="16" viewBox="0 0 24 24"
                  fill="none" stroke="currentColor" stroke-width="2"
@@ -31,7 +20,7 @@
 
         <div class="user-menu-panel">
             <div class="user-menu-header">
-                <span class="user-initials" aria-hidden="true">@initials</span>
+                <span class="avatar avatar-md" aria-hidden="true">@initials</span>
                 <span class="user-menu-identity">
                     <span class="user-menu-name">@userName</span>
                     <span class="user-menu-email">@email</span>

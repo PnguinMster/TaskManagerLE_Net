@@ -2,19 +2,6 @@
 
 @{
     ViewData["Title"] = "Profile";
-
-    var avatarText = string.Concat(
-        Model.UserName
-            .Split('@', StringSplitOptions.RemoveEmptyEntries)
-            .FirstOrDefault()?
-            .Split('.', ' ', '_', '-')
-            .Where(part => part.Length > 0)
-            .Take(2)
-            .Select(part => char.ToUpperInvariant(part[0])) ?? []);
-
-    if (string.IsNullOrWhiteSpace(avatarText)) {
-        avatarText = "?";
-    }
 }
 
 <div class="profile-page">
@@ -25,7 +12,7 @@
 
     <div class="card stack">
         <div class="row">
-            <span class="avatar avatar-lg">@avatarText</span>
+            <span class="avatar avatar-lg" aria-hidden="true">@Model.UserName.ToInitials()</span>
             <div class="stack profile-identity">
                 <h2>@Model.UserName</h2>
                 <p class="muted">
