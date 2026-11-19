@@ -1,9 +1,13 @@
 @* Errors for the whole form, not one field: the ones a controller adds with the key string.Empty
    (e.g. "Invalid username or password" in AccountController.LoginFailed). Field errors show under
    their own field with asp-validation-for instead. Renders nothing when there are none.
-   Used as <partial name="_FormErrors" /> at the top of a form. *@
+   Used as <partial name="_FormErrors" /> at the top of a form.
+   A page with two forms gives the second one its own key, so an error only shows on the form it belongs to:
+   <partial name="_FormErrors" view-data='new ViewDataDictionary(ViewData) { { "FormErrorKey", "ChangePassword" } }' />
+   (see Account/Profile.cshtml and AccountController.AddChangePasswordError). *@
 @{
-    var formErrors = ViewData.ModelState[string.Empty]?.Errors
+    var errorKey = ViewData["FormErrorKey"] as string ?? string.Empty;
+    var formErrors = ViewData.ModelState[errorKey]?.Errors
         .Select(error => error.ErrorMessage)
         .ToList() ?? [];
 }

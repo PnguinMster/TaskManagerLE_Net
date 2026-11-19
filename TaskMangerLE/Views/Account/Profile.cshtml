@@ -68,7 +68,9 @@
         <p class="muted">Enter your current password, then choose a new one.</p>
 
         <form asp-action="ChangePassword" method="post" class="stack" data-check-required novalidate>
-            <partial name="_FormErrors" />
+            @* Its own key, so these errors don't also show on the details card above. *@
+            <partial name="_FormErrors"
+                     view-data='new ViewDataDictionary(ViewData) { { "FormErrorKey", nameof(ProfileViewModel.ChangePassword) } }' />
 
             <div class="field">
                 <label asp-for="ChangePassword.CurrentPassword"></label>

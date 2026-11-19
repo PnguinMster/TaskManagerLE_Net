@@ -175,15 +175,19 @@ public class AccountController(
             {
                 nameof(IdentityErrorDescriber.PasswordMismatch) => nameof(ChangePasswordViewModel.CurrentPassword),
                 var code when code.StartsWith("Password") => nameof(ChangePasswordViewModel.NewPassword),
-                _ => string.Empty // unknown errors fall back to the summary at the top of the card
+                _ => string.Empty // unknown errors go to the form-level alert at the top of the card
             };
             AddChangePasswordError(field, error.Description);
         }
     }
 
+    // Form-level errors (no field) use the key "ChangePassword", not string.Empty: the details card on the
+    // same page shows string.Empty errors, and a password error must only show on the password card.
     private void AddChangePasswordError(string field, string message)
     {
-        var key = field == string.Empty ? string.Empty : $"{nameof(ProfileViewModel.ChangePassword)}.{field}";
+        var key = field == string.Empty
+            ? nameof(ProfileViewModel.ChangePassword)
+            : $"{nameof(ProfileViewModel.ChangePassword)}.{field}";
         ModelState.AddModelError(key, message);
     }
 
