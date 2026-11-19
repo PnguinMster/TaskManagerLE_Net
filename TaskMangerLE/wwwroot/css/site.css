@@ -1496,6 +1496,16 @@ dialog.modal::backdrop {
     display: block;
 }
 
+/* Right side of a due-soon row: due date on top, priority under it, both right-aligned.
+   flex: none keeps it from shrinking when the task name is long. */
+.dashboard-task-aside {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+
 .dashboard-task-section {
     display: flex;
     flex-direction: column;

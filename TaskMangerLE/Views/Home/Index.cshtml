@@ -147,12 +147,15 @@
                                                asp-controller="Project"
                                                asp-action="Detail"
                                                asp-route-projectId="@task.ProjectId">@task.ProjectName</a>
-                                            <partial name="_PriorityBadge" model="task.Priority" />
                                         </span>
                                     </span>
 
-                                    @* Upcoming tasks are all open (DashboardServices filters them), so IsFinished is false. *@
-                                    <partial name="_DueLabel" model="new DueLabelViewModel(task.DueDate, false)" />
+                                    @* Right edge of the row (.dashboard-task-details is flex: 1): due date stacked over priority. *@
+                                    <span class="dashboard-task-aside">
+                                        @* Upcoming tasks are all open (DashboardServices filters them), so IsFinished is false. *@
+                                        <partial name="_DueLabel" model="new DueLabelViewModel(task.DueDate, false)" />
+                                        <partial name="_PriorityBadge" model="task.Priority" />
+                                    </span>
                                 </div>
                             }
                         </div>
@@ -314,10 +317,12 @@ else {
                                 <span class="dashboard-task-name">Finalize homepage hero copy</span>
                                 <span class="small dashboard-task-meta">
                                     <span class="text-blue">Website Redesign</span>
-                                    <partial name="_PriorityBadge" model="TaskPriority.High" />
                                 </span>
                             </span>
-                            <span class="badge badge-amber">Due today</span>
+                            <span class="dashboard-task-aside">
+                                <span class="badge badge-amber">Due today</span>
+                                <partial name="_PriorityBadge" model="TaskPriority.High" />
+                            </span>
                         </div>
 
                         <div class="row dashboard-task">
@@ -329,10 +334,12 @@ else {
                                 <span class="dashboard-task-name">Fix signup validation on mobile</span>
                                 <span class="small dashboard-task-meta">
                                     <span class="text-blue">Onboarding Flow</span>
-                                    <partial name="_PriorityBadge" model="TaskPriority.High" />
                                 </span>
                             </span>
-                            <span class="due"><partial name="_CalendarIcon" /> Nov 18</span>
+                            <span class="dashboard-task-aside">
+                                <span class="due"><partial name="_CalendarIcon" /> Nov 18</span>
+                                <partial name="_PriorityBadge" model="TaskPriority.High" />
+                            </span>
                         </div>
 
                         <div class="row dashboard-task">
@@ -344,10 +351,12 @@ else {
                                 <span class="dashboard-task-name">Wireframe key pages</span>
                                 <span class="small dashboard-task-meta">
                                     <span class="text-blue">Website Redesign</span>
-                                    <partial name="_PriorityBadge" model="TaskPriority.Medium" />
                                 </span>
                             </span>
-                            <span class="due"><partial name="_CalendarIcon" /> Nov 21</span>
+                            <span class="dashboard-task-aside">
+                                <span class="due"><partial name="_CalendarIcon" /> Nov 21</span>
+                                <partial name="_PriorityBadge" model="TaskPriority.Medium" />
+                            </span>
                         </div>
                     </div>
                 </div>
