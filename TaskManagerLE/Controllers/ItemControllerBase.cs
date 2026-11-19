@@ -1,6 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TaskManagerLE.Authorization;
-using Microsoft.AspNetCore.Authorization;
 using TaskManagerLE.Models;
 
 namespace TaskManagerLE.Controllers;
@@ -17,7 +17,7 @@ public abstract class ItemControllerBase(IAuthorizationService authorizationServ
         if (item is null)
             return null;
 
-        var authResult = await authorizationService.AuthorizeAsync(User, getProject(item), Policies.ProjectOwner);
+        AuthorizationResult authResult = await authorizationService.AuthorizeAsync(User, getProject(item), Policies.ProjectOwner);
         return authResult.Succeeded ? item : null;
     }
 
@@ -25,7 +25,7 @@ public abstract class ItemControllerBase(IAuthorizationService authorizationServ
     // This answers with 400 and { errors: { "Name": ["..."] } }, which site.js shows under each field.
     protected IActionResult ValidationErrorsResult()
     {
-        var errors = ModelState
+        Dictionary<string, string[]> errors = ModelState
             .Where(entry => entry.Value?.Errors.Count > 0)
             .ToDictionary(
                 entry => entry.Key,

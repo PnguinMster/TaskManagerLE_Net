@@ -10,13 +10,17 @@ public abstract class ProjectItemViewModelBase
     [Required(ErrorMessage = "Project title is required.")]
     [MaxLength(ItemConstraints.NameMaxLength)]
     public string Name { get; set; } = string.Empty;
-    [DataType(DataType.MultilineText)]
-    [MaxLength(ItemConstraints.DescriptionMaxLength)]
+
     // string? (not string) so MVC doesn't treat it as implicitly [Required]; the form says "Optional".
+    [MaxLength(ItemConstraints.DescriptionMaxLength)]
+    [DataType(DataType.MultilineText)]
     public string? Description { get; set; }
+
+    [EnumDataType(typeof(ProjectStatus))]
+    public ProjectStatus Status { get; set; }
+
     [Display(Name = "Due date")]
     public DateOnly DueDate { get; set; }
-    [EnumDataType(typeof(ProjectStatus))] public ProjectStatus Status { get; set; }
 }
 
 // The page that renders the create modal sets DueDate to the injected TimeProvider's today

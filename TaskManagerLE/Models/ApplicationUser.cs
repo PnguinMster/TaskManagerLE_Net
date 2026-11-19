@@ -12,7 +12,7 @@ public static class UserConstraints
     public const int EmailMaxLength = 256;
 }
 
-/// The application's Identity user. Intentionally declares no members of its own
+// The application's Identity user: everything IdentityUser has, plus when the account was created.
 public class ApplicationUser : IdentityUser
 {
     public DateTime CreatedAtUtc { get; set; }

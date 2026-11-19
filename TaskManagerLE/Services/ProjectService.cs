@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TaskManagerLE.Data;
+using TaskManagerLE.Extensions;
 using TaskManagerLE.Models;
 using TaskStatus = TaskManagerLE.Models.Enums.TaskStatus;
 
@@ -10,7 +11,7 @@ public class ProjectService(ApplicationDbContext context, TimeProvider timeProvi
     // Admins see every user's projects, same rule as TrashService.
     public async Task<List<ProjectCardViewModel>> GetProjectCardsAsync(string userId, bool isAdmin)
     {
-        var query = context.ProjectItems.AsNoTracking();
+        IQueryable<ProjectItem> query = context.ProjectItems.AsNoTracking();
 
         if (!isAdmin)
             query = query.Where(p => p.OwnerId == userId);
@@ -24,6 +25,7 @@ public class ProjectService(ApplicationDbContext context, TimeProvider timeProvi
                 Status = p.Status,
                 Description = p.Description,
                 // Cancelled tasks will never be done, so they don't count toward progress.
+                // Same two lines in GetProjectDetailAsync and DashboardService; kept inline so EF can turn them into SQL.
                 CompletedTaskCount = p.Tasks.Count(t => t.Status == TaskStatus.Done),
                 TotalTaskCount = p.Tasks.Count(t => t.Status != TaskStatus.Cancelled),
                 DueDate = p.DueDate
@@ -44,6 +46,7 @@ public class ProjectService(ApplicationDbContext context, TimeProvider timeProvi
                 Status = p.Status,
                 CreatedAtUtc = p.CreatedAtUtc,
                 OwnerName = p.Owner.UserName ?? p.Owner.Email ?? "Unknown",
+                // Progress rule: see GetProjectCardsAsync.
                 CompletedTaskCount = p.Tasks.Count(t => t.Status == TaskStatus.Done),
                 TotalTaskCount = p.Tasks.Count(t => t.Status != TaskStatus.Cancelled),
                 DueDate = p.DueDate,
@@ -66,7 +69,7 @@ public class ProjectService(ApplicationDbContext context, TimeProvider timeProvi
 
     public async Task AddProjectAsync(ProjectItemCreateViewModel projectItemModel, string userId)
     {
-        ProjectItem projectItem = new ProjectItem
+        ProjectItem projectItem = new()
         {
             Name = projectItemModel.Name,
             Description = projectItemModel.Description ?? string.Empty,
@@ -93,11 +96,13 @@ public class ProjectService(ApplicationDbContext context, TimeProvider timeProvi
         context.ProjectItems.FirstOrDefaultAsync(p => p.Id == projectId);
 
     public Task<ProjectItem?> GetProjectWithTasksAsync(int projectId) =>
-        context.ProjectItems.Include(p => p.Tasks).FirstOrDefaultAsync(p => p.Id == projectId);
+        context.ProjectItems
+            .Include(p => p.Tasks)
+            .FirstOrDefaultAsync(p => p.Id == projectId);
 
     public async Task DeleteProjectAsync(ProjectItem projectItem, string deletedByUserId)
     {
-        DateTime deletedAtUtc = timeProvider.GetUtcNow().UtcDateTime;
+        DateTime deletedAtUtc = timeProvider.UtcNow();
 
         projectItem.SoftDelete(deletedByUserId, deletedAtUtc);
         foreach (TaskItem taskItem in projectItem.Tasks)
@@ -108,15 +113,22 @@ public class ProjectService(ApplicationDbContext context, TimeProvider timeProvi
 
     // Restore POST. Tasks that were deleted with the project.
     public Task<ProjectItem?> GetDeletedProjectWithDeletedTasksAsync(int projectId) =>
-        GetDeletedProjectsQuery().Include(p => p.Tasks.Where(t => t.IsDeleted))
+        DeletedProjects()
+            .Include(p => p.Tasks.Where(t => t.IsDeleted))
             .FirstOrDefaultAsync(p => p.Id == projectId);
 
     // Purge needs every task, including the deleted ones.
     public Task<ProjectItem?> GetDeletedProjectWithAllTasksAsync(int projectId) =>
-        GetDeletedProjectsQuery().Include(p => p.Tasks).FirstOrDefaultAsync(p => p.Id == projectId);
+        DeletedProjects()
+            .Include(p => p.Tasks)
+            .FirstOrDefaultAsync(p => p.Id == projectId);
 
-    private IQueryable<ProjectItem> GetDeletedProjectsQuery() =>
-        context.ProjectItems.IgnoreQueryFilters().Where(p => p.IsDeleted);
+    // "Deleted" = the project's own IsDeleted flag, any owner (the controller checks ownership).
+    // Not the same as TrashService.TrashedProjects/TrashedTasks, which are what one user's Trash page shows.
+    private IQueryable<ProjectItem> DeletedProjects() =>
+        context.ProjectItems
+            .IgnoreQueryFilters()
+            .Where(p => p.IsDeleted);
 
     public async Task RestoreProjectAsync(ProjectItem projectItem)
     {

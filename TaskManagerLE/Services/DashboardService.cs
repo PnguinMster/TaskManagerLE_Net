@@ -17,36 +17,49 @@ public class DashboardService(ApplicationDbContext context, TimeProvider timePro
     {
         DateOnly today = timeProvider.Today();
 
-        var projectCounts = await context.ProjectItems.AsNoTracking().Where(p => p.OwnerId == userId).GroupBy(p => p.Status)
-            .Select(g => new { Status = g.Key, Count = g.Count() }).ToListAsync();
+        // Every status, archived included, so it also tells us whether the user has any projects at all.
+        var projectCounts = await context.ProjectItems
+            .AsNoTracking()
+            .Where(p => p.OwnerId == userId)
+            .GroupBy(p => p.Status)
+            .Select(g => new { Status = g.Key, Count = g.Count() })
+            .ToListAsync();
 
         // Archived projects are put away on purpose, so neither they nor their tasks show on the dashboard.
-        var openTasks = context.TaskItems.AsNoTracking().Where(t =>
-            t.Project.OwnerId == userId &&
-            t.Project.Status != ProjectStatus.Archived &&
-            !TaskStatusExtensions.FinishedStatuses.Contains(t.Status));
+        IQueryable<TaskItem> openTasks = context.TaskItems
+            .AsNoTracking()
+            .Where(t =>
+                t.Project.OwnerId == userId &&
+                t.Project.Status != ProjectStatus.Archived &&
+                !TaskStatusExtensions.FinishedStatuses.Contains(t.Status));
 
         int pendingTasks = await openTasks.CountAsync();
 
         int overdueTasks = await openTasks.CountAsync(t => t.DueDate < today);
 
-        var recentProjects = await context.ProjectItems.AsNoTracking()
+        List<DashboardProjectViewModel> recentProjects = await context.ProjectItems
+            .AsNoTracking()
             .Where(p => p.OwnerId == userId && p.Status != ProjectStatus.Archived)
             .OrderByDescending(p => p.UpdatedAtUtc)
-            .Take(RecentProjectsLimit).Select(p => new DashboardProjectViewModel
+            .Take(RecentProjectsLimit)
+            .Select(p => new DashboardProjectViewModel
             {
                 Id = p.Id,
                 Name = p.Name,
                 Description = p.Description,
                 Status = p.Status,
                 UpdatedAtUtc = p.UpdatedAtUtc,
-                TotalTaskCount = p.Tasks.Count(t => t.Status != TaskStatus.Cancelled),
+                // Progress rule: see ProjectService.GetProjectCardsAsync.
                 CompletedTaskCount = p.Tasks.Count(t => t.Status == TaskStatus.Done),
-            }).ToListAsync();
+                TotalTaskCount = p.Tasks.Count(t => t.Status != TaskStatus.Cancelled),
+            })
+            .ToListAsync();
 
-        var upcomingTasks = await openTasks
+        List<DashboardTaskViewModel> upcomingTasks = await openTasks
             .Where(t => t.DueDate >= today)
-            .OrderBy(t => t.DueDate).Take(UpcomingTasksLimit).Select(t => new DashboardTaskViewModel
+            .OrderBy(t => t.DueDate)
+            .Take(UpcomingTasksLimit)
+            .Select(t => new DashboardTaskViewModel
             {
                 Id = t.Id,
                 ProjectId = t.ProjectId,
@@ -60,10 +73,11 @@ public class DashboardService(ApplicationDbContext context, TimeProvider timePro
         return new DashboardViewModel
         {
             IsAuthenticated = true,
-            ActiveProjectsCount = projectCounts.FirstOrDefault(c => c.Status == ProjectStatus.Active)?.Count ?? 0,
-            CompletedProjectsCount = projectCounts.FirstOrDefault(c => c.Status == ProjectStatus.Completed)?.Count ?? 0,
-            PendingTasksCount = pendingTasks,
-            OverdueTasksCount = overdueTasks,
+            HasAnyProjects = projectCounts.Sum(c => c.Count) > 0,
+            ActiveProjectCount = projectCounts.FirstOrDefault(c => c.Status == ProjectStatus.Active)?.Count ?? 0,
+            CompletedProjectCount = projectCounts.FirstOrDefault(c => c.Status == ProjectStatus.Completed)?.Count ?? 0,
+            PendingTaskCount = pendingTasks,
+            OverdueTaskCount = overdueTasks,
             RecentProjects = recentProjects,
             UpcomingTasks = upcomingTasks,
         };

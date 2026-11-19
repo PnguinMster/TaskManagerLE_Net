@@ -25,7 +25,7 @@ public class TrashController(TrashService trashService, UserManager<ApplicationU
         if (userId is null)
             return Challenge();
 
-        return View(await trashService.GetSummaryAsync(userId, User.IsInRole(Roles.Admin)));
+        return View(await trashService.GetSummaryAsync(userId, User.IsAdmin()));
     }
 
     [HttpPost]
@@ -40,7 +40,7 @@ public class TrashController(TrashService trashService, UserManager<ApplicationU
         if (userId is null)
             return Challenge();
 
-        await trashService.EmptyTrashAsync(userId, User.IsInRole(Roles.Admin));
+        await trashService.EmptyTrashAsync(userId, User.IsAdmin());
         this.ShowToast(new ToastMessage(ToastKind.Info, "Trash emptied",
             "Everything in it was permanently deleted."));
         return RedirectToAction(nameof(Index));
@@ -54,7 +54,7 @@ public class TrashController(TrashService trashService, UserManager<ApplicationU
         if (userId is null)
             return Challenge();
 
-        RestoreAllResult restored = await trashService.RestoreAllAsync(userId, User.IsInRole(Roles.Admin));
+        RestoreAllResult restored = await trashService.RestoreAllAsync(userId, User.IsAdmin());
         int projects = restored.Projects.Count;
         int tasks = restored.Tasks.Count;
         if (projects + tasks == 0)
@@ -87,7 +87,7 @@ public class TrashController(TrashService trashService, UserManager<ApplicationU
             || JsonSerializer.Deserialize<RestoreAllResult>(json) is not { } restored)
             return RedirectToAction(nameof(Index));
 
-        var (projects, tasks) = await trashService.UndoRestoreAllAsync(restored, userId, User.IsInRole(Roles.Admin));
+        var (projects, tasks) = await trashService.UndoRestoreAllAsync(restored, userId, User.IsAdmin());
         if (projects + tasks > 0)
             this.ShowToast(new ToastMessage(ToastKind.Info, "Restore undone",
                 CountMessage(projects, tasks, "back in the Trash.")));
@@ -98,7 +98,7 @@ public class TrashController(TrashService trashService, UserManager<ApplicationU
     // e.g. "1 project is back.", "2 projects and 1 task are back in the Trash."
     private static string CountMessage(int projects, int tasks, string ending)
     {
-        var parts = new List<string>();
+        List<string> parts = [];
         if (projects > 0)
             parts.Add(projects == 1 ? "1 project" : $"{projects} projects");
         if (tasks > 0)

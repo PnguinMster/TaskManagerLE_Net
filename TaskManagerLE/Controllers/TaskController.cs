@@ -1,31 +1,31 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using TaskManagerLE.Authorization;
 using TaskManagerLE.Models;
 using TaskManagerLE.Models.Enums;
 using TaskManagerLE.Services;
-using TaskManagerLE.Authorization;
 using TaskStatus = TaskManagerLE.Models.Enums.TaskStatus;
 
 namespace TaskManagerLE.Controllers;
 
 [Authorize]
 public class TaskController(
-    UserManager<ApplicationUser> userManager,
     TaskService taskService,
     ProjectService projectService,
+    UserManager<ApplicationUser> userManager,
     IAuthorizationService authorizationService) : ItemControllerBase(authorizationService)
 {
-    [HttpGet]
     // showArchived comes from the query string (?showArchived=true); missing means false, so archived
     // projects' tasks are hidden by default.
+    [HttpGet]
     public async Task<IActionResult> Index(bool showArchived = false)
     {
         string? userId = userManager.GetUserId(User);
         if (userId is null)
             return Challenge();
 
-        bool isAdmin = User.IsInRole(Roles.Admin);
+        bool isAdmin = User.IsAdmin();
         TaskListViewModel model = await taskService.GetTaskListAsync(userId, isAdmin, showArchived);
         ViewData["AvailableProjects"] =
             await projectService.GetProjectCardsAsync(userId, isAdmin);
@@ -33,10 +33,10 @@ public class TaskController(
         return View(model);
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
     // Sent with fetch, like ProjectController.Create: errors go back as JSON so the modal stays open,
     // and on success site.js reloads the page the modal is on (Tasks or a project's board).
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(TaskItemCreateViewModel model)
     {
         ProjectItem? projectItem = await LoadAuthorizedAsync(
@@ -54,10 +54,10 @@ public class TaskController(
         return Ok();
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
     // Sent with fetch, like Create: errors go back as JSON and on success site.js reloads the page
     // the modal is on (Tasks or a project's board).
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Update(TaskItemUpdateViewModel model)
     {
         TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetTaskWithProjectAsync(model.Id), t => t.Project);
@@ -134,9 +134,8 @@ public class TaskController(
         await taskService.ToggleCompletionAsync(taskItem);
 
         // Checked once here, then used for both the redirect and Undo (same as Delete).
-        string backUrl = Url.IsLocalUrl(returnUrl)
-            ? returnUrl
-            : Url.Action("Detail", "Project", new { projectId = taskItem.ProjectId })!;
+        string backUrl = this.LocalUrlOr(returnUrl,
+            Url.Action(nameof(ProjectController.Detail), "Project", new { projectId = taskItem.ProjectId })!);
 
         // Completing offers Undo on every page, so a stray click is easy to take back (on Home the
         // task also drops off the list). Un-completing needs no Undo: just tick the box again.
@@ -169,7 +168,7 @@ public class TaskController(
         if (taskItem.Status == TaskStatus.Done)
             await taskService.UndoCompletionAsync(taskItem, previousStatus);
 
-        return this.RedirectToLocal(returnUrl, RedirectToAction("Index", "Home"));
+        return this.RedirectToLocal(returnUrl, RedirectToAction(nameof(HomeController.Index), "Home"));
     }
 
     [HttpPost]
@@ -186,7 +185,7 @@ public class TaskController(
         await taskService.RestoreTaskAsync(taskItem);
         this.ShowToast(new ToastMessage(ToastKind.Success, "Task restored", $"{taskItem.Name} is back."));
 
-        return this.RedirectToLocal(returnUrl, RedirectToAction("Index", "Trash"));
+        return this.RedirectToLocal(returnUrl, RedirectToAction(nameof(TrashController.Index), "Trash"));
     }
 
     [HttpPost]
@@ -207,6 +206,6 @@ public class TaskController(
             $"{taskItem.Name} was permanently deleted."));
 
         // The Trash page sends a returnUrl.
-        return this.RedirectToLocal(returnUrl, RedirectToAction("Index", "Trash"));
+        return this.RedirectToLocal(returnUrl, RedirectToAction(nameof(TrashController.Index), "Trash"));
     }
 }

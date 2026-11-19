@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TaskManagerLE.Data;
+using TaskManagerLE.Extensions;
 using TaskManagerLE.Models;
 using TaskManagerLE.Models.Enums;
 using TaskStatus = TaskManagerLE.Models.Enums.TaskStatus;
@@ -10,7 +11,7 @@ public class TaskService(ApplicationDbContext context, TimeProvider timeProvider
 {
     public async Task AddTaskAsync(TaskItemCreateViewModel taskItemModel)
     {
-        TaskItem taskItem = new TaskItem
+        TaskItem taskItem = new()
         {
             Name = taskItemModel.Name,
             Description = taskItemModel.Description ?? string.Empty,
@@ -57,9 +58,15 @@ public class TaskService(ApplicationDbContext context, TimeProvider timeProvider
     // Admins see every user's tasks, same rule as ProjectService.GetProjectCardsAsync.
     public async Task<TaskListViewModel> GetTaskListAsync(string userId, bool isAdmin, bool showArchived)
     {
-        var tasks = await context.TaskItems
-            .AsNoTracking()
-            .Where(t => isAdmin || t.Project.OwnerId == userId)
+        IQueryable<TaskItem> taskQuery = context.TaskItems.AsNoTracking();
+        IQueryable<ProjectItem> projectQuery = context.ProjectItems.AsNoTracking();
+
+        if (!isAdmin) {
+            taskQuery = taskQuery.Where(t => t.Project.OwnerId == userId);
+            projectQuery = projectQuery.Where(p => p.OwnerId == userId);
+        }
+
+        List<TaskListItemViewModel> tasks = await taskQuery
             .Where(t => showArchived || t.Project.Status != ProjectStatus.Archived)
             .OrderBy(t => t.DueDate)
             .ThenBy(t => t.Name)
@@ -76,9 +83,8 @@ public class TaskService(ApplicationDbContext context, TimeProvider timeProvider
             })
             .ToListAsync();
 
-        int projectCount = await context.ProjectItems
-            .AsNoTracking()
-            .CountAsync(p => (isAdmin || p.OwnerId == userId) && (showArchived || p.Status != ProjectStatus.Archived));
+        int projectCount = await projectQuery
+            .CountAsync(p => showArchived || p.Status != ProjectStatus.Archived);
 
         return new TaskListViewModel
         {
@@ -91,16 +97,22 @@ public class TaskService(ApplicationDbContext context, TimeProvider timeProvider
 
     // Project included for authorization
     public Task<TaskItem?> GetTaskWithProjectAsync(int taskId) =>
-        context.TaskItems.Include(t => t.Project).FirstOrDefaultAsync(t => t.Id == taskId);
+        context.TaskItems
+            .Include(t => t.Project)
+            .FirstOrDefaultAsync(t => t.Id == taskId);
 
     public async Task DeleteTaskAsync(TaskItem taskItem, string deletedByUserId)
     {
-        taskItem.SoftDelete(deletedByUserId, timeProvider.GetUtcNow().UtcDateTime);
+        taskItem.SoftDelete(deletedByUserId, timeProvider.UtcNow());
         await context.SaveChangesAsync();
     }
 
+    // "Deleted" = the task's own IsDeleted flag, same meaning as ProjectService.DeletedProjects.
+    // Project included for authorization, like GetTaskWithProjectAsync.
     public Task<TaskItem?> GetDeletedTaskAsync(int taskId) =>
-        context.TaskItems.IgnoreQueryFilters().Include(t => t.Project)
+        context.TaskItems
+            .IgnoreQueryFilters()
+            .Include(t => t.Project)
             .FirstOrDefaultAsync(t => t.Id == taskId && t.IsDeleted);
 
     public async Task RestoreTaskAsync(TaskItem taskItem)

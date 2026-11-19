@@ -6,10 +6,13 @@ public class DashboardViewModel
 {
     public bool IsAuthenticated { get; init; }
 
-    public int ActiveProjectsCount { get; init; }
-    public int PendingTasksCount { get; init; }
-    public int OverdueTasksCount { get; init; }
-    public int CompletedProjectsCount { get; init; }
+    // Any status, archived included. RecentProjects can't answer this, since it leaves archived ones out.
+    public bool HasAnyProjects { get; init; }
+
+    public int ActiveProjectCount { get; init; }
+    public int PendingTaskCount { get; init; }
+    public int OverdueTaskCount { get; init; }
+    public int CompletedProjectCount { get; init; }
 
     public IReadOnlyList<DashboardProjectViewModel> RecentProjects { get; init; } = [];
     public IReadOnlyList<DashboardTaskViewModel> UpcomingTasks { get; init; } = [];

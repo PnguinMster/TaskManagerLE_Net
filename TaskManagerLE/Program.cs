@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
-using TaskManagerLE.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.EntityFrameworkCore;
+using TaskManagerLE.Authorization;
+using TaskManagerLE.Data;
 using TaskManagerLE.Models;
 using TaskManagerLE.Services;
-using TaskManagerLE.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 

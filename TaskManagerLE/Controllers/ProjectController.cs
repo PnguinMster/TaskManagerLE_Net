@@ -1,16 +1,18 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using TaskManagerLE.Authorization;
 using TaskManagerLE.Models;
 using TaskManagerLE.Models.Enums;
 using TaskManagerLE.Services;
-using TaskManagerLE.Authorization;
 
 namespace TaskManagerLE.Controllers;
 
 [Authorize]
-public class ProjectController(ProjectService projectService, UserManager<ApplicationUser> userManager, IAuthorizationService authorizationService)
-    : ItemControllerBase(authorizationService)
+public class ProjectController(
+    ProjectService projectService,
+    UserManager<ApplicationUser> userManager,
+    IAuthorizationService authorizationService) : ItemControllerBase(authorizationService)
 {
     [HttpGet]
     public async Task<IActionResult> Index()
@@ -19,7 +21,7 @@ public class ProjectController(ProjectService projectService, UserManager<Applic
         if (userId is null)
             return Challenge();
 
-        return View(await projectService.GetProjectCardsAsync(userId, User.IsInRole(Roles.Admin)));
+        return View(await projectService.GetProjectCardsAsync(userId, User.IsAdmin()));
     }
 
     [HttpGet]
@@ -28,19 +30,21 @@ public class ProjectController(ProjectService projectService, UserManager<Applic
         if (projectId is not { } id)
             return NotFound();
 
+        // Two loads on purpose: the authorization handler needs the ProjectItem entity, while the page
+        // gets a read-only projection (ProjectDetailViewModel) built by the service.
         ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetProjectAsync(id));
         if (projectItem is null)
-            return NotFound();
-
-        ProjectDetailViewModel? project = await projectService.GetProjectDetailAsync(id);
-        if (project is null)
             return NotFound();
 
         string? userId = userManager.GetUserId(User);
         if (userId is null)
             return Challenge();
 
-        ViewData["AvailableProjects"] = await projectService.GetProjectCardsAsync(userId, User.IsInRole(Roles.Admin));
+        ProjectDetailViewModel? project = await projectService.GetProjectDetailAsync(id);
+        if (project is null)
+            return NotFound();
+
+        ViewData["AvailableProjects"] = await projectService.GetProjectCardsAsync(userId, User.IsAdmin());
 
         return View(project);
     }
@@ -64,10 +68,10 @@ public class ProjectController(ProjectService projectService, UserManager<Applic
         return Ok();
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
     // Sent with fetch, like Create: errors go back as JSON and on success site.js reloads the page
     // the modal is on.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Update(ProjectItemUpdateViewModel model)
     {
         ProjectItem? projectItem = await LoadAuthorizedAsync(projectService.GetProjectAsync(model.Id));
@@ -126,7 +130,7 @@ public class ProjectController(ProjectService projectService, UserManager<Applic
             $"{projectItem.Name} and its tasks are back."));
 
         // Undo from a toast sends the user back where they were.
-        return this.RedirectToLocal(returnUrl, RedirectToAction("Index", "Trash"));
+        return this.RedirectToLocal(returnUrl, RedirectToAction(nameof(TrashController.Index), "Trash"));
     }
 
     [HttpPost]
@@ -147,6 +151,6 @@ public class ProjectController(ProjectService projectService, UserManager<Applic
             $"{projectItem.Name} and its tasks were permanently deleted."));
 
         // The Trash page sends a returnUrl.
-        return this.RedirectToLocal(returnUrl, RedirectToAction("Index", "Trash"));
+        return this.RedirectToLocal(returnUrl, RedirectToAction(nameof(TrashController.Index), "Trash"));
     }
 }

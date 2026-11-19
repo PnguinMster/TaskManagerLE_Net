@@ -4,9 +4,9 @@
 }
 
 @if (User.Identity?.IsAuthenticated == true) {
-    // RecentProjects holds the user's projects of any status (soft-deleted ones are filtered out),
-    // so an empty list means no projects at all. Computed once so the subtitle and empty-state card agree.
-    bool hasNoProjects = Model.RecentProjects.Count == 0;
+    // Not RecentProjects.Count: that list leaves archived projects out, so it can be empty for a user
+    // who has projects. Computed once so the subtitle and empty-state card agree.
+    bool hasNoProjects = !Model.HasAnyProjects;
 
     <div class="page-header">
         <div>
@@ -22,22 +22,22 @@
     <section class="grid-kpi" aria-label="Project and task statistics">
         <article class="card">
             <p class="kpi-label">Projects in progress</p>
-            <p class="kpi-value text-blue">@Model.ActiveProjectsCount</p>
+            <p class="kpi-value text-blue">@Model.ActiveProjectCount</p>
         </article>
 
         <article class="card">
             <p class="kpi-label">Pending tasks</p>
-            <p class="kpi-value">@Model.PendingTasksCount</p>
+            <p class="kpi-value">@Model.PendingTaskCount</p>
         </article>
 
         <article class="card">
             <p class="kpi-label">Overdue tasks</p>
-            <p class="kpi-value text-rose">@Model.OverdueTasksCount</p>
+            <p class="kpi-value text-rose">@Model.OverdueTaskCount</p>
         </article>
 
         <article class="card">
             <p class="kpi-label">Completed projects</p>
-            <p class="kpi-value text-green">@Model.CompletedProjectsCount</p>
+            <p class="kpi-value text-green">@Model.CompletedProjectCount</p>
         </article>
     </section>
 
@@ -63,6 +63,11 @@
                     <h2>Recent projects</h2>
                     <a asp-controller="Project" asp-action="Index">All Projects →</a>
                 </div>
+
+                @* Empty only when every project is archived (the no-projects case shows the card above). *@
+                @if (Model.RecentProjects.Count == 0) {
+                    <p class="muted">All your projects are archived.</p>
+                }
 
                 <div class="stack">
                     @foreach (DashboardProjectViewModel project in Model.RecentProjects) {
@@ -148,7 +153,7 @@
 
                                     @* Right edge of the row (.dashboard-task-details is flex: 1): due date stacked over priority. *@
                                     <span class="dashboard-task-aside">
-                                        @* Upcoming tasks are all open (DashboardServices filters them), so IsFinished is false. *@
+                                        @* Upcoming tasks are all open (DashboardService filters them), so IsFinished is false. *@
                                         <partial name="_DueLabel" model="new DueLabelViewModel(task.DueDate, false)" />
                                         <partial name="_PriorityBadge" model="task.Priority" />
                                     </span>

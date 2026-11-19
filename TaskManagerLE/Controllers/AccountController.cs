@@ -74,12 +74,11 @@ public class AccountController(
 
         if (emailChanged) {
             var code = await userManager.GenerateChangeEmailTokenAsync(user, newEmail);
-            var encodedCode = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
             var callbackUrl = Url.Action(
                 nameof(ConfirmEmailChange),
                 "Account",
-                new { userId = user.Id, email = newEmail, code = encodedCode },
+                new { userId = user.Id, email = newEmail, code = EncodeToken(code) },
                 protocol: Request.Scheme);
 
             await emailSender.SendEmailAsync(
@@ -115,10 +114,7 @@ public class AccountController(
 
         // Same idea as Register/ResetPassword: check the rules before the IsValid test so every
         // problem shows together instead of one hiding the other.
-        if (!string.IsNullOrEmpty(model.NewPassword)) {
-            foreach (var validator in userManager.PasswordValidators)
-                AddChangePasswordErrors(await validator.ValidateAsync(userManager, user, model.NewPassword));
-        }
+        await AddPasswordRuleErrorsAsync(user, model.NewPassword, AddChangePasswordErrors);
 
         if (!string.IsNullOrEmpty(model.CurrentPassword)
             && !await userManager.CheckPasswordAsync(user, model.CurrentPassword)) {
@@ -215,6 +211,34 @@ public class AccountController(
         }
     }
 
+    // UserManager exposes the same password validators that create/change/reset use, so we can run
+    // them without saving anything. An empty password is already reported by [Required]; skip it so
+    // rule errors don't pile on top. addErrors decides which field keys the errors go under.
+    private async Task AddPasswordRuleErrorsAsync(ApplicationUser user, string password, Action<IdentityResult> addErrors)
+    {
+        if (string.IsNullOrEmpty(password))
+            return;
+
+        foreach (var validator in userManager.PasswordValidators)
+            addErrors(await validator.ValidateAsync(userManager, user, password));
+    }
+
+    // Identity tokens can contain '+', '/' and '=', which get mangled in a URL. Links carry them
+    // Base64Url-encoded instead, and the action that receives the link decodes them back.
+    private static string EncodeToken(string token) =>
+        WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+
+    // Returns null when the code isn't valid Base64Url (e.g. the link was cut short or edited).
+    private static string? DecodeToken(string encodedToken)
+    {
+        try {
+            return Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(encodedToken));
+        }
+        catch (FormatException) {
+            return null;
+        }
+    }
+
     [HttpGet]
     [AllowAnonymous] // opened from the email, possibly in a browser that isn't signed in
     public async Task<IActionResult> ConfirmEmailChange(
@@ -232,14 +256,11 @@ public class AccountController(
         if (user is null)
             return NotFound();
 
-        try {
-            code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
-        }
-        catch (FormatException) {
+        var token = DecodeToken(code);
+        if (token is null)
             return BadRequest();
-        }
 
-        var result = await userManager.ChangeEmailAsync(user, email, code);
+        var result = await userManager.ChangeEmailAsync(user, email, token);
         if (!result.Succeeded) {
             this.ShowToast(new ToastMessage(ToastKind.Error, "Email not changed",
                 "We couldn't confirm that email change. Please request it again."));
@@ -260,7 +281,7 @@ public class AccountController(
     public IActionResult Login()
     {
         if (User.Identity?.IsAuthenticated == true)
-            return RedirectToAction(nameof(Index), "Home");
+            return RedirectToAction(nameof(HomeController.Index), "Home");
 
         return View(new LoginViewModel());
     }
@@ -277,20 +298,20 @@ public class AccountController(
         // Trim so a pasted value with stray spaces still matches.
         var usernameOrEmail = model.UsernameOrEmail.Trim();
 
-        ApplicationUser? user = usernameOrEmail.Contains('@')
+        var user = usernameOrEmail.Contains('@')
             ? await userManager.FindByEmailAsync(usernameOrEmail)
             : await userManager.FindByNameAsync(usernameOrEmail);
 
         if (user is null)
             return LoginFailed(model, "Invalid username or password. Please try again.");
 
-        var signInResult = await signInManager.PasswordSignInAsync(user.UserName!, model.Password, model.RememberMe, lockoutOnFailure: true);
+        var result = await signInManager.PasswordSignInAsync(user.UserName!, model.Password, model.RememberMe, lockoutOnFailure: true);
 
-        if (signInResult.Succeeded)
-            return RedirectToAction(nameof(Index), "Home");
+        if (result.Succeeded)
+            return RedirectToAction(nameof(HomeController.Index), "Home");
 
         // Same message for a wrong username and a wrong password, so the form doesn't reveal which accounts exist.
-        var errorMessage = signInResult.IsLockedOut
+        var errorMessage = result.IsLockedOut
             ? "Account locked. Try again later."
             : "Invalid username or password. Please try again.";
 
@@ -309,9 +330,9 @@ public class AccountController(
     public IActionResult Register()
     {
         if (User.Identity?.IsAuthenticated == true)
-            return RedirectToAction(nameof(Index), "Home");
+            return RedirectToAction(nameof(HomeController.Index), "Home");
 
-        return View();
+        return View(new RegisterViewModel());
     }
 
     [HttpPost]
@@ -319,7 +340,17 @@ public class AccountController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
-        ApplicationUser user = new ApplicationUser
+        // Trim like Login and Profile do, so " bob " is saved as "bob". The attributes already ran on the
+        // untrimmed text during model binding, so clear those two results and validate again: otherwise
+        // "  ab  " would pass the length check and then be saved as the too-short "ab".
+        // (?. because an empty field is bound as null, even though the property isn't nullable.)
+        model.UserName = model.UserName?.Trim() ?? string.Empty;
+        model.Email = model.Email?.Trim() ?? string.Empty;
+        ModelState.ClearValidationState(nameof(RegisterViewModel.UserName));
+        ModelState.ClearValidationState(nameof(RegisterViewModel.Email));
+        TryValidateModel(model);
+
+        var user = new ApplicationUser
         {
             UserName = model.UserName,
             Email = model.Email,
@@ -341,7 +372,7 @@ public class AccountController(
             return View(model);
         }
 
-        IdentityResult roleResult = await userManager.AddToRoleAsync(user, Roles.User);
+        var roleResult = await userManager.AddToRoleAsync(user, Roles.User);
         if (!roleResult.Succeeded) {
             await userManager.DeleteAsync(user);
             ModelState.AddModelError(string.Empty, "We couldn't finish setting up your account. Please try again later.");
@@ -349,7 +380,7 @@ public class AccountController(
         }
 
         await signInManager.SignInAsync(user, isPersistent: false);
-        return RedirectToAction(nameof(Index), "Home");
+        return RedirectToAction(nameof(HomeController.Index), "Home");
     }
 
     // UserManager exposes the same validators CreateAsync uses, so we can run them without saving anything.
@@ -358,11 +389,7 @@ public class AccountController(
         foreach (var validator in userManager.UserValidators)
             AddRegisterErrors(await validator.ValidateAsync(userManager, user));
 
-        // An empty password is already reported by [Required]; don't pile rule errors on top.
-        if (!string.IsNullOrEmpty(password)) {
-            foreach (var validator in userManager.PasswordValidators)
-                AddRegisterErrors(await validator.ValidateAsync(userManager, user, password));
-        }
+        await AddPasswordRuleErrorsAsync(user, password, AddRegisterErrors);
     }
 
     private void AddRegisterErrors(IdentityResult result) =>
@@ -379,7 +406,7 @@ public class AccountController(
     {
         await signInManager.SignOutAsync();
 
-        return this.RedirectToLocal(returnUrl, RedirectToAction(nameof(Index), "Home"));
+        return this.RedirectToLocal(returnUrl, RedirectToAction(nameof(HomeController.Index), "Home"));
     }
 
     [HttpGet]
@@ -397,12 +424,11 @@ public class AccountController(
         var user = await userManager.FindByEmailAsync(model.Email.Trim());
         if (user is not null) {
             var code = await userManager.GeneratePasswordResetTokenAsync(user);
-            var encodedCode = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
             var callbackUrl = Url.Action(
                 nameof(ResetPassword),
                 "Account",
-                new { email = user.Email, code = encodedCode },
+                new { email = user.Email, code = EncodeToken(code) },
                 protocol: Request.Scheme);
 
             await emailSender.SendEmailAsync(
@@ -426,18 +452,15 @@ public class AccountController(
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(code))
             return BadRequest();
 
-        try {
-            code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
-        }
-        catch (FormatException) {
+        var token = DecodeToken(code);
+        if (token is null)
             return BadRequest();
-        }
 
         // The query string was already bound into ModelState (with the still-encoded code), and tag helpers
         // like asp-for prefer ModelState over the model. Clear it so the hidden field gets the decoded token.
         ModelState.Clear();
 
-        return View(new ResetPasswordViewModel { Email = email, Code = code });
+        return View(new ResetPasswordViewModel { Email = email, Code = token });
     }
 
     [HttpPost]
@@ -445,14 +468,13 @@ public class AccountController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
     {
-        var user = string.IsNullOrEmpty(model.Email) ? null : await userManager.FindByEmailAsync(model.Email);
+        // Trim like Login and ForgotPassword do, so the lookup matches the same account they would.
+        var user = string.IsNullOrWhiteSpace(model.Email) ? null : await userManager.FindByEmailAsync(model.Email.Trim());
 
         // Same idea as Register: check the password rules before the IsValid test, so a rule error
         // and a "doesn't match" error show together instead of one hiding the other.
-        if (user is not null && !string.IsNullOrEmpty(model.Password)) {
-            foreach (var validator in userManager.PasswordValidators)
-                AddResetPasswordErrors(await validator.ValidateAsync(userManager, user, model.Password));
-        }
+        if (user is not null)
+            await AddPasswordRuleErrorsAsync(user, model.Password, AddResetPasswordErrors);
 
         if (!ModelState.IsValid)
             return View(model);

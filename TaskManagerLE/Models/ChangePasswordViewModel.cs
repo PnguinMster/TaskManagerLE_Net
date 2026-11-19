@@ -16,8 +16,8 @@ public class ChangePasswordViewModel
     public string NewPassword { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Enter your new password again.")]
-    [DataType(DataType.Password)]
     [Compare(nameof(NewPassword), ErrorMessage = "Passwords do not match.")]
+    [DataType(DataType.Password)]
     [Display(Name = "Confirm new password")]
     public string ConfirmNewPassword { get; set; } = string.Empty;
 }
