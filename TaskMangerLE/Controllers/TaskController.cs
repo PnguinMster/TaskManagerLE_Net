@@ -49,6 +49,8 @@ public class TaskController(
 			return ValidationErrorsResult();
 
 		await taskService.AddTaskAsync(taskItemModel);
+		this.ShowToast(new ToastMessage(ToastKind.Success, "Task created",
+			$"{taskItemModel.Name} was added to {projectItem.Name}."));
 		return Ok();
 	}
 
@@ -81,6 +83,8 @@ public class TaskController(
 		if (targetProject is not null)
 			this.ShowToast(new ToastMessage(ToastKind.Success, "Task moved",
 				$"{taskItem.Name} is now in {targetProject.Name}."));
+		else
+			this.ShowToast(new ToastMessage(ToastKind.Success, "Task saved", $"{taskItem.Name} was updated."));
 
 		return Ok();
 	}
@@ -197,6 +201,10 @@ public class TaskController(
 			return NotFound();
 
 		await taskService.PurgeTaskAsync(taskItem);
+
+		// No Undo: the row is gone from the database.
+		this.ShowToast(new ToastMessage(ToastKind.Info, "Task deleted",
+			$"{taskItem.Name} was permanently deleted."));
 
 		// The Trash page sends a returnUrl.
 		return this.RedirectToLocal(returnUrl, RedirectToAction("Index", "Trash"));

@@ -57,6 +57,10 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
             return Challenge();
 
         await services.AddProjectAsync(projectItemModel, userId);
+
+        // TempData is saved with any response, so the toast shows after site.js reloads the page.
+        this.ShowToast(new ToastMessage(ToastKind.Success, "Project created",
+            $"{projectItemModel.Name} was added."));
         return Ok();
     }
 
@@ -74,6 +78,7 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
             return ValidationErrorsResult();
 
         await services.UpdateProjectAsync(projectItem, projectItemModel);
+        this.ShowToast(new ToastMessage(ToastKind.Success, "Project saved", $"{projectItem.Name} was updated."));
         return Ok();
     }
 
@@ -136,6 +141,10 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
             return NotFound();
 
         await services.PurgeProjectAsync(projectItem);
+
+        // No Undo: the rows are gone from the database.
+        this.ShowToast(new ToastMessage(ToastKind.Info, "Project deleted",
+            $"{projectItem.Name} and its tasks were permanently deleted."));
 
         // The Trash page sends a returnUrl.
         return this.RedirectToLocal(returnUrl, RedirectToAction("Index", "Trash"));

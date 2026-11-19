@@ -41,6 +41,8 @@ public class TrashController(TrashService trashService, UserManager<ApplicationU
             return Challenge();
 
         await trashService.EmptyTrashAsync(userId, User.IsInRole(Roles.Admin));
+        this.ShowToast(new ToastMessage(ToastKind.Info, "Trash emptied",
+            "Everything in it was permanently deleted."));
         return RedirectToAction(nameof(Index));
     }
 
