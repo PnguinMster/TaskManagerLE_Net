@@ -250,10 +250,12 @@
                             }
 
                             <div class="task-meta">
+                                @* Priority doesn't matter once a task is cancelled, so the Cancelled badge replaces it. *@
                                 @if (isCancelled) {
                                     <span class="badge badge-muted">Cancelled</span>
+                                } else {
+                                    <partial name="_PriorityBadge" model="task.Priority" />
                                 }
-                                <partial name="_PriorityBadge" model="task.Priority" />
                                 <partial name="_DueLabel" model="new DueLabelViewModel(task.DueDate, task.Status.IsFinished())" />
                             </div>
                         </article>
