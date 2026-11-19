@@ -8,7 +8,7 @@ on:
     branches: [main]
 
 env:
-  AZURE_WEBAPP_NAME: your-app-name   # the App Service's name, as shown in the Azure portal
+AZURE_WEBAPP_NAME: taskmanagerle   # the App Service's name, as shown in the Azure portal
 
 jobs:
   build-and-test:
