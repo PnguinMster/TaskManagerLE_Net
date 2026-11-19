@@ -20,20 +20,21 @@
     </div>
 </header>
 
-<section class="grid-cards" aria-label="Trash summary">
+@* Same stat cards as the dashboard (Home/Index). *@
+<section class="grid-kpi" aria-label="Trash summary">
     <article class="card">
-        <p class="muted">Deleted Projects</p>
-        <p style="font-size:32px;font-weight:700;color:var(--bt)">@Model.ProjectCount</p>
+        <p class="kpi-label">Deleted Projects</p>
+        <p class="kpi-value text-blue">@Model.ProjectCount</p>
     </article>
 
     <article class="card">
-        <p class="muted">Deleted Tasks</p>
-        <p style="font-size:32px;font-weight:700;color:var(--pt)">@Model.TaskCount</p>
+        <p class="kpi-label">Deleted Tasks</p>
+        <p class="kpi-value text-purple">@Model.TaskCount</p>
     </article>
 
     <article class="card">
-        <p class="muted">Total in Trash</p>
-        <p style="font-size:32px;font-weight:700;color:var(--text)">@Model.TotalCount</p>
+        <p class="kpi-label">Total in Trash</p>
+        <p class="kpi-value">@Model.TotalCount</p>
     </article>
 </section>
 

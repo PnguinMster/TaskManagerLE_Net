@@ -22,7 +22,7 @@
     <section class="grid-kpi" aria-label="Project and task statistics">
         <article class="card">
             <p class="kpi-label">Projects In Progress</p>
-            <p class="kpi-value" style="color: var(--bt)">@Model.ActiveProjectsCount</p>
+            <p class="kpi-value text-blue">@Model.ActiveProjectsCount</p>
         </article>
 
         <article class="card">
@@ -32,12 +32,12 @@
 
         <article class="card">
             <p class="kpi-label">Overdue Tasks</p>
-            <p class="kpi-value" style="color: var(--rt)">@Model.OverdueTasksCount</p>
+            <p class="kpi-value text-rose">@Model.OverdueTasksCount</p>
         </article>
 
         <article class="card">
             <p class="kpi-label">Completed Projects</p>
-            <p class="kpi-value" style="color: var(--gt)">@Model.CompletedProjectsCount</p>
+            <p class="kpi-value text-green">@Model.CompletedProjectsCount</p>
         </article>
     </section>
 

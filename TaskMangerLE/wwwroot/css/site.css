@@ -554,6 +554,27 @@ button {
     line-height: 1.2;
 }
 
+/* Smaller fact tile inside a card (Project/Detail summary): label, value, then a muted sub-line. */
+.stat-tile {
+    background: color-mix(in srgb, var(--text) 3.5%, var(--card));
+    border: 1px solid var(--divider);
+    border-radius: 12px;
+    padding: 14px 16px;
+}
+
+.stat-tile-label {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.stat-tile-value {
+    font-size: 18px;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
 .badge {
     display: inline-block;
     padding: 2px 10px;
@@ -1678,7 +1699,7 @@ dialog.modal::backdrop {
     margin: 4px;
 }
 
-/* Projects page only: sizing from the ProjectPulse reference board (Trash shares .grid-cards).
+/* Projects page only: sizing from the ProjectPulse reference board.
    The 16px gap is the only spacing between cards, so the default .card margin is removed. */
 #project-grid {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));

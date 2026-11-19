@@ -61,12 +61,10 @@
             </div>
         </div>
 
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
-            <article style="background:color-mix(in srgb,var(--text) 3.5%,var(--card));border:1px solid var(--divider);border-radius:12px;padding:14px 16px">
-                <p class="muted" style="font-size:12px;font-weight:600">DUE DATE</p>
-                <p style="font-size:18px;font-weight:600;margin-top:2px">
-                    @Model.DueDate.ToLongDisplay()
-                </p>
+        <div class="grid-kpi">
+            <article class="stat-tile">
+                <p class="stat-tile-label">Due date</p>
+                <p class="stat-tile-value">@Model.DueDate.ToLongDisplay()</p>
                 @* A finished project isn't "overdue", so it gets no countdown (same rule as _DueLabel).
                    This is the page summary, so it counts days instead of using the short _DueLabel. *@
                 @if (!Model.Status.IsFinished()) {
@@ -87,28 +85,22 @@
                 }
             </article>
 
-            <article style="background:color-mix(in srgb,var(--text) 3.5%,var(--card));border:1px solid var(--divider);border-radius:12px;padding:14px 16px">
-                <p class="muted" style="font-size:12px;font-weight:600">CREATED</p>
-                <p style="font-size:18px;font-weight:600;margin-top:2px">
-                    @Model.CreatedAtUtc.ToLocalTime().ToLongDisplay()
-                </p>
-                <p class="muted" style="font-size:13px">by @Model.OwnerName</p>
+            <article class="stat-tile">
+                <p class="stat-tile-label">Created</p>
+                <p class="stat-tile-value">@Model.CreatedAtUtc.ToLocalTime().ToLongDisplay()</p>
+                <p class="muted small">by @Model.OwnerName</p>
             </article>
 
-            <article style="background:color-mix(in srgb,var(--text) 3.5%,var(--card));border:1px solid var(--divider);border-radius:12px;padding:14px 16px">
-                <p class="muted" style="font-size:12px;font-weight:600">OWNER</p>
-                <p style="font-size:18px;font-weight:600;margin-top:2px">@Model.OwnerName</p>
-                <p class="muted" style="font-size:13px">Project lead</p>
+            <article class="stat-tile">
+                <p class="stat-tile-label">Owner</p>
+                <p class="stat-tile-value">@Model.OwnerName</p>
+                <p class="muted small">Project lead</p>
             </article>
 
-            <article style="background:color-mix(in srgb,var(--text) 3.5%,var(--card));border:1px solid var(--divider);border-radius:12px;padding:14px 16px">
-                <p class="muted" style="font-size:12px;font-weight:600">TASKS</p>
-                <p style="font-size:18px;font-weight:600;margin-top:2px">
-                    @Model.CompletedTaskCount of @Model.TotalTaskCount done
-                </p>
-                <p class="muted" style="font-size:13px">
-                    @Model.RemainingTaskCount remaining
-                </p>
+            <article class="stat-tile">
+                <p class="stat-tile-label">Tasks</p>
+                <p class="stat-tile-value">@Model.CompletedTaskCount of @Model.TotalTaskCount done</p>
+                <p class="muted small">@Model.RemainingTaskCount remaining</p>
             </article>
         </div>
 
