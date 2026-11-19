@@ -986,7 +986,7 @@ strong {
     margin-top: 14px;
 }
 
-/* Plain due date with a calendar icon (task cards, project cards). Urgent dates use a badge instead. */
+/* Plain due date with a calendar icon (_DueLabel). Urgent dates use a badge instead. */
 .due {
     display: inline-flex;
     align-items: center;
@@ -994,10 +994,6 @@ strong {
     font-size: 13px;
     color: var(--muted);
     white-space: nowrap; /* keep "Nov 20" on one line in narrow rows, like .badge does */
-}
-
-.due.is-today {
-    color: var(--rt);
 }
 
 /* ---------- Modals & confirmations (<dialog class="modal">) ---------- */

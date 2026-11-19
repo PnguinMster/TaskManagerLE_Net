@@ -268,13 +268,6 @@
             Color = "var(--muted)"
         }
     };
-
-    string DueDateLabel(DateOnly dueDate, bool isDone) =>
-        isDone
-            ? $"Done {dueDate.ToShortDisplay()}"
-            : dueDate == today
-                ? "Today"
-                : dueDate.ToShortDisplay();
 }
 
 @if (Model.Tasks.Count == 0) {
@@ -387,10 +380,9 @@ else {
 
                             <partial name="_PriorityBadge" model="task.Priority" />
 
-                            <span
-                                style="display:flex;align-items:center;gap:6px;font-size:13px;color:@(group.Title == "Overdue" ? "var(--rt)" : "var(--muted)")">
-                                <partial name="_CalendarIcon" />
-                                @DueDateLabel(task.DueDate, isDone)
+                            @* Wrapper is the grid cell, so a badge keeps its own width instead of stretching. *@
+                            <span>
+                                <partial name="_DueLabel" model="new DueLabelViewModel(task.DueDate, task.Status.IsFinished())" />
                             </span>
 
                             <details class="task-card-menu task-row-menu">

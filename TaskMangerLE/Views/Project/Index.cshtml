@@ -264,7 +264,7 @@ else {
 
                 <div class="row" style="margin-top:auto">
                     <span class="muted small" style="flex:1">
-                        <partial name="_DueLabel" model="project" />
+                        <partial name="_DueLabel" model="new DueLabelViewModel(project.DueDate, project.IsFinished)" />
                     </span>
                     <a asp-controller="Project"
                        asp-action="Detail"
@@ -346,7 +346,7 @@ else {
                         </div>
 
                         <span class="muted small">
-                            <partial name="_DueLabel" model="project" />
+                            <partial name="_DueLabel" model="new DueLabelViewModel(project.DueDate, project.IsFinished)" />
                         </span>
 
                         <div class="project-actions">

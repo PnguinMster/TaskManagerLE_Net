@@ -127,8 +127,6 @@
                     <div class="card dashboard-tasks">
                         <div class="dashboard-task-list">
                             @foreach (var task in Model.UpcomingTasks) {
-                                bool isDueToday = task.DueDate == TimeProvider.Today();
-
                                 <div class="row dashboard-task">
                                     <form asp-controller="Task"
                                           asp-action="ToggleCompletion"
@@ -153,13 +151,8 @@
                                         </span>
                                     </span>
 
-                                    @* Due today is urgent, so it gets a badge; later dates are plain text (same look as _DueLabel). *@
-                                    @if (isDueToday) {
-                                        <span class="badge badge-amber">Due today</span>
-                                    }
-                                    else {
-                                        <span class="due"><partial name="_CalendarIcon" /> @task.DueDate.ToShortDisplay()</span>
-                                    }
+                                    @* Upcoming tasks are all open (DashboardServices filters them), so IsFinished is false. *@
+                                    <partial name="_DueLabel" model="new DueLabelViewModel(task.DueDate, false)" />
                                 </div>
                             }
                         </div>

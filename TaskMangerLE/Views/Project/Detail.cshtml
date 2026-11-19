@@ -67,7 +67,8 @@
                 <p style="font-size:18px;font-weight:600;margin-top:2px">
                     @Model.DueDate.ToLongDisplay()
                 </p>
-                @* A finished project isn't "overdue", so it gets no countdown (same rule as _DueLabel). *@
+                @* A finished project isn't "overdue", so it gets no countdown (same rule as _DueLabel).
+                   This is the page summary, so it counts days instead of using the short _DueLabel. *@
                 @if (!Model.Status.IsFinished()) {
                     int daysRemaining = Model.DueDate.DayNumber - TimeProvider.Today().DayNumber;
 
@@ -194,8 +195,6 @@
                                      Priority = task.Priority,
                                      DueDate = task.DueDate
                                  }"/>
-                        bool isDueToday =
-                            task.DueDate == TimeProvider.Today();
 
                         <article class="card task-card">
                             <div class="row" style="align-items:flex-start">
@@ -263,10 +262,7 @@
                                     <span class="badge badge-muted">Cancelled</span>
                                 }
                                 <partial name="_PriorityBadge" model="task.Priority" />
-                                <span class="due @(isDueToday ? "is-today" : "")">
-                                    <partial name="_CalendarIcon" />
-                                    Due @task.DueDate.ToShortDisplay()
-                                </span>
+                                <partial name="_DueLabel" model="new DueLabelViewModel(task.DueDate, task.Status.IsFinished())" />
                             </div>
                         </article>
                     }
