@@ -62,23 +62,19 @@ public class ProjectController(ProjectService services, UserManager<ApplicationU
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Update(ProjectItemUpdateViewModel projectItemModel, string? returnUrl)
+    // Sent with fetch, like Create: errors go back as JSON and on success site.js reloads the page
+    // the modal is on.
+    public async Task<IActionResult> Update(ProjectItemUpdateViewModel projectItemModel)
     {
         ProjectItem? projectItem = await LoadAuthorizedAsync(services.GetProjectAsync(projectItemModel.Id));
         if (projectItem is null)
             return NotFound();
 
-        // Back to the page the modal was on, whether or not it saved (same as TaskController.Update).
-        IActionResult goBack = this.RedirectToLocal(returnUrl,
-            RedirectToAction(nameof(Detail), new { projectId = projectItem.Id }));
-
-        if (!ModelState.IsValid) {
-            ShowValidationErrorToast();
-            return goBack;
-        }
+        if (!ModelState.IsValid)
+            return ValidationErrorsResult();
 
         await services.UpdateProjectAsync(projectItem, projectItemModel);
-        return goBack;
+        return Ok();
     }
 
     [HttpPost]

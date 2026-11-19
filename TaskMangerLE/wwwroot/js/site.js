@@ -77,11 +77,11 @@
             setView(loadView());
         });
         
-            // The create-project and create-task modals (<form data-create-item="project|task">).
-            document.querySelectorAll("form[data-create-item]").forEach(form => {
+            // The create and edit modals for projects and tasks (<form data-fetch-form>).
+            document.querySelectorAll("form[data-fetch-form]").forEach(form => {
                 form.addEventListener("submit", event => {
                     event.preventDefault();
-                    submitCreateForm(event.currentTarget);
+                    submitModalForm(event.currentTarget);
                 });
             });
 
@@ -92,18 +92,18 @@
             const month = String(now.getMonth() + 1).padStart(2, "0");
             const day = String(now.getDate()).padStart(2, "0");
             const today = `${now.getFullYear()}-${month}-${day}`;
-            document.querySelectorAll("form[data-create-item] [name='DueDate']").forEach(input => {
+            document.querySelectorAll("form[data-create-form] [name='DueDate']").forEach(input => {
                 // defaultValue (not just value) so form.reset() on modal close keeps the browser's date.
                 input.defaultValue = today;
                 input.value = today;
             });
 
-            // Sends a create modal's form without leaving the page (ProjectController.Create and
-            // TaskController.Create). Success reloads the page the modal is on, so its filters and
+            // Sends a modal's form without leaving the page (Create and Update on ProjectController and
+            // TaskController). Success reloads the page the modal is on, so its filters and
             // ?showArchived stay as they were. A 400 puts the server's errors under each field.
             // A named function so the error toast's Retry button can call it again.
             // FormData is read on each call, so a retry sends whatever is in the form now.
-            async function submitCreateForm(form) {
+            async function submitModalForm(form) {
                 let response = null;
                 try {
                     response = await fetch(form.action, {
@@ -123,6 +123,9 @@
 
                 if (response?.status === 400) {
                     const result = await response.json();
+                    // Errors for a field with no message spot (e.g. the hidden Id) go in a toast instead,
+                    // so the user never gets a modal that silently won't save.
+                    const unshown = [];
 
                     for (const [field, messages] of Object.entries(result.errors)) {
                         const input = form.querySelector(`[name="${field}"]`);
@@ -133,18 +136,24 @@
 
                         if (messageElement) {
                             messageElement.textContent = messages.join(" ");
+                        } else {
+                            unshown.push(...messages);
                         }
+                    }
+
+                    if (unshown.length > 0) {
+                        showToast({ kind: "error", title: "Changes not saved", message: unshown.join(" ") });
                     }
                     return;
                 }
 
-                // Anything else (500, network failure): nothing was saved that we know of.
+                // Anything else (404, 500, network failure): nothing was saved that we know of.
                 showToast({
                     kind: "error",
                     title: "Could not save changes",
-                    message: `The ${form.dataset.createItem} wasn't created. Check your connection and try again.`,
+                    message: `${form.dataset.notSaved} Check your connection and try again.`,
                     actionLabel: "Retry",
-                    onAction: () => submitCreateForm(form)
+                    onAction: () => submitModalForm(form)
                 });
             }
                 
@@ -549,7 +558,7 @@ function setUpRequiredFieldChecks() {
         // reset() puts each field back to the value the server rendered: empty/defaults for a create
         // form, the saved values for an edit form.
         // The message clearing covers every message in the form, not just the required ones, so errors the
-        // server sent back (see submitCreateForm) go away too.
+        // server sent back (see submitModalForm) go away too.
         form.closest("dialog")?.addEventListener("close", () => {
             form.reset();
             form.querySelectorAll(".input-validation-error")

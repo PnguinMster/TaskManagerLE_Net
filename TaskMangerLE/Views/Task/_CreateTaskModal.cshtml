@@ -16,8 +16,10 @@
         </button>
     </div>
 
-    @* data-create-item: sent with fetch, see submitCreateForm in site.js. *@
-    <form asp-controller="Task" asp-action="Create" method="post" data-check-required data-create-item="task" novalidate>
+    @* data-fetch-form: sent with fetch, see submitModalForm in site.js. data-create-form: its due date
+       gets the browser's today. *@
+    <form asp-controller="Task" asp-action="Create" method="post" data-check-required novalidate
+          data-fetch-form data-create-form data-not-saved="The task wasn't created.">
         <div class="modal-body">
             <div class="form-group">
                 <label asp-for="Name">Title</label>

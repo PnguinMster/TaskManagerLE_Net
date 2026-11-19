@@ -12,16 +12,14 @@
         </button>
     </div>
 
-    <form asp-controller="Task" asp-action="Update" method="post" data-check-required novalidate>
+    @* data-fetch-form: sent with fetch, see submitModalForm in site.js. *@
+    <form asp-controller="Task" asp-action="Update" method="post" data-check-required novalidate
+          data-fetch-form data-not-saved="The task wasn't saved.">
         @* No hidden ProjectId: the Project <select> below sends it. Two fields with the same name would
            send two values, and model binding would keep the first (the old project). *@
         <input asp-for="Id" type="hidden"/>
-        @* Where to go after saving: the page this modal is on (Tasks or a project's Detail page). Same as _CreateTaskModal. *@
-        <partial name="_ReturnUrlInput" />
 
         <div class="modal-body">
-            <div asp-validation-summary="ModelOnly" class="field-error"></div>
-
             <div class="form-group">
                 <label asp-for="Name">Title</label>
                 <input asp-for="Name" class="input"

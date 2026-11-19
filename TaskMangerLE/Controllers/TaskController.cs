@@ -53,15 +53,13 @@ public class TaskController(
 
 	[HttpPost]
 	[ValidateAntiForgeryToken]
-	public async Task<IActionResult> Update(TaskItemUpdateViewModel taskItemModel, string? returnUrl)
+	// Sent with fetch, like Create: errors go back as JSON and on success site.js reloads the page
+	// the modal is on (Tasks or a project's board).
+	public async Task<IActionResult> Update(TaskItemUpdateViewModel taskItemModel)
 	{
 		TaskItem? taskItem = await LoadAuthorizedAsync(taskService.GetTaskWithProjectAsync(taskItemModel.Id), t => t.Project);
 		if (taskItem is null)
 			return NotFound();
-
-		// Back to the page the modal was on (Tasks or a project's board), whether or not it saved.
-		IActionResult goBack = this.RedirectToLocal(returnUrl,
-			RedirectToAction("Detail", "Project", new { projectId = taskItem.ProjectId }));
 
 		// Moving to another project: that project must be the user's too (same ownership rule as everywhere),
 		// or a crafted form could put a task into someone else's project.
@@ -72,19 +70,18 @@ public class TaskController(
 				return NotFound();
 		}
 
-		if (!ModelState.IsValid) {
-			ShowValidationErrorToast();
-			return goBack;
-		}
+		if (!ModelState.IsValid)
+			return ValidationErrorsResult();
 
 		await taskService.UpdateTaskAsync(taskItem, taskItemModel);
 
-		// The task leaves the board it was on, so say where it went.
+		// The task leaves the board it was on, so say where it went. TempData is saved with any
+		// response, not just redirects, so the toast shows after site.js reloads the page.
 		if (targetProject is not null)
 			this.ShowToast(new ToastMessage(ToastKind.Success, "Task moved",
 				$"{taskItem.Name} is now in {targetProject.Name}."));
 
-		return goBack;
+		return Ok();
 	}
 
 	[HttpPost]
