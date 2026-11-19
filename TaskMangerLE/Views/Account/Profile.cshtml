@@ -35,7 +35,7 @@
         </div>
 
         <form asp-action="Profile" method="post" class="stack">
-            <div asp-validation-summary="ModelOnly" class="field-error"></div>
+            <partial name="_FormErrors" />
 
             <div class="grid-kpi">
                 <div class="field">
@@ -68,8 +68,7 @@
         <p class="muted">Enter your current password, then choose a new one.</p>
 
         <form asp-action="ChangePassword" method="post" class="stack">
-
-            <div asp-validation-summary="ModelOnly" class="field-error"></div>
+            <partial name="_FormErrors" />
 
             <div class="field">
                 <label asp-for="ChangePassword.CurrentPassword"></label>

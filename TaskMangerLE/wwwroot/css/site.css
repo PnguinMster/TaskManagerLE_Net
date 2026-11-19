@@ -793,10 +793,6 @@ strong {
     color: var(--rt);
 }
 
-.validation-summary-valid {
-    display: none;
-}
-
 .alert {
     display: flex;
     align-items: flex-start;

@@ -1,0 +1,29 @@
+@* Errors for the whole form, not one field: the ones a controller adds with the key string.Empty
+   (e.g. "Invalid username or password" in AccountController.LoginFailed). Field errors show under
+   their own field with asp-validation-for instead. Renders nothing when there are none.
+   Used as <partial name="_FormErrors" /> at the top of a form. *@
+@{
+    var formErrors = ViewData.ModelState[string.Empty]?.Errors
+        .Select(error => error.ErrorMessage)
+        .ToList() ?? [];
+}
+
+@if (formErrors.Count > 0) {
+    <div class="alert" role="alert">
+        <svg class="alert-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M12 8v5M12 17h.01"></path>
+        </svg>
+        @if (formErrors.Count == 1) {
+            <span>@formErrors[0]</span>
+        }
+        else {
+            <ul>
+                @foreach (var message in formErrors) {
+                    <li>@message</li>
+                }
+            </ul>
+        }
+    </div>
+}
