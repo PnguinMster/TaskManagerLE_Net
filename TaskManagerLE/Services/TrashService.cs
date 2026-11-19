@@ -106,8 +106,7 @@ public class TrashService(ApplicationDbContext context, TimeProvider timeProvide
         // No IgnoreQueryFilters: the global filter already limits this to items not in the Trash.
         IQueryable<ProjectItem> projectQuery = context.ProjectItems.Where(p => projectIds.Contains(p.Id));
         IQueryable<TaskItem> taskQuery = context.TaskItems.Where(t => taskIds.Contains(t.Id));
-        if (!isAdmin)
-        {
+        if (!isAdmin) {
             projectQuery = projectQuery.Where(p => p.OwnerId == userId);
             taskQuery = taskQuery.Where(t => t.Project.OwnerId == userId);
         }

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TaskManagerLE.Data;
 using TaskManagerLE.Models;
 using TaskStatus = TaskManagerLE.Models.Enums.TaskStatus;

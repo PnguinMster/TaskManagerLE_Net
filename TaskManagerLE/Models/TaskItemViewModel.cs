@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using TaskManagerLE.Models.Enums;
 using TaskStatus = TaskManagerLE.Models.Enums.TaskStatus;
 

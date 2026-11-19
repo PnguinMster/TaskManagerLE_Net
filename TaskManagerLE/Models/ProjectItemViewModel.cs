@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using TaskManagerLE.Models.Enums;
 
 namespace TaskManagerLE.Models;

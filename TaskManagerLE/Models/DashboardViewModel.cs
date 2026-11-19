@@ -1,4 +1,4 @@
-﻿using TaskManagerLE.Models.Enums;
+using TaskManagerLE.Models.Enums;
 
 namespace TaskManagerLE.Models;
 

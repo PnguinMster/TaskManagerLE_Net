@@ -1,8 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace TaskManagerLE.Models;
 
 public class ForgotPasswordViewModel
 {
-    [Required] [EmailAddress] public string Email { get; set; } = string.Empty;
+    [Required]
+    [EmailAddress]
+    public string Email { get; set; } = string.Empty;
 }

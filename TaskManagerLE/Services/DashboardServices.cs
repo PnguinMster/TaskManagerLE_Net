@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TaskManagerLE.Data;
 using TaskManagerLE.Extensions;
 using TaskManagerLE.Models;

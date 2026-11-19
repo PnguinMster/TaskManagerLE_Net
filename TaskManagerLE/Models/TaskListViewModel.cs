@@ -1,4 +1,4 @@
-﻿using TaskManagerLE.Extensions;
+using TaskManagerLE.Extensions;
 using TaskManagerLE.Models.Enums;
 using TaskStatus = TaskManagerLE.Models.Enums.TaskStatus;
 

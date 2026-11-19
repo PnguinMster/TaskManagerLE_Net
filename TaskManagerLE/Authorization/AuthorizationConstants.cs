@@ -1,4 +1,4 @@
-﻿namespace TaskManagerLE.Authorization;
+namespace TaskManagerLE.Authorization;
 
 public static class Roles
 {

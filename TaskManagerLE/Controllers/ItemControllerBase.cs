@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using TaskManagerLE.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using TaskManagerLE.Models;
