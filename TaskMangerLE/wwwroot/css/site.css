@@ -1226,6 +1226,11 @@ dialog.modal::backdrop {
     max-width: 420px;
 }
 
+.empty-state h2 {
+    font-size: 20px;
+    font-weight: 700;
+}
+
 .error-page {
     display: flex;
     flex-direction: column;

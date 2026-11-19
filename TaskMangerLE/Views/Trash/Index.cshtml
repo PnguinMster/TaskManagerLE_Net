@@ -96,15 +96,13 @@
 
 @if (Model.Items.Count == 0) {
     <section class="card card-dashed empty-state">
-        <div class="icon-tile is-lg"
-             aria-hidden="true"
-             style="color:var(--gt);background:color-mix(in srgb,var(--gt) 14%,transparent)">
+        <div class="icon-tile is-lg is-green" aria-hidden="true">
             <partial name="_TrashIcon" model="28" />
         </div>
 
-        <h2 style="font-size:20px;font-weight:700">Trash is empty</h2>
+        <h2>Trash is empty</h2>
 
-        <p class="muted" style="max-width:420px">
+        <p class="muted">
             Deleted projects and tasks will show up here so you can restore them.
         </p>
     </section>
@@ -238,22 +236,13 @@ else {
         </div>
     </div>
 
-    @* Shown by site.js when the type pills and search hide every row. Same card as #task-no-results. *@
-    <section id="trash-no-results" class="card card-dashed empty-state" role="status" hidden>
-        <div class="icon-tile is-lg" aria-hidden="true">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="7"></circle>
-                <path d="M21 21l-4.3-4.3"></path>
-            </svg>
-        </div>
-
-        <h2 style="font-size:20px;font-weight:700">No items match your filters</h2>
-        <p class="muted">Try another type or searching for something else.</p>
-
-        <div class="row wrap" style="justify-content:center;margin-top:6px">
-            <button type="button" class="btn btn-lg" data-trash-clear-filters>Clear filters</button>
-        </div>
-    </section>
+    @* Shown by site.js when the type pills and search hide every row. *@
+    var noResults = new NoResultsViewModel
+    {
+        Id = "trash-no-results",
+        Title = "No items match your filters",
+        Message = "Try another type or searching for something else.",
+        ClearButtonAttribute = "data-trash-clear-filters"
+    };
+    <partial name="_NoResults" model="noResults" />
 }
