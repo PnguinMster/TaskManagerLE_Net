@@ -22,16 +22,16 @@
           data-fetch-form data-create-form data-not-saved="The project wasn't created.">
 
         <div class="modal-body">
-            <div class="form-group">
+            <div class="field">
                 <label asp-for="Name">Title</label>
-                <input asp-for="Name" class="input @(ViewData.ModelState["Name"]?.Errors.Count > 0 ? "input-validation-error" : "")"
+                <input asp-for="Name" class="input"
                        placeholder="e.g. Website Redesign"
                        maxlength="@ItemConstraints.NameMaxLength"
                        autocomplete="off"/>
                 <span asp-validation-for="Name" class="field-error"></span>
             </div>
 
-            <div class="form-group">
+            <div class="field">
                 <div class="row" style="justify-content:space-between">
                     <label asp-for="Description">Description</label>
                     <span class="muted" style="font-size:12px">Optional</span>
@@ -39,22 +39,22 @@
                 <textarea asp-for="Description" class="input"
                           maxlength="@ItemConstraints.DescriptionMaxLength"
                           placeholder="What is this project about?"></textarea>
-                <span asp-validation-for="Description"></span>
+                <span asp-validation-for="Description" class="field-error"></span>
             </div>
 
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px">
-                <div class="form-group">
+                <div class="field">
                     <label asp-for="Status"></label>
                     <select asp-for="Status"
                             asp-items="Html.GetEnumSelectList<ProjectStatus>()"
                             class="input"></select>
-                    <span asp-validation-for="Status"></span>
+                    <span asp-validation-for="Status" class="field-error"></span>
                 </div>
 
-                <div class="form-group">
+                <div class="field">
                     <label asp-for="DueDate">Due date</label>
                     <input asp-for="DueDate" type="date" class="input"/>
-                    <span asp-validation-for="DueDate"></span>
+                    <span asp-validation-for="DueDate" class="field-error"></span>
                 </div>
             </div>
         </div>

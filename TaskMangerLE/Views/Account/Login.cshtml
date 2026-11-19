@@ -33,7 +33,7 @@
             </div>
             <input asp-for="UsernameOrEmail" class="input @(hasLoginError ? "input-validation-error" : "")" autocomplete="username"
                    placeholder="email@example.com"/>
-            <span asp-validation-for="UsernameOrEmail" class="text-danger"></span>
+            <span asp-validation-for="UsernameOrEmail" class="field-error"></span>
         </div>
 
         <div class="field">
@@ -46,7 +46,7 @@
             </div>
             <input asp-for="Password" class="input @(hasLoginError ? "input-validation-error" : "")" autocomplete="current-password"
                    placeholder="Enter your password"/>
-            <span asp-validation-for="Password" class="text-danger"></span>
+            <span asp-validation-for="Password" class="field-error"></span>
         </div>
 
         <label class="row" style="gap: 10px;">
