@@ -60,63 +60,31 @@
     <p class="muted small">&copy; @TimeProvider.GetLocalNow().Year TaskMangerLE</p>
 </footer>
 
-@* Shared confirmation popup. site.js opens it for any form with a data-confirm-trash attribute. *@
-<dialog id="confirm-trash-dialog" class="modal modal-sm" role="alertdialog" aria-labelledby="confirm-trash-title">
-    <div class="confirm">
-        <div class="icon-tile is-rose">
-            <partial name="_TrashIcon" model="24" />
-        </div>
-        <div class="stack" style="gap:8px">
-            <h2 id="confirm-trash-title" style="font-size:20px;font-weight:700">Move project to Trash?</h2>
-            <p class="muted">
-                <b style="color:var(--text);font-weight:600" data-trash-name></b>
-                and all of its tasks will move to the Trash. You can restore them from there at any time.
-            </p>
-        </div>
-        <div class="summary-panel">
-            <span class="muted" style="display:flex">
-                <partial name="_FolderIcon" model="14" />
-            </span>
-            <span style="font-weight:600;flex:1;min-width:0" data-trash-name></span>
-            <span class="muted" style="font-size:13px" id="confirm-trash-detail"></span>
-        </div>
-        <div class="actions" style="margin-top:4px">
-            <button type="button" class="btn" id="confirm-trash-cancel">Cancel</button>
-            <button type="button" class="btn btn-soft-danger" id="confirm-trash-ok">Move to Trash</button>
-        </div>
-    </div>
-</dialog>
-
-@* Same idea for tasks: opened for any form with a data-confirm-task-trash attribute. *@
-<dialog id="confirm-task-trash-dialog" class="modal modal-sm" role="alertdialog" aria-labelledby="confirm-task-trash-title">
-    <div class="confirm">
-        <div class="icon-tile is-rose">
-            <partial name="_TrashIcon" model="24" />
-        </div>
-        <div class="stack" style="gap:8px">
-            <h2 id="confirm-task-trash-title" style="font-size:20px;font-weight:700">Move task to Trash?</h2>
-            <p class="muted">
-                <b style="color:var(--text);font-weight:600" data-trash-name></b>
-                will move to the Trash. You can restore it from there at any time.
-            </p>
-        </div>
-        <div class="summary-panel">
-            <span class="muted" style="display:flex">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <circle cx="12" cy="12" r="9"></circle>
-                    <path d="M8 12l3 3 5-6"></path>
-                </svg>
-            </span>
-            <span style="font-weight:600;flex:1;min-width:0" data-trash-name></span>
-            <span class="muted" style="font-size:13px" id="confirm-task-trash-detail"></span>
-        </div>
-        <div class="actions" style="margin-top:4px">
-            <button type="button" class="btn" id="confirm-task-trash-cancel">Cancel</button>
-            <button type="button" class="btn btn-soft-danger" id="confirm-task-trash-ok">Move to Trash</button>
-        </div>
-    </div>
-</dialog>
+@* Move-to-trash confirmations, opened for forms with data-confirm-trash (projects)
+   or data-confirm-task-trash (tasks). *@
+@{
+    // Built here, not inside model="...", because the double quotes would end the attribute.
+    var projectTrashDialog = new ConfirmDialogViewModel
+    {
+        IdPrefix = "confirm-trash",
+        Title = "Move project to Trash?",
+        Message = "and all of its tasks will move to the Trash. You can restore them from there at any time.",
+        ConfirmLabel = "Move to Trash",
+        ConfirmButtonClass = "btn-soft-danger",
+        SummaryIconPartial = "_FolderIcon"
+    };
+    var taskTrashDialog = new ConfirmDialogViewModel
+    {
+        IdPrefix = "confirm-task-trash",
+        Title = "Move task to Trash?",
+        Message = "will move to the Trash. You can restore it from there at any time.",
+        ConfirmLabel = "Move to Trash",
+        ConfirmButtonClass = "btn-soft-danger",
+        SummaryIconPartial = "_TaskIcon"
+    };
+}
+<partial name="_ConfirmDialog" model="projectTrashDialog" />
+<partial name="_ConfirmDialog" model="taskTrashDialog" />
 
 @* Toasts stack here (bottom right). site.js adds and removes them; aria-live makes screen
    readers announce each new one. *@

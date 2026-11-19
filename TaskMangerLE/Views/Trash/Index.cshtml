@@ -75,31 +75,19 @@
 
 @* "Delete forever" confirmation for a single item. site.js opens it for any form with a
    data-confirm-purge attribute (name) and data-trash-detail (the "Deleted ..." text). *@
-<dialog id="confirm-purge-dialog" class="modal modal-sm" role="alertdialog" aria-labelledby="confirm-purge-title">
-    <div class="confirm">
-        <div class="icon-tile is-rose">
-            <partial name="_TrashIcon" model="24" />
-        </div>
-        <div class="stack" style="gap:8px">
-            <h2 id="confirm-purge-title" style="font-size:20px;font-weight:700">Delete forever?</h2>
-            <p class="muted">
-                <b style="color:var(--text);font-weight:600" data-trash-name></b>
-                will be permanently deleted. This cannot be undone.
-            </p>
-        </div>
-        <div class="summary-panel">
-            <span class="muted" style="display:flex">
-                <partial name="_FolderIcon" model="14" />
-            </span>
-            <span style="font-weight:600;flex:1;min-width:0" data-trash-name></span>
-            <span class="muted" style="font-size:13px" id="confirm-purge-detail"></span>
-        </div>
-        <div class="actions" style="margin-top:4px">
-            <button type="button" class="btn" id="confirm-purge-cancel">Cancel</button>
-            <button type="button" class="btn btn-danger" id="confirm-purge-ok">Delete forever</button>
-        </div>
-    </div>
-</dialog>
+@{
+    // Built here, not inside model="...", because the double quotes would end the attribute.
+    var purgeDialog = new ConfirmDialogViewModel
+    {
+        IdPrefix = "confirm-purge",
+        Title = "Delete forever?",
+        Message = "will be permanently deleted. This cannot be undone.",
+        ConfirmLabel = "Delete forever",
+        ConfirmButtonClass = "btn-danger",
+        SummaryIconPartial = "_FolderIcon"
+    };
+}
+<partial name="_ConfirmDialog" model="purgeDialog" />
 
 @{
     // Restore and Delete forever send the user back here instead of the old Restore pages.
