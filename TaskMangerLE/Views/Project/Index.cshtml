@@ -296,8 +296,8 @@ else {
 
     <div id="project-list" class="card card-flush" hidden>
         <div class="data-scroll">
-            <div class="data-table">
-                <div class="data-row cols-projects data-head">
+            <div class="data-table cols-projects">
+                <div class="data-row data-head">
                     <span>Project</span>
                     <span>Status</span>
                     <span>Progress</span>
@@ -308,7 +308,7 @@ else {
                 @foreach (var project in projects) {
                     var (statusLabel, badgeClass, progressClass, textClass) = project.Status.GetStyle();
 
-                    <div class="data-row cols-projects"
+                    <div class="data-row"
                          data-project-item="@project.Status.ToString().ToLowerInvariant()"
                          data-project-due="@project.GetDueGroup(today).ToString().ToLowerInvariant()"
                          data-project-text="@project.Name @project.Description"

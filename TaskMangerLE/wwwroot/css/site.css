@@ -929,6 +929,8 @@ strong {
     text-transform: uppercase;
 }
 
+/* Column layouts go on the .data-table. --cols is a custom property, and custom properties are
+   inherited, so every .data-row inside picks it up. */
 .cols-tasks {
     --cols: 20px minmax(240px, 2.6fr) minmax(130px, 1.2fr) 110px 120px 44px;
 }
@@ -1796,6 +1798,12 @@ main.container:has(.filters-row) {
     top: 8px;
     right: 8px;
     z-index: 2;
+}
+
+/* Every menu sits at z-index 2, and with equal z-index the later one in the page paints on top,
+   so the next row's dots showed through an open panel. Lift the open one above its neighbours. */
+.task-card-menu[open] {
+    z-index: 10;
 }
 
 .task-card-menu summary {

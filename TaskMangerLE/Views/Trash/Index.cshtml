@@ -183,8 +183,9 @@ else {
         <p class="muted small" role="status" data-trash-summary></p>
     </div>
 
-    <div class="data-scroll" id="trash-table">
-        <div class="card card-flush">
+    @* Card outside, scroller inside: card-flush has overflow:hidden, so it would clip a wider scroller. *@
+    <div class="card card-flush" id="trash-table">
+        <div class="data-scroll">
             <div class="data-table cols-trash">
                 <div class="data-row data-head">
                     <span>Type</span>
