@@ -34,7 +34,7 @@
             </div>
         </div>
 
-        <form asp-action="Profile" method="post" class="stack">
+        <form asp-action="Profile" method="post" class="stack" data-check-required novalidate>
             <partial name="_FormErrors" />
 
             <div class="grid-kpi">
@@ -67,7 +67,7 @@
         <h2>Change password</h2>
         <p class="muted">Enter your current password, then choose a new one.</p>
 
-        <form asp-action="ChangePassword" method="post" class="stack">
+        <form asp-action="ChangePassword" method="post" class="stack" data-check-required novalidate>
             <partial name="_FormErrors" />
 
             <div class="field">

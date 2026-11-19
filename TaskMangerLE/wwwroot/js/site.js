@@ -543,9 +543,13 @@ function showServerToasts() {
 // Instant "this field is required" messages for a <form data-check-required>, without a page reload.
 // asp-for already writes the [Required] message into each input's data-val-required attribute,
 // so the text stays in one place (the view model). The server still validates: this is only a shortcut.
+// Every form with fields the user types in pairs data-check-required with novalidate, which turns off the
+// browser's own popups (e.g. for type="email") so these messages are the only ones shown.
 function setUpRequiredFieldChecks() {
     for (const form of document.querySelectorAll("form[data-check-required]")) {
-        const inputs = form.querySelectorAll("[data-val-required]");
+        // Hidden inputs are skipped: the user can't fill them in, so a message for one would never show
+        // (e.g. Code and Email on ResetPassword). The server reports those.
+        const inputs = form.querySelectorAll("[data-val-required]:not([type='hidden'])");
 
         function setFieldError(input, message) {
             input.classList.toggle("input-validation-error", Boolean(message));
