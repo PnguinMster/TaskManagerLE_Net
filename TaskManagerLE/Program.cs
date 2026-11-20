@@ -17,8 +17,15 @@ builder.Services.AddScoped<TaskService>();
 builder.Services.AddScoped<TrashService>();
 builder.Services.AddScoped<DashboardService>();
 
-// Email: logs to the console for now. Registered before AddIdentity so Identity's no-op default doesn't win.
-builder.Services.AddTransient<IEmailSender, LoggingEmailSender>();
+// Email: real SMTP in Production, console log everywhere else (Development, integration tests).
+// Registered before AddIdentity so Identity's no-op default doesn't win.
+if (builder.Environment.IsProduction()) {
+    builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection(SmtpOptions.SectionName));
+    builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
+}
+else {
+    builder.Services.AddTransient<IEmailSender, LoggingEmailSender>();
+}
 
 // Authorization
 builder.Services.AddAuthorizationBuilder()
